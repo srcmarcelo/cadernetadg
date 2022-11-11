@@ -9,7 +9,7 @@ export const Container = styled.div`
   padding: 5px 15px 15px 15px;
   width: 100%;
   height: ${({ items, error }) =>
-    items > 0 ? `${140 * items + error}px` : '140px'};
+    `${55 + (80 * (items > 0 ? items : 1)) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -20,10 +20,11 @@ export const Head = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  margin-bottom: 5px;
 `;
 
 export const Label = styled.h1`
-  font-size: 24px;
+  font-size: 22px;
   color: black;
   margin: 0;
 `;
@@ -66,15 +67,6 @@ export const ValueContainer = styled.div`
   width: 80%;
 `;
 
-export const TitleContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  border-bottom-color: black;
-  border-bottom-width: 1px;
-  margin-bottom: 5px;
-`;
-
 export const TitleInput = styled(Input)`
   font-size: 20px;
   color: black;
@@ -87,6 +79,7 @@ export const TitleInput = styled(Input)`
   background: #f0f0f0;
   margin: 0;
   width: 100%;
+  margin-bottom: 5px;
 `;
 
 export const Title = styled.div`

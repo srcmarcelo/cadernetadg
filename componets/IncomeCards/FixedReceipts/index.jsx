@@ -7,7 +7,6 @@ import {
   AddButton,
   ItemContainer,
   ValueContainer,
-  TitleContainer,
   Title,
   Value,
   ButtonsContainer,
@@ -21,17 +20,16 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
 import Empty from '../../Empty';
-import {
-  dispatchCreateFixedReceipts,
-  dispatchEditFixedReceipts,
-} from '../../../containers/Income/redux';
+import { dispatchEditFixedReceipts } from '../../../containers/Income/redux';
 import {
   CheckOutlined,
   CloseOutlined,
+  DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { Form } from 'antd';
+import { Form, Modal } from 'antd';
 import CurrencyFormat from 'react-currency-format';
 
 export default function FixedReceipts() {
@@ -39,8 +37,9 @@ export default function FixedReceipts() {
   const fixedReceipts = useSelector(getFixedReceipts);
   const hasReceipts = !_.isEmpty(fixedReceipts);
 
-  const [currentIdEditing, setCurentIdEditing] = useState(null);
+  const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const handleCreateReceipt = () => {
     const id = hasReceipts ? fixedReceipts[fixedReceipts.length - 1].id + 1 : 1;
@@ -50,23 +49,52 @@ export default function FixedReceipts() {
       name: '',
     };
     const newReceipts = [...fixedReceipts, newReceipt];
-    dispatchCreateFixedReceipts(dispatch, newReceipts);
-    setCurentIdEditing(id);
+    dispatchEditFixedReceipts(dispatch, newReceipts);
+    setCreating(true);
+    setCurrentIdEditing(id);
   };
 
   const handleEditReceipt = async (values, id) => {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
+    const receiptValue =
+      typeof values.value === 'string'
+        ? parseFloat(
+            values.value.slice(3).replaceAll('.', '').replace(',', '.')
+          )
+        : values.value;
     newReceipts[index] = {
       id: id,
-      value: parseFloat(
-        values.value.slice(3).replace('.', '').replace(',', '.')
-      ),
+      value: receiptValue,
       name: values.name,
     };
     dispatchEditFixedReceipts(dispatch, newReceipts);
-    setCurentIdEditing(null);
+    setCurrentIdEditing(null);
     setErrorFinish(false);
+    setCreating(false);
+  };
+
+  const handleDeleteReceipt = async (id) => {
+    const index = fixedReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(fixedReceipts);
+    newReceipts.splice(index, 1);
+    dispatchEditFixedReceipts(dispatch, newReceipts);
+    creating && setCreating(false);
+    currentIdEditing && setCurrentIdEditing(null);
+  };
+
+  const ConfirmDeleteModal = (id) => {
+    Modal.confirm({
+      title: 'Tem certeza que deseja excluir este recebimento?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ele retorne, terá que cria-lo novamente.',
+      okText: 'SIM',
+      okType: 'danger',
+      cancelText: 'NÃO',
+      onOk() {
+        handleDeleteReceipt(id);
+      },
+    });
   };
 
   const RenderValue = ({ value }) => (
@@ -99,13 +127,11 @@ export default function FixedReceipts() {
             },
           ]}
         >
-          <TitleContainer>
-            <TitleInput
-              key={`name_${item.id}`}
-              id={`name_${item.id}`}
-              placeholder='Exemplo: Salário'
-            />
-          </TitleContainer>
+          <TitleInput
+            key={`name_${item.id}`}
+            id={`name_${item.id}`}
+            placeholder='Exemplo: Salário'
+          />
         </Form.Item>
         <Form.Item
           style={{ margin: 0 }}
@@ -130,8 +156,13 @@ export default function FixedReceipts() {
         <ActionButton color='green' htmlType='submit'>
           <CheckOutlined />
         </ActionButton>
-        <ActionButton color='red'>
-          <CloseOutlined />
+        <ActionButton
+          color='red'
+          onClick={() =>
+            creating ? handleDeleteReceipt(item.id) : setCurrentIdEditing(null)
+          }
+        >
+          {creating ? <DeleteOutlined /> : <CloseOutlined />}
         </ActionButton>
       </ButtonsContainer>
     </FormContainer>
@@ -144,11 +175,19 @@ export default function FixedReceipts() {
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        <ActionButton color='orange' disabled={currentIdEditing}>
+        <ActionButton
+          color='orange'
+          disabled={currentIdEditing}
+          onClick={() => setCurrentIdEditing(item.id)}
+        >
           <EditOutlined />
         </ActionButton>
-        <ActionButton color='red' disabled={currentIdEditing}>
-          <CloseOutlined />
+        <ActionButton
+          color='red'
+          disabled={currentIdEditing}
+          onClick={() => ConfirmDeleteModal(item.id)}
+        >
+          <DeleteOutlined />
         </ActionButton>
       </ButtonsContainer>
     </ItemContent>
@@ -167,7 +206,7 @@ export default function FixedReceipts() {
   };
 
   return (
-    <Container items={fixedReceipts.length} error={errorFinish ? 20 : 0}>
+    <Container items={fixedReceipts.length} error={errorFinish ? 30 : 0}>
       <Head>
         <Label>Recebimentos Fixos</Label>
         <AddButton onClick={handleCreateReceipt} disabled={currentIdEditing}>

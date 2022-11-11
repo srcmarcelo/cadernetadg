@@ -15,7 +15,7 @@ export default function Calendar() {
         marginBottom: '5px',
       }}
     >
-      Calendário
+      Seu Perfil | Zerar Caderneta
     </div>
   );
 }
