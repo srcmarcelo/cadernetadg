@@ -1,14 +1,34 @@
 import React from 'react';
-import { NavigationButton, ButtonsContainer, Container } from './styles';
+import { NavigationButton, Container } from './styles';
 
-export default function NavigationBar({onClick}) {
+export default function NavigationBar({ onClick, currentTab }) {
+  const colors = {
+    income: '#368F42',
+    panel: '#232C68',
+    outcome: '#C83126',
+  };
+
+  const names = {
+    income: 'Saldos',
+    panel: 'Painel',
+    outcome: 'Débitos',
+  };
+
+  const RenderButton = ({ label }) => (
+    <NavigationButton
+      color={colors[label]}
+      onClick={() => onClick(label)}
+      selected={currentTab === label}
+    >
+      {names[label]}
+    </NavigationButton>
+  );
+
   return (
-    <Container>
-      <ButtonsContainer>
-        <NavigationButton color='#368F42' onClick={() => onClick('income')}>Saldos</NavigationButton>
-        <NavigationButton color='#232C68' onClick={() => onClick('panel')}>Painel</NavigationButton>
-        <NavigationButton color='#C83126' onClick={() => onClick('outcome')}>Débitos</NavigationButton>
-      </ButtonsContainer>
+    <Container color={colors[currentTab]}>
+      <RenderButton label='income' />
+      <RenderButton label='panel' />
+      <RenderButton label='outcome' />
     </Container>
   );
 }

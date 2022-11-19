@@ -19,7 +19,7 @@ export default function Main() {
         {currentTab === 'income' && <Income />}
         {currentTab === 'outcome' && <Outcome />}
       </Content>
-      <NavigationBar onClick={(value) => setCurrentTab(value)} />
+      <NavigationBar onClick={(value) => setCurrentTab(value)} currentTab={currentTab} />
     </Container>
   );
 }

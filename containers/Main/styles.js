@@ -19,5 +19,6 @@ export const Content = styled.div`
   align-items: center;
   width: 100%;
   padding: 15px;
+  padding-bottom: 5px;
   border-radius: 10px;
 `;

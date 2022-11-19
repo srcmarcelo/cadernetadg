@@ -4,38 +4,35 @@ import { Button } from 'antd';
 export const Container = styled.div`
   display: flex;
   width: 100%;
-  background-color: #8c8c8c;
-  height: 5vh;
-  border-top-left-radius: 100px;
-  border-top-right-radius: 100px;
-  justify-content: center;
-  align-items: center;
-`;
-
-export const ButtonsContainer = styled.div`
-  display: flex;
-  width: 80%;
+  height: 6.5vh;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: ${({ color }) => color};
   justify-content: space-around;
   align-items: center;
 `;
 
 export const NavigationButton = styled(Button)`
-  color: ${({ color }) => color};
+  background-color: ${({ color }) => color};
+  color: white;
   font-size: 1rem;
-  background-color: transparent;
   border-color: transparent;
   height: 100%;
+  width: 30%;
+  border-radius: 30px;
+  border-width: ${({ selected }) => selected && '1px'};
+  border-color: ${({ selected }) => selected && 'white'};
 
   &:hover {
-    background-color: transparent;
-    border-color: transparent;
-    color: ${({ color }) => color};
+    background-color: ${({ color }) => color};
+    border-color: ${({ selected }) => selected ? 'white' : 'transparent'};
+    color: white;
   }
 
   &:focus {
-    background-color: transparent;
-    border-color: transparent;
-    color: ${({ color }) => color};
-    font-size: 1.5rem;
+    background-color: ${({ color }) => color};
+    border-width: 1px;
+    border-color: white;
+    color: white;
   }
 `;

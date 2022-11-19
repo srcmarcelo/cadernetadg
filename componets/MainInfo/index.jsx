@@ -14,12 +14,15 @@ import {
   getFixedReceipts,
 } from '../../containers/Income/redux/reducer';
 import { useSelector } from 'react-redux';
+import { getFixedDebts } from '../../containers/Outcome/redux/reducer';
 
 export default function MainInfo() {
   const currentBalance = useSelector(getCurrentBalance);
   const fixedReceipts = useSelector(getFixedReceipts);
+  const fixedDebts = useSelector(getFixedDebts);
 
   const [willReceive, setWillReceive] = useState(0);
+  const [totalDebts, setTotalDebts] = useState(0);
 
   useEffect(() => {
     let total = 0;
@@ -30,6 +33,16 @@ export default function MainInfo() {
     });
     setWillReceive(total);
   }, [fixedReceipts]);
+
+  useEffect(() => {
+    let total = 0;
+    fixedDebts.forEach(({ value, payed }, index) => {
+      if (value && !payed) {
+        index === 0 ? (total = value) : (total += value);
+      }
+    });
+    setTotalDebts(total);
+  }, [fixedDebts]);
 
   const RenderValue = ({ color, value }) => (
     <CurrencyFormat
@@ -59,7 +72,7 @@ export default function MainInfo() {
         </Balance>
         <Balance>
           <BalanceLabel>Quanto você deve este mês:</BalanceLabel>
-          <RenderValue color='#C83126' value={2456981} />
+          <RenderValue color='#C83126' value={totalDebts} />
         </Balance>
       </BalancesContainer>
       <WarningContainer>Está tudo ok!</WarningContainer>

@@ -1,5 +1,20 @@
+import {
+  CheckOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+  FileDoneOutlined,
+  PlusOutlined,
+  RollbackOutlined,
+} from '@ant-design/icons';
+import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
-import _ from 'lodash';
+import CurrencyFormat from 'react-currency-format';
+import { useDispatch, useSelector } from 'react-redux';
+import { dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
+import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
+import Empty from '../../Empty';
 import {
   Container,
   Head,
@@ -18,94 +33,77 @@ import {
   ConfirmButton,
 } from './styles';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
-import Empty from '../../Empty';
-import { dispatchEditFixedReceipts } from '../../../containers/Income/redux';
-import {
-  CheckOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  DollarOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  RollbackOutlined,
-} from '@ant-design/icons';
-import { Form, Modal } from 'antd';
-import CurrencyFormat from 'react-currency-format';
-
-export default function FixedReceipts() {
+export default function FixedDebts() {
   const dispatch = useDispatch();
-  const fixedReceipts = useSelector(getFixedReceipts);
-  const hasReceipts = !_.isEmpty(fixedReceipts);
+  const fixedDebts = useSelector(getFixedDebts);
+  const hasDebts = !_.isEmpty(fixedDebts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const handleCreateReceipt = () => {
-    const id = hasReceipts ? fixedReceipts[fixedReceipts.length - 1].id + 1 : 1;
-    const newReceipt = {
+  const handleCreateDebt = () => {
+    const id = hasDebts ? fixedDebts[fixedDebts.length - 1].id + 1 : 1;
+    const newDebt = {
       id: id,
       value: undefined,
       name: '',
-      received: false,
+      payed: false,
     };
-    const newReceipts = [...fixedReceipts, newReceipt];
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    const newDebts = [...fixedDebts, newDebt];
+    dispatchEditFixedDebts(dispatch, newDebts);
     setCreating(true);
     setCurrentIdEditing(id);
   };
 
-  const handleEditReceipt = async (values, id) => {
-    const index = fixedReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(fixedReceipts);
-    const receiptValue =
+  const handleEditDebt = async (values, id) => {
+    const index = fixedDebts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(fixedDebts);
+    const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newReceipts[index] = {
+    newDebts[index] = {
       id: id,
-      value: receiptValue,
+      value: debtValue,
       name: values.name,
     };
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    dispatchEditFixedDebts(dispatch, newDebts);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
   };
 
-  const handleDeleteReceipt = async (id) => {
-    const index = fixedReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(fixedReceipts);
-    newReceipts.splice(index, 1);
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+  const handleDeleteDebt = async (id) => {
+    const index = fixedDebts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(fixedDebts);
+    newDebts.splice(index, 1);
+    dispatchEditFixedDebts(dispatch, newDebts);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const handleConfirmReceipt = async (id) => {
-    const index = fixedReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(fixedReceipts);
-    newReceipts[index].received = !newReceipts[index].received;
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+  const handleConfirmDebt = async (id) => {
+    const index = fixedDebts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(fixedDebts);
+    newDebts[index].payed = !newDebts[index].payed;
+    dispatchEditFixedDebts(dispatch, newDebts);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
 
   const handleConfirmDeleteModal = (id) => {
     Modal.confirm({
-      title: 'Tem certeza que deseja excluir este recebimento?',
+      title: 'Tem certeza que deseja excluir este débito?',
       icon: <ExclamationCircleOutlined />,
       content: 'Caso queira que ele retorne, terá que cria-lo novamente.',
       okText: 'SIM',
       okType: 'danger',
       cancelText: 'NÃO',
       onOk() {
-        handleDeleteReceipt(id);
+        handleDeleteDebt(id);
       },
     });
   };
@@ -125,7 +123,7 @@ export default function FixedReceipts() {
 
   const RenderForm = ({ item }) => (
     <FormContainer
-      onFinish={(values) => handleEditReceipt(values, item.id)}
+      onFinish={(values) => handleEditDebt(values, item.id)}
       initialValues={{ ...item }}
       onFinishFailed={() => setErrorFinish(true)}
     >
@@ -136,14 +134,14 @@ export default function FixedReceipts() {
           rules={[
             {
               required: true,
-              message: 'Digite um nome para identificacar o recebimento.',
+              message: 'Digite um nome para identificacar o débito.',
             },
           ]}
         >
           <TitleInput
             key={`name_${item.id}`}
             id={`name_${item.id}`}
-            placeholder='Exemplo: Salário'
+            placeholder='Exemplo: Aluguel'
           />
         </Form.Item>
         <Form.Item
@@ -152,7 +150,7 @@ export default function FixedReceipts() {
           rules={[
             {
               required: true,
-              message: 'Digite o valor do recebimento.',
+              message: 'Digite o valor do débito.',
             },
           ]}
         >
@@ -172,7 +170,7 @@ export default function FixedReceipts() {
         <ActionButton
           color='red'
           onClick={() =>
-            creating ? handleDeleteReceipt(item.id) : setCurrentIdEditing(null)
+            creating ? handleDeleteDebt(item.id) : setCurrentIdEditing(null)
           }
         >
           {creating ? <DeleteOutlined /> : <CloseOutlined />}
@@ -184,11 +182,11 @@ export default function FixedReceipts() {
   const RenderItemContent = ({ item }) => (
     <ItemContent>
       <ValueContainer>
-        <Title received={item.received}>{item.name.toUpperCase()}</Title>
+        <Title payed={item.payed}>{item.name.toUpperCase()}</Title>
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        {!item.received && (
+        {!item.payed && (
           <>
             <ActionButton
               color='orange'
@@ -209,10 +207,10 @@ export default function FixedReceipts() {
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
-          color={item.received ? 'grey' : '#368f42'}
-          onClick={() => handleConfirmReceipt(item.id)}
+          color={item.payed ? 'grey' : '#368f42'}
+          onClick={() => handleConfirmDebt(item.id)}
         >
-          {item.received ? <RollbackOutlined /> : <DollarOutlined />}
+          {item.payed ? <RollbackOutlined /> : <FileDoneOutlined />}
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -231,20 +229,20 @@ export default function FixedReceipts() {
   };
 
   return (
-    <Container items={fixedReceipts.length} error={errorFinish ? 30 : 0}>
+    <Container items={fixedDebts.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Recebimentos Fixos</Label>
-        <AddButton onClick={handleCreateReceipt} disabled={currentIdEditing}>
+        <Label>Débitos Fixos</Label>
+        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
       </Head>
-      {!hasReceipts ? (
+      {!hasDebts ? (
         <Empty
-          title='Nenhum recebimento fixo cadastrado'
-          message='Clique em adicionar para adicionar recebimento'
+          title='Nenhuma despeza fixo cadastrado'
+          message='Clique em adicionar para adicionar débito'
         />
       ) : (
-        fixedReceipts.map((item) => <RenderItem key={item.id} item={item} />)
+        fixedDebts.map((item) => <RenderItem key={item.id} item={item} />)
       )}
     </Container>
   );
