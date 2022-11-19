@@ -15,6 +15,7 @@ import {
   TitleInput,
   ItemContent,
   DisplayValue,
+  ConfirmButton,
 } from './styles';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,9 +26,11 @@ import {
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
+  DollarOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
+  RollbackOutlined,
 } from '@ant-design/icons';
 import { Form, Modal } from 'antd';
 import CurrencyFormat from 'react-currency-format';
@@ -47,6 +50,7 @@ export default function FixedReceipts() {
       id: id,
       value: undefined,
       name: '',
+      received: false,
     };
     const newReceipts = [...fixedReceipts, newReceipt];
     dispatchEditFixedReceipts(dispatch, newReceipts);
@@ -83,7 +87,16 @@ export default function FixedReceipts() {
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const ConfirmDeleteModal = (id) => {
+  const handleConfirmReceipt = async (id) => {
+    const index = fixedReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(fixedReceipts);
+    newReceipts[index].received = !newReceipts[index].received;
+    dispatchEditFixedReceipts(dispatch, newReceipts);
+    creating && setCreating(false);
+    currentIdEditing && setCurrentIdEditing(null);
+  };
+
+  const handleConfirmDeleteModal = (id) => {
     Modal.confirm({
       title: 'Tem certeza que deseja excluir este recebimento?',
       icon: <ExclamationCircleOutlined />,
@@ -170,25 +183,38 @@ export default function FixedReceipts() {
 
   const RenderItemContent = ({ item }) => (
     <ItemContent>
+      {console.log('item:', item)}
       <ValueContainer>
-        <Title>{item.name.toUpperCase()}</Title>
+        <Title received={item.received}>{item.name.toUpperCase()}</Title>
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        <ActionButton
-          color='orange'
-          disabled={currentIdEditing}
-          onClick={() => setCurrentIdEditing(item.id)}
+        {!item.received && (
+          <>
+            <ActionButton
+              color='orange'
+              disabled={currentIdEditing}
+              onClick={() => setCurrentIdEditing(item.id)}
+            >
+              <EditOutlined />
+            </ActionButton>
+            <ActionButton
+              color='red'
+              disabled={currentIdEditing}
+              onClick={() => handleConfirmDeleteModal(item.id)}
+            >
+              <DeleteOutlined />
+            </ActionButton>
+          </>
+        )}
+      </ButtonsContainer>
+      <ButtonsContainer>
+        <ConfirmButton
+          color={item.received ? 'grey' : '#368f42'}
+          onClick={() => handleConfirmReceipt(item.id)}
         >
-          <EditOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          disabled={currentIdEditing}
-          onClick={() => ConfirmDeleteModal(item.id)}
-        >
-          <DeleteOutlined />
-        </ActionButton>
+          {item.received ? <RollbackOutlined /> : <DollarOutlined />}
+        </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
   );

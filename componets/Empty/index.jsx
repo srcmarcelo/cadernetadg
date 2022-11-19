@@ -4,8 +4,8 @@ import {Container, Title, Message} from './styles';
 export default function Empty({title, message}) {
   return (
     <Container>
-      <Title>{title}</Title>
-      <Message>{message}</Message>
+      {title && <Title>{title}</Title>}
+      {message && <Message>{message}</Message>}
     </Container>
   );
 }

@@ -23,8 +23,8 @@ export default function MainInfo() {
 
   useEffect(() => {
     let total = 0;
-    fixedReceipts.forEach(({ value }, index) => {
-      if (value) {
+    fixedReceipts.forEach(({ value, received }, index) => {
+      if (value && !received) {
         index === 0 ? (total = value) : (total += value);
       }
     });

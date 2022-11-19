@@ -12,7 +12,7 @@ const Home = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Caderneta Digital!</title>
+        <title>Caderneta Digital</title>
         <meta name='description' content='Controle seu dinheiro!' />
         <link rel='icon' href='/favicon.ico' />
       </Head>

@@ -9,7 +9,7 @@ export const Container = styled.div`
   padding: 5px 15px 15px 15px;
   width: 100%;
   height: ${({ items, error }) =>
-    `${55 + (80 * (items > 0 ? items : 1)) + error}px`};
+    `${55 + 80 * (items > 0 ? items : 1) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -84,14 +84,14 @@ export const TitleInput = styled(Input)`
 
 export const Title = styled.div`
   font-size: 20px;
-  color: black;
+  color: ${({received}) => received ? '#fff' : 'black'};
   padding: 0px 10px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: #f0f0f0;
+  background: ${({received}) => received ? '#368f42' : '#fff'};
   margin: 0;
   width: 100%;
 `;
@@ -110,7 +110,7 @@ export const Value = styled(CurrencyInput)`
 export const DisplayValue = styled.div`
   font-size: 1.5rem;
   height: '36px';
-  color: #368F42;
+  color: #368f42;
   border-radius: 10px;
   padding: 0px 5px;
   border: none;
@@ -134,11 +134,33 @@ export const ActionButton = styled(Button)`
 
   &:hover {
     background-color: ${({ color }) => color};
+    border-color: ${({ color }) => color};
     color: white;
   }
 
   &:enabled {
     background-color: ${({ color }) => color};
+    border-color: ${({ color }) => color};
+    color: white;
+  }
+`;
+
+export const ConfirmButton = styled(Button)`
+  background-color: ${({ color }) => color};
+  color: white;
+  font-size: 2rem;
+  width: 100%;
+  height: 100%;
+
+  &:hover {
+    background-color: ${({ color }) => color};
+    border-color: ${({ color }) => color};
+    color: white;
+  }
+
+  &:enabled {
+    background-color: ${({ color }) => color};
+    border-color: ${({ color }) => color};
     color: white;
   }
 `;
