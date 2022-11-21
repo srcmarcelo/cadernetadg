@@ -14,12 +14,13 @@ import {
   getFixedReceipts,
 } from '../../containers/Income/redux/reducer';
 import { useSelector } from 'react-redux';
-import { getFixedDebts } from '../../containers/Outcome/redux/reducer';
+import { getFixedDebts, getOtherDebts } from '../../containers/Outcome/redux/reducer';
 
 export default function MainInfo() {
   const currentBalance = useSelector(getCurrentBalance);
   const fixedReceipts = useSelector(getFixedReceipts);
   const fixedDebts = useSelector(getFixedDebts);
+  const otherDebts = useSelector(getOtherDebts);
 
   const [willReceive, setWillReceive] = useState(0);
   const [totalDebts, setTotalDebts] = useState(0);
@@ -36,13 +37,14 @@ export default function MainInfo() {
 
   useEffect(() => {
     let total = 0;
-    fixedDebts.forEach(({ value, payed }, index) => {
+    const debts = [...fixedDebts, ...otherDebts];
+    debts.forEach(({ value, payed }, index) => {
       if (value && !payed) {
         index === 0 ? (total = value) : (total += value);
       }
     });
     setTotalDebts(total);
-  }, [fixedDebts]);
+  }, [fixedDebts, otherDebts]);
 
   const RenderValue = ({ color, value }) => (
     <CurrencyFormat

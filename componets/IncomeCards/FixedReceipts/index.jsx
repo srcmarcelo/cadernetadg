@@ -209,6 +209,7 @@ export default function FixedReceipts() {
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
+          disabled={currentIdEditing}
           color={item.received ? 'grey' : '#368f42'}
           onClick={() => handleConfirmReceipt(item.id)}
         >
