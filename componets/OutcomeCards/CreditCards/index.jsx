@@ -1,10 +1,10 @@
 import {
+  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
-  FileDoneOutlined,
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
@@ -12,8 +12,8 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchEditOtherDebts } from '../../../containers/Outcome/redux';
-import { getOtherDebts } from '../../../containers/Outcome/redux/reducer';
+import { dispatchEditCreditCards } from '../../../containers/Outcome/redux';
+import { getCreditCards } from '../../../containers/Outcome/redux/reducer';
 import Empty from '../../Empty';
 import {
   Container,
@@ -33,55 +33,78 @@ import {
   ConfirmButton,
 } from '../FixedDebts/styles';
 
-export default function OtherDebts() {
+export default function CreditCards() {
   const dispatch = useDispatch();
-  const otherDebts = useSelector(getOtherDebts);
-  const hasDebts = !_.isEmpty(otherDebts);
+  const creditCards = useSelector(getCreditCards);
+  const hasCards = !_.isEmpty(creditCards);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const handleCreateDebt = () => {
-    const id = hasDebts ? otherDebts[otherDebts.length - 1].id + 1 : 1;
-    const newDebt = {
+  const handleCreateCard = () => {
+    const id = hasCards ? creditCards[creditCards.length - 1].id + 1 : 1;
+    const newCard = {
       id: id,
       value: undefined,
       name: '',
+      payed: false,
     };
-    const newDebts = [...otherDebts, newDebt];
-    dispatchEditOtherDebts(dispatch, newDebts);
+    const newCards = [...creditCards, newCard];
+    dispatchEditCreditCards(dispatch, newCards);
     setCreating(true);
     setCurrentIdEditing(id);
   };
 
-  const handleEditDebt = async (values, id) => {
-    const index = otherDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(otherDebts);
+  const handleEditCard = async (values, id) => {
+    const index = creditCards.findIndex((item) => item.id === id);
+    const newCards = _.cloneDeep(creditCards);
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newDebts[index] = {
+    newCards[index] = {
       id: id,
       value: debtValue,
       name: values.name,
     };
-    dispatchEditOtherDebts(dispatch, newDebts);
+    dispatchEditCreditCards(dispatch, newCards);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
   };
 
-  const handleDeleteDebt = async (id) => {
-    const index = otherDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(otherDebts);
-    newDebts.splice(index, 1);
-    dispatchEditOtherDebts(dispatch, newDebts);
+  const handleDeleteCard = async (id) => {
+    const index = creditCards.findIndex((item) => item.id === id);
+    const newCards = _.cloneDeep(creditCards);
+    newCards.splice(index, 1);
+    dispatchEditCreditCards(dispatch, newCards);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+  };
+
+  const handleResetCard = async (id) => {
+    const index = creditCards.findIndex((item) => item.id === id);
+    const newCards = _.cloneDeep(creditCards);
+    newCards[index].value = 0;
+    if (creditCards[index].value > 0)
+      dispatchEditCreditCards(dispatch, newCards);
+  };
+
+  const handleConfirmDeleteModal = (id) => {
+    Modal.confirm({
+      title: 'Realmente deseja excluir esta fatura?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ela retorne, terá que cria-la novamente.',
+      okText: 'SIM',
+      okType: 'danger',
+      cancelText: 'NÃO',
+      onOk() {
+        handleDeleteCard(id);
+      },
+    });
   };
 
   const RenderValue = ({ value }) => (
@@ -90,7 +113,7 @@ export default function OtherDebts() {
       displayType={'text'}
       thousandSeparator='.'
       decimalSeparator=','
-      otherDecimalScale={true}
+      fixedDecimalScale={true}
       decimalScale={2}
       prefix={'R$ '}
       renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
@@ -99,7 +122,7 @@ export default function OtherDebts() {
 
   const RenderForm = ({ item }) => (
     <FormContainer
-      onFinish={(values) => handleEditDebt(values, item.id)}
+      onFinish={(values) => handleEditCard(values, item.id)}
       initialValues={{ ...item }}
       onFinishFailed={() => setErrorFinish(true)}
     >
@@ -117,7 +140,7 @@ export default function OtherDebts() {
           <TitleInput
             key={`name_${item.id}`}
             id={`name_${item.id}`}
-            placeholder='Exemplo: Parcela do Empréstimo'
+            placeholder='Exemplo: Itau'
           />
         </Form.Item>
         <Form.Item
@@ -146,7 +169,7 @@ export default function OtherDebts() {
         <ActionButton
           color='red'
           onClick={() =>
-            creating ? handleDeleteDebt(item.id) : setCurrentIdEditing(null)
+            creating ? handleDeleteCard(item.id) : setCurrentIdEditing(null)
           }
         >
           {creating ? <DeleteOutlined /> : <CloseOutlined />}
@@ -162,21 +185,28 @@ export default function OtherDebts() {
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        <ConfirmButton
+        <ActionButton
           color='orange'
           disabled={currentIdEditing}
           onClick={() => setCurrentIdEditing(item.id)}
         >
           <EditOutlined />
-        </ConfirmButton>
+        </ActionButton>
+        <ActionButton
+          color='red'
+          disabled={currentIdEditing}
+          onClick={() => handleConfirmDeleteModal(item.id)}
+        >
+          <DeleteOutlined />
+        </ActionButton>
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
-          color='red'
           disabled={currentIdEditing}
-          onClick={() => handleDeleteDebt(item.id)}
+          color={item.value == 0 ? 'grey' : '#368f42'}
+          onClick={() => handleResetCard(item.id)}
         >
-          <DeleteOutlined />
+          <CarryOutOutlined />
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -195,20 +225,20 @@ export default function OtherDebts() {
   };
 
   return (
-    <Container items={otherDebts.length} error={errorFinish ? 30 : 0}>
+    <Container items={creditCards.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Outras Despezas</Label>
-        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
+        <Label>Faturas</Label>
+        <AddButton onClick={handleCreateCard} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
       </Head>
-      {!hasDebts ? (
+      {!hasCards ? (
         <Empty
-          title='Nenhuma despeza extra cadastrado'
-          message='Clique em adicionar para adicionar débito'
+          title='Nenhum cartão de crédito cadastrado'
+          message='Clique em adicionar para adicionar cartão'
         />
       ) : (
-        otherDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        creditCards.map((item) => <RenderItem key={item.id} item={item} />)
       )}
     </Container>
   );

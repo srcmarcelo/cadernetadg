@@ -12,8 +12,8 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
-import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
+import { dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
+import { getExtraDebts } from '../../../containers/Outcome/redux/reducer';
 import Empty from '../../Empty';
 import {
   Container,
@@ -31,34 +31,33 @@ import {
   ItemContent,
   DisplayValue,
   ConfirmButton,
-} from './styles';
+} from '../FixedDebts/styles';
 
-export default function FixedDebts() {
+export default function ExtraDebts() {
   const dispatch = useDispatch();
-  const fixedDebts = useSelector(getFixedDebts);
-  const hasDebts = !_.isEmpty(fixedDebts);
+  const extraDebts = useSelector(getExtraDebts);
+  const hasDebts = !_.isEmpty(extraDebts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateDebt = () => {
-    const id = hasDebts ? fixedDebts[fixedDebts.length - 1].id + 1 : 1;
+    const id = hasDebts ? extraDebts[extraDebts.length - 1].id + 1 : 1;
     const newDebt = {
       id: id,
       value: undefined,
       name: '',
-      payed: false,
     };
-    const newDebts = [...fixedDebts, newDebt];
-    dispatchEditFixedDebts(dispatch, newDebts);
+    const newDebts = [...extraDebts, newDebt];
+    dispatchEditExtraDebts(dispatch, newDebts);
     setCreating(true);
     setCurrentIdEditing(id);
   };
 
   const handleEditDebt = async (values, id) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(fixedDebts);
+    const index = extraDebts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(extraDebts);
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
@@ -70,42 +69,19 @@ export default function FixedDebts() {
       value: debtValue,
       name: values.name,
     };
-    dispatchEditFixedDebts(dispatch, newDebts);
+    dispatchEditExtraDebts(dispatch, newDebts);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
   };
 
   const handleDeleteDebt = async (id) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(fixedDebts);
+    const index = extraDebts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(extraDebts);
     newDebts.splice(index, 1);
-    dispatchEditFixedDebts(dispatch, newDebts);
+    dispatchEditExtraDebts(dispatch, newDebts);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
-  };
-
-  const handleConfirmDebt = async (id) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(fixedDebts);
-    newDebts[index].payed = !newDebts[index].payed;
-    dispatchEditFixedDebts(dispatch, newDebts);
-    creating && setCreating(false);
-    currentIdEditing && setCurrentIdEditing(null);
-  };
-
-  const handleConfirmDeleteModal = (id) => {
-    Modal.confirm({
-      title: 'Tem certeza que deseja excluir este débito?',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Caso queira que ele retorne, terá que cria-lo novamente.',
-      okText: 'SIM',
-      okType: 'danger',
-      cancelText: 'NÃO',
-      onOk() {
-        handleDeleteDebt(id);
-      },
-    });
   };
 
   const RenderValue = ({ value }) => (
@@ -114,7 +90,7 @@ export default function FixedDebts() {
       displayType={'text'}
       thousandSeparator='.'
       decimalSeparator=','
-      fixedDecimalScale={true}
+      extraDecimalScale={true}
       decimalScale={2}
       prefix={'R$ '}
       renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
@@ -141,7 +117,7 @@ export default function FixedDebts() {
           <TitleInput
             key={`name_${item.id}`}
             id={`name_${item.id}`}
-            placeholder='Exemplo: Aluguel'
+            placeholder='Exemplo: Parcela do Empréstimo'
           />
         </Form.Item>
         <Form.Item
@@ -182,36 +158,25 @@ export default function FixedDebts() {
   const RenderItemContent = ({ item }) => (
     <ItemContent>
       <ValueContainer>
-        <Title payed={item.payed}>{item.name.toUpperCase()}</Title>
+        <Title>{item.name.toUpperCase()}</Title>
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        {!item.payed && (
-          <>
-            <ActionButton
-              color='orange'
-              disabled={currentIdEditing}
-              onClick={() => setCurrentIdEditing(item.id)}
-            >
-              <EditOutlined />
-            </ActionButton>
-            <ActionButton
-              color='red'
-              disabled={currentIdEditing}
-              onClick={() => handleConfirmDeleteModal(item.id)}
-            >
-              <DeleteOutlined />
-            </ActionButton>
-          </>
-        )}
+        <ConfirmButton
+          color='orange'
+          disabled={currentIdEditing}
+          onClick={() => setCurrentIdEditing(item.id)}
+        >
+          <EditOutlined />
+        </ConfirmButton>
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
+          color='red'
           disabled={currentIdEditing}
-          color={item.payed ? 'grey' : '#368f42'}
-          onClick={() => handleConfirmDebt(item.id)}
+          onClick={() => handleDeleteDebt(item.id)}
         >
-          {item.payed ? <RollbackOutlined /> : <FileDoneOutlined />}
+          <DeleteOutlined />
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -230,20 +195,20 @@ export default function FixedDebts() {
   };
 
   return (
-    <Container items={fixedDebts.length} error={errorFinish ? 30 : 0}>
+    <Container items={extraDebts.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Despesas Fixas</Label>
+        <Label>Despesas Extras</Label>
         <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
       </Head>
       {!hasDebts ? (
         <Empty
-          title='Nenhuma despesa fixa cadastrada'
+          title='Nenhuma despesa extra cadastrada'
           message='Clique em adicionar para adicionar débito'
         />
       ) : (
-        fixedDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        extraDebts.map((item) => <RenderItem key={item.id} item={item} />)
       )}
     </Container>
   );

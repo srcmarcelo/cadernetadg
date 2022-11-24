@@ -1,10 +1,14 @@
-import { setFixedDebts, setOtherDebts } from './reducer';
+import { setFixedDebts, setExtraDebts, setCreditCards } from './reducer';
 
 export const dispatchEditFixedDebts = (dispatch, value) => {
   dispatch(setFixedDebts(value));
 };
 
-export const dispatchEditOtherDebts = (dispatch, value) => {
-  dispatch(setOtherDebts(value));
+export const dispatchEditExtraDebts = (dispatch, value) => {
+  dispatch(setExtraDebts(value));
+};
+
+export const dispatchEditCreditCards = (dispatch, value) => {
+  dispatch(setCreditCards(value));
 };
 

@@ -1,13 +1,15 @@
 import React from 'react';
+import CreditCards from '../../componets/OutcomeCards/CreditCards';
 import FixedDebts from '../../componets/OutcomeCards/FixedDebts';
-import OtherDebts from '../../componets/OutcomeCards/OtherDebts';
+import ExtraDebts from '../../componets/OutcomeCards/ExtraDebts';
 import { Container } from './styles';
 
 export default function Outcome() {
   return (
     <Container>
       <FixedDebts />
-      <OtherDebts />
+      <CreditCards />
+      <ExtraDebts />
     </Container>
   );
 }

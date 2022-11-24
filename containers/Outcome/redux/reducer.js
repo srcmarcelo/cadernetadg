@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   fixedDebts: [],
-  otherDebts: [],
+  extraDebts: [],
+  creditCards: [],
 };
 
 export const outcomeSlice = createSlice({
@@ -12,16 +13,21 @@ export const outcomeSlice = createSlice({
     setFixedDebts: (state, action) => {
       state.fixedDebts = action.payload;
     },
-    setOtherDebts: (state, action) => {
-      state.otherDebts = action.payload;
+    setExtraDebts: (state, action) => {
+      state.extraDebts = action.payload;
+    },
+    setCreditCards: (state, action) => {
+      state.creditCards = action.payload;
     },
   },
 });
 
-export const { setFixedDebts, setOtherDebts } = outcomeSlice.actions;
+export const { setFixedDebts, setExtraDebts, setCreditCards } = outcomeSlice.actions;
 
 export const getFixedDebts = (state) => state.outcome.fixedDebts;
 
-export const getOtherDebts = (state) => state.outcome.otherDebts;
+export const getExtraDebts = (state) => state.outcome.extraDebts;
+
+export const getCreditCards = (state) => state.outcome.creditCards;
 
 export default outcomeSlice.reducer;

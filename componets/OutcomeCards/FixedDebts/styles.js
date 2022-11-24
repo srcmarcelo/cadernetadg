@@ -84,14 +84,14 @@ export const TitleInput = styled(Input)`
 
 export const Title = styled.div`
   font-size: 20px;
-  color: ${({payed}) => payed ? '#fff' : 'black'};
-  padding: 0px 10px;
+  color: ${({ payed }) => (payed ? '#fff' : 'black')};
+  padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: ${({payed}) => payed ? '#368f42' : '#fff'};
+  background: ${({ payed }) => (payed ? '#368f42' : '#fff')};
   margin: 0;
   width: 100%;
 `;
@@ -99,7 +99,7 @@ export const Title = styled.div`
 export const Value = styled(CurrencyInput)`
   font-size: 1.5rem;
   height: 36px;
-  color: #C83126;
+  color: #c83126;
   background: #f0f0f0;
   border-radius: 10px;
   padding: 0px 5px;
@@ -110,7 +110,7 @@ export const Value = styled(CurrencyInput)`
 export const DisplayValue = styled.div`
   font-size: 1.5rem;
   height: 36px;
-  color: #C83126;
+  color: #c83126;
   border-radius: 10px;
   padding: 0px 5px;
   border: none;
