@@ -10,9 +10,9 @@ import {
 } from './styles';
 import CurrencyFormat from 'react-currency-format';
 import {
-  getCurrentBalance,
   getFixedReceipts,
 } from '../../containers/Income/redux/reducer';
+import { getCurrentBalance } from '../../containers/Main/redux/reducer';
 import { useSelector } from 'react-redux';
 import { getFixedDebts, getExtraDebts, getCreditCards } from '../../containers/Outcome/redux/reducer';
 

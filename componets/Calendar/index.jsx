@@ -9,7 +9,7 @@ export default function Calendar() {
         justifyContent: 'center',
         backgroundColor: 'blue',
         width: '100%',
-        height: '40px',
+        height: '4vh',
         borderRadius: '10px',
         color: 'white',
         marginBottom: '5px',

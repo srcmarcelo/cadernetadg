@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import _ from 'lodash';
+import { Form, Modal } from 'antd';
+import CurrencyFormat from 'react-currency-format';
+import { useDispatch, useSelector } from 'react-redux';
+import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
+
 import {
   Container,
   Head,
@@ -18,7 +23,6 @@ import {
   ConfirmButton,
 } from './styles';
 
-import { useDispatch, useSelector } from 'react-redux';
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
 import Empty from '../../Empty';
 import { dispatchEditFixedReceipts } from '../../../containers/Income/redux';
@@ -32,11 +36,13 @@ import {
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
-import { Form, Modal } from 'antd';
-import CurrencyFormat from 'react-currency-format';
 
 export default function FixedReceipts() {
   const dispatch = useDispatch();
+
+  const supabase = useSupabaseClient();
+  const user = useUser();
+
   const fixedReceipts = useSelector(getFixedReceipts);
   const hasReceipts = !_.isEmpty(fixedReceipts);
 
@@ -51,9 +57,10 @@ export default function FixedReceipts() {
       value: undefined,
       name: '',
       received: false,
+      user_uuid: user.id,
     };
     const newReceipts = [...fixedReceipts, newReceipt];
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -67,12 +74,9 @@ export default function FixedReceipts() {
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newReceipts[index] = {
-      id: id,
-      value: receiptValue,
-      name: values.name,
-    };
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    newReceipts[index].value = receiptValue;
+    newReceipts[index].name = values.name;
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
@@ -82,7 +86,7 @@ export default function FixedReceipts() {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts.splice(index, 1);
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -91,7 +95,7 @@ export default function FixedReceipts() {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts[index].received = !newReceipts[index].received;
-    dispatchEditFixedReceipts(dispatch, newReceipts);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

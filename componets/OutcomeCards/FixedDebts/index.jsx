@@ -8,6 +8,7 @@ import {
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
@@ -35,6 +36,10 @@ import {
 
 export default function FixedDebts() {
   const dispatch = useDispatch();
+
+  const supabase = useSupabaseClient();
+  const user = useUser();
+
   const fixedDebts = useSelector(getFixedDebts);
   const hasDebts = !_.isEmpty(fixedDebts);
 
@@ -49,9 +54,10 @@ export default function FixedDebts() {
       value: undefined,
       name: '',
       payed: false,
+      user_uuid: user.id,
     };
     const newDebts = [...fixedDebts, newDebt];
-    dispatchEditFixedDebts(dispatch, newDebts);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -65,12 +71,10 @@ export default function FixedDebts() {
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newDebts[index] = {
-      id: id,
-      value: debtValue,
-      name: values.name,
-    };
-    dispatchEditFixedDebts(dispatch, newDebts);
+
+    newDebts[index].value = debtValue;
+    newDebts[index].name = values.name;
+    dispatchEditFixedDebts(dispatch, newDebts, supabase);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
@@ -80,7 +84,7 @@ export default function FixedDebts() {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts.splice(index, 1);
-    dispatchEditFixedDebts(dispatch, newDebts);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -89,7 +93,7 @@ export default function FixedDebts() {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts[index].payed = !newDebts[index].payed;
-    dispatchEditFixedDebts(dispatch, newDebts);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { dispatchSetCurrentBalance } from '../../../containers/Income/redux';
-import { getCurrentBalance } from '../../../containers/Income/redux/reducer';
+import { dispatchSetCurrentBalance } from '../../../containers/Main/redux';
+import { getCurrentBalance } from '../../../containers/Main/redux/reducer';
 import { Container, ValueContainer, Title, Value } from './styles';
 
 export default function BalanceCard() {
