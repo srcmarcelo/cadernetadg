@@ -3,14 +3,18 @@ import { useSelector, useDispatch } from 'react-redux';
 import { dispatchSetCurrentBalance } from '../../../containers/Main/redux';
 import { getCurrentBalance } from '../../../containers/Main/redux/reducer';
 import { Container, ValueContainer, Title, Value } from './styles';
+import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export default function BalanceCard() {
   const currentBalance = useSelector(getCurrentBalance);
   const dispatch = useDispatch();
 
+  const supabase = useSupabaseClient();
+  const user = useUser();
+
   const handleChangeCurrentBalance = (e) => {
     const value = e.target.value.slice(3).replace('.', '').replace(',', '.');
-    dispatchSetCurrentBalance(dispatch, parseFloat(value));
+    dispatchSetCurrentBalance(dispatch, parseFloat(value), supabase, user);
   };
 
   return (

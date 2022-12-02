@@ -13,7 +13,7 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
+import { dispatchDeletFixedDebt, dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
 import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
 import Empty from '../../Empty';
 import {
@@ -47,8 +47,15 @@ export default function FixedDebts() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const getMaxId = (arr) => {
+    let max = arr[0].id;
+    arr.forEach((item) => {
+      if (item.id > max) max = item.id;
+    });
+  };
+
   const handleCreateDebt = () => {
-    const id = hasDebts ? fixedDebts[fixedDebts.length - 1].id + 1 : 1;
+    const id = hasDebts ? getMaxId(fixedDebts) + 1 : 1;
     const newDebt = {
       id: id,
       value: undefined,
@@ -57,7 +64,7 @@ export default function FixedDebts() {
       user_uuid: user.id,
     };
     const newDebts = [...fixedDebts, newDebt];
-    dispatchEditFixedDebts(dispatch, newDebts, supabase);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length-1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -74,7 +81,7 @@ export default function FixedDebts() {
 
     newDebts[index].value = debtValue;
     newDebts[index].name = values.name;
-    dispatchEditFixedDebts(dispatch, newDebts, supabase);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
@@ -84,7 +91,7 @@ export default function FixedDebts() {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts.splice(index, 1);
-    dispatchEditFixedDebts(dispatch, newDebts, supabase);
+    dispatchDeletFixedDebt(dispatch, newDebts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -93,7 +100,7 @@ export default function FixedDebts() {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts[index].payed = !newDebts[index].payed;
-    dispatchEditFixedDebts(dispatch, newDebts, supabase);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

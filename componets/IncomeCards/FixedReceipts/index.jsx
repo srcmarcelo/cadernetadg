@@ -25,7 +25,7 @@ import {
 
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
 import Empty from '../../Empty';
-import { dispatchEditFixedReceipts } from '../../../containers/Income/redux';
+import { dispatchDeletFixedReceipt, dispatchEditFixedReceipts } from '../../../containers/Income/redux';
 import {
   CheckOutlined,
   CloseOutlined,
@@ -50,8 +50,16 @@ export default function FixedReceipts() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const getMaxId = (arr) => {
+    let max = arr[0].id;
+    arr.forEach((item) => {
+      if (item.id > max) max = item.id;
+    });
+    return max;
+  };
+
   const handleCreateReceipt = () => {
-    const id = hasReceipts ? fixedReceipts[fixedReceipts.length - 1].id + 1 : 1;
+    const id = hasReceipts ? getMaxId(fixedReceipts) + 1 : 1;
     const newReceipt = {
       id: id,
       value: undefined,
@@ -60,7 +68,7 @@ export default function FixedReceipts() {
       user_uuid: user.id,
     };
     const newReceipts = [...fixedReceipts, newReceipt];
-    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase, newReceipts.length-1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -76,7 +84,7 @@ export default function FixedReceipts() {
         : values.value;
     newReceipts[index].value = receiptValue;
     newReceipts[index].name = values.name;
-    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
@@ -86,7 +94,7 @@ export default function FixedReceipts() {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts.splice(index, 1);
-    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
+    dispatchDeletFixedReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -95,7 +103,7 @@ export default function FixedReceipts() {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts[index].received = !newReceipts[index].received;
-    dispatchEditFixedReceipts(dispatch, newReceipts, supabase);
+    dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

@@ -42,8 +42,15 @@ export default function CreditCards() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const getMaxId = (arr) => {
+    let max = arr[0].id;
+    arr.forEach((item) => {
+      if (item.id > max) max = item.id;
+    });
+  };
+
   const handleCreateCard = () => {
-    const id = hasCards ? creditCards[creditCards.length - 1].id + 1 : 1;
+    const id = hasCards ? getMaxId(creditCards) + 1 : 1;
     const newCard = {
       id: id,
       value: undefined,

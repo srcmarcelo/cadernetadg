@@ -42,8 +42,15 @@ export default function ExtraDebts() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const getMaxId = (arr) => {
+    let max = arr[0].id;
+    arr.forEach((item) => {
+      if (item.id > max) max = item.id;
+    });
+  };
+
   const handleCreateDebt = () => {
-    const id = hasDebts ? extraDebts[extraDebts.length - 1].id + 1 : 1;
+    const id = hasDebts ? getMaxId(extraDebts) + 1 : 1;
     const newDebt = {
       id: id,
       value: undefined,

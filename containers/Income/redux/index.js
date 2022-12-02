@@ -1,11 +1,19 @@
 import { setFixedReceipts } from './reducer';
 
-export const dispatchEditFixedReceipts = async (dispatch, values, supabase) => {
+export const dispatchEditFixedReceipts = async (dispatch, values, supabase, index) => {
   try {
-    let { error } = await supabase.from('fixed_receipts').upsert(values[values.length-1]);
+    await supabase.from('fixed_receipts').upsert(values[index]);
     dispatch(setFixedReceipts(values));
   } catch (error) {
     console.log('error:', error);
   }
 };
 
+export const dispatchDeletFixedReceipt = async (dispatch, values, supabase, id) => {
+  try {
+    await supabase.from('fixed_receipts').delete().eq('id', id);
+    dispatch(setFixedReceipts(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
