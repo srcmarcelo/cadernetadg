@@ -64,7 +64,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 80%;
+  width: 60%;
 `;
 
 export const TitleInput = styled(Input)`
@@ -85,7 +85,7 @@ export const TitleInput = styled(Input)`
 export const Title = styled.div`
   font-size: 20px;
   color: ${({received}) => received ? '#fff' : 'black'};
-  padding: 0px 10px;
+  padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
@@ -94,6 +94,9 @@ export const Title = styled.div`
   background: ${({received}) => received ? '#368f42' : '#fff'};
   margin: 0;
   width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const Value = styled(CurrencyInput)`
@@ -102,7 +105,6 @@ export const Value = styled(CurrencyInput)`
   color: green;
   background: #f0f0f0;
   border-radius: 10px;
-  padding: 0px 5px;
   border: none;
   width: 100%;
 `;
@@ -115,6 +117,8 @@ export const DisplayValue = styled.div`
   padding: 0px 5px;
   border: none;
   width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
 `;
 
 export const ButtonsContainer = styled.div`

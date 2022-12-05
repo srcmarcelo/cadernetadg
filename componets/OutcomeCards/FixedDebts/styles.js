@@ -64,7 +64,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 80%;
+  width: 60%;
 `;
 
 export const TitleInput = styled(Input)`
@@ -94,6 +94,9 @@ export const Title = styled.div`
   background: ${({ payed }) => (payed ? '#368f42' : '#fff')};
   margin: 0;
   width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const Value = styled(CurrencyInput)`

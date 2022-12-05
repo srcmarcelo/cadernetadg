@@ -1,10 +1,10 @@
 import {
+  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
-  FileDoneOutlined,
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
@@ -13,8 +13,11 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeletExtraDebt, dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
-import { getExtraDebts } from '../../../containers/Outcome/redux/reducer';
+import {
+  dispatchDeleteDebtor,
+  dispatchEditDebtors,
+} from '../../../containers/Income/redux';
+import { getDebtors } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
 import {
@@ -33,60 +36,82 @@ import {
   ItemContent,
   DisplayValue,
   ConfirmButton,
-} from '../FixedDebts/styles';
+} from '../FixedReceipts/styles';
 
-export default function ExtraDebts() {
+export default function Debtors() {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
   const user = useUser();
 
-  const extraDebts = useSelector(getExtraDebts);
-  const hasDebts = !_.isEmpty(extraDebts);
+  const debtors = useSelector(getDebtors);
+  const hasDebtors = !_.isEmpty(debtors);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const handleCreateDebt = () => {
-    const number = hasDebts ? getMaxId(extraDebts) + 1 : 1;
+  const handleCreateDebtor = () => {
+    const number = hasDebtors ? getMaxId(debtors) + 1 : 1;
     const id = `${user.id}_${number}`;
-    const newDebt = {
+    const newDebtor = {
       id: id,
       value: undefined,
       name: '',
       user_uuid: user.id,
     };
-    const newDebts = [...extraDebts, newDebt];
-    dispatchEditExtraDebts(dispatch, newDebts, supabase, newDebts.length-1);
+    const newDebtors = [...debtors, newDebtor];
+    dispatchEditDebtors(dispatch, newDebtors, supabase, newDebtors.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
 
-  const handleEditDebt = async (values, id) => {
-    const index = extraDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(extraDebts);
+  const handleEditDebtor = async (values, id) => {
+    const index = debtors.findIndex((item) => item.id === id);
+    const newDebtors = _.cloneDeep(debtors);
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newDebts[index].value = debtValue;
-    newDebts[index].name = values.name;
-    dispatchEditExtraDebts(dispatch, newDebts, supabase, index);
+    newDebtors[index].value = debtValue;
+    newDebtors[index].name = values.name;
+    dispatchEditDebtors(dispatch, newDebtors, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
   };
 
-  const handleDeleteDebt = async (id) => {
-    const index = extraDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(extraDebts);
-    newDebts.splice(index, 1);
-    dispatchDeletExtraDebt(dispatch, newDebts, supabase, id);
+  const handleDeleteDebtor = async (id) => {
+    const index = debtors.findIndex((item) => item.id === id);
+    const newDebtors = _.cloneDeep(debtors);
+    newDebtors.splice(index, 1);
+    dispatchDeleteDebtor(dispatch, newDebtors, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+  };
+
+  const handleResetDebtor = async (id) => {
+    const index = debtors.findIndex((item) => item.id === id);
+    const newDebtors = _.cloneDeep(debtors);
+    newDebtors[index].value = 0;
+    if (debtors[index].value > 0)
+      dispatchEditDebtors(dispatch, newDebtors, supabase, index);
+  };
+
+  const handleConfirmDeleteModal = (id) => {
+    Modal.confirm({
+      title: 'Realmente deseja excluir este devedor?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
+      okText: 'SIM',
+      okType: 'danger',
+      cancelText: 'NÃO',
+      onOk() {
+        handleDeleteDebtor(id);
+      },
+    });
   };
 
   const RenderValue = ({ value }) => (
@@ -95,7 +120,7 @@ export default function ExtraDebts() {
       displayType={'text'}
       thousandSeparator='.'
       decimalSeparator=','
-      extraDecimalScale={true}
+      fixedDecimalScale={true}
       decimalScale={2}
       prefix={'R$ '}
       renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
@@ -104,7 +129,7 @@ export default function ExtraDebts() {
 
   const RenderForm = ({ item }) => (
     <FormContainer
-      onFinish={(values) => handleEditDebt(values, item.id)}
+      onFinish={(values) => handleEditDebtor(values, item.id)}
       initialValues={{ ...item }}
       onFinishFailed={() => setErrorFinish(true)}
     >
@@ -115,14 +140,14 @@ export default function ExtraDebts() {
           rules={[
             {
               required: true,
-              message: 'Digite um nome para identificacar o débito.',
+              message: 'Digite um nome para identificacar o devedor.',
             },
           ]}
         >
           <TitleInput
             key={`name_${item.id}`}
             id={`name_${item.id}`}
-            placeholder='Exemplo: Parcela do Empréstimo'
+            placeholder='Exemplo: Cumadre Marisa'
           />
         </Form.Item>
         <Form.Item
@@ -151,7 +176,7 @@ export default function ExtraDebts() {
         <ActionButton
           color='red'
           onClick={() =>
-            creating ? handleDeleteDebt(item.id) : setCurrentIdEditing(null)
+            creating ? handleDeleteDebtor(item.id) : setCurrentIdEditing(null)
           }
         >
           {creating ? <DeleteOutlined /> : <CloseOutlined />}
@@ -167,21 +192,28 @@ export default function ExtraDebts() {
         <RenderValue value={item.value} />
       </ValueContainer>
       <ButtonsContainer>
-        <ConfirmButton
+        <ActionButton
           color='orange'
           disabled={currentIdEditing}
           onClick={() => setCurrentIdEditing(item.id)}
         >
           <EditOutlined />
-        </ConfirmButton>
+        </ActionButton>
+        <ActionButton
+          color='red'
+          disabled={currentIdEditing}
+          onClick={() => handleConfirmDeleteModal(item.id)}
+        >
+          <DeleteOutlined />
+        </ActionButton>
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
-          color='red'
           disabled={currentIdEditing}
-          onClick={() => handleDeleteDebt(item.id)}
+          color={item.value == 0 ? 'grey' : '#368f42'}
+          onClick={() => handleResetDebtor(item.id)}
         >
-          <DeleteOutlined />
+          <CarryOutOutlined />
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -200,20 +232,20 @@ export default function ExtraDebts() {
   };
 
   return (
-    <Container items={extraDebts.length} error={errorFinish ? 30 : 0}>
+    <Container items={debtors.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Despesas Extras</Label>
-        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
+        <Label>Seus Devedores</Label>
+        <AddButton onClick={handleCreateDebtor} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
       </Head>
-      {!hasDebts ? (
+      {!hasDebtors ? (
         <Empty
-          title='Nenhuma despesa extra cadastrada'
-          message='Clique em adicionar para adicionar débito'
+          title='Nenhum devedor cadastrado'
+          message='Clique em adicionar para adicionar devedor'
         />
       ) : (
-        extraDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        debtors.map((item) => <RenderItem key={item.id} item={item} />)
       )}
     </Container>
   );

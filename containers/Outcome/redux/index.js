@@ -18,11 +18,38 @@ export const dispatchDeletFixedDebt = async (dispatch, values, supabase, id) => 
   }
 };
 
-export const dispatchEditExtraDebts = (dispatch, value) => {
-  dispatch(setExtraDebts(value));
+export const dispatchEditExtraDebts = async (dispatch, values, supabase, index) => {
+  try {
+    await supabase.from('extra_debts').upsert(values[index]);
+    dispatch(setExtraDebts(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
 };
 
-export const dispatchEditCreditCards = (dispatch, value) => {
-  dispatch(setCreditCards(value));
+export const dispatchDeletExtraDebt = async (dispatch, values, supabase, id) => {
+  try {
+    await supabase.from('extra_debts').delete().eq('id', id);
+    dispatch(setExtraDebts(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
 };
 
+export const dispatchEditCreditCards = async (dispatch, values, supabase, index) => {
+  try {
+    await supabase.from('credit_cards').upsert(values[index]);
+    dispatch(setCreditCards(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
+export const dispatchDeleteCreditCard = async (dispatch, values, supabase, id) => {
+  try {
+    await supabase.from('credit_cards').delete().eq('id', id);
+    dispatch(setCreditCards(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};

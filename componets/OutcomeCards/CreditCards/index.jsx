@@ -8,12 +8,14 @@ import {
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchEditCreditCards } from '../../../containers/Outcome/redux';
+import { dispatchDeleteCreditCard, dispatchEditCreditCards } from '../../../containers/Outcome/redux';
 import { getCreditCards } from '../../../containers/Outcome/redux/reducer';
+import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
 import {
   Container,
@@ -35,6 +37,10 @@ import {
 
 export default function CreditCards() {
   const dispatch = useDispatch();
+
+  const supabase = useSupabaseClient();
+  const user = useUser();
+
   const creditCards = useSelector(getCreditCards);
   const hasCards = !_.isEmpty(creditCards);
 
@@ -42,23 +48,17 @@ export default function CreditCards() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const getMaxId = (arr) => {
-    let max = arr[0].id;
-    arr.forEach((item) => {
-      if (item.id > max) max = item.id;
-    });
-  };
-
   const handleCreateCard = () => {
-    const id = hasCards ? getMaxId(creditCards) + 1 : 1;
+    const number = hasCards ? getMaxId(creditCards) + 1 : 1;
+    const id = `${user.id}_${number}`;
     const newCard = {
       id: id,
       value: undefined,
       name: '',
-      payed: false,
+      user_uuid: user.id,
     };
     const newCards = [...creditCards, newCard];
-    dispatchEditCreditCards(dispatch, newCards);
+    dispatchEditCreditCards(dispatch, newCards, supabase, newCards.length-1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -72,12 +72,9 @@ export default function CreditCards() {
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newCards[index] = {
-      id: id,
-      value: debtValue,
-      name: values.name,
-    };
-    dispatchEditCreditCards(dispatch, newCards);
+    newCards[index].value = debtValue;
+    newCards[index].name = values.name;
+    dispatchEditCreditCards(dispatch, newCards, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
@@ -87,7 +84,7 @@ export default function CreditCards() {
     const index = creditCards.findIndex((item) => item.id === id);
     const newCards = _.cloneDeep(creditCards);
     newCards.splice(index, 1);
-    dispatchEditCreditCards(dispatch, newCards);
+    dispatchDeleteCreditCard(dispatch, newCards, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -97,7 +94,7 @@ export default function CreditCards() {
     const newCards = _.cloneDeep(creditCards);
     newCards[index].value = 0;
     if (creditCards[index].value > 0)
-      dispatchEditCreditCards(dispatch, newCards);
+      dispatchEditCreditCards(dispatch, newCards, supabase, index);
   };
 
   const handleConfirmDeleteModal = (id) => {

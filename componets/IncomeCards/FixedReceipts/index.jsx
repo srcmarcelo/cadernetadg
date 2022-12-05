@@ -36,6 +36,7 @@ import {
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
+import { getMaxId } from '../../../utils/getMaxId';
 
 export default function FixedReceipts() {
   const dispatch = useDispatch();
@@ -50,16 +51,9 @@ export default function FixedReceipts() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const getMaxId = (arr) => {
-    let max = arr[0].id;
-    arr.forEach((item) => {
-      if (item.id > max) max = item.id;
-    });
-    return max;
-  };
-
   const handleCreateReceipt = () => {
-    const id = hasReceipts ? getMaxId(fixedReceipts) + 1 : 1;
+    const number = hasReceipts ? getMaxId(fixedReceipts) + 1 : 1;
+    const id = `${user.id}_${number}`;
     const newReceipt = {
       id: id,
       value: undefined,

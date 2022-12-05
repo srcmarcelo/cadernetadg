@@ -15,6 +15,7 @@ import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
 import { dispatchDeletFixedDebt, dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
 import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
+import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
 import {
   Container,
@@ -47,15 +48,9 @@ export default function FixedDebts() {
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const getMaxId = (arr) => {
-    let max = arr[0].id;
-    arr.forEach((item) => {
-      if (item.id > max) max = item.id;
-    });
-  };
-
   const handleCreateDebt = () => {
-    const id = hasDebts ? getMaxId(fixedDebts) + 1 : 1;
+    const number = hasDebts ? getMaxId(fixedDebts) + 1 : 1;
+    const id = `${user.id}_${number}`;
     const newDebt = {
       id: id,
       value: undefined,

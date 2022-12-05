@@ -1,12 +1,15 @@
 import React from 'react';
 import { setCurrentBalance } from './reducer';
-import { setFixedReceipts } from '../../Income/redux/reducer';
-import { setFixedDebts } from '../../Outcome/redux/reducer';
+import { setDebtors, setFixedReceipts } from '../../Income/redux/reducer';
+import { setCreditCards, setExtraDebts, setFixedDebts } from '../../Outcome/redux/reducer';
 
 const SYNC_STEPS = [
   ['fixed_receipts', setFixedReceipts],
   ['fixed_debts', setFixedDebts],
   ['current_balance', setCurrentBalance],
+  ['credit_cards', setCreditCards],
+  ['extra_debts', setExtraDebts],
+  ['debtors', setDebtors],
 ]
 
 export const syncData = async (dispatch, supabase, user) => {
