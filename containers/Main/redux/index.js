@@ -1,6 +1,6 @@
 import React from 'react';
 import { setCurrentBalance } from './reducer';
-import { setDebtors, setFixedReceipts } from '../../Income/redux/reducer';
+import { setDebtors, setExtraReceipts, setFixedReceipts } from '../../Income/redux/reducer';
 import { setCreditCards, setExtraDebts, setFixedDebts } from '../../Outcome/redux/reducer';
 
 const SYNC_STEPS = [
@@ -10,6 +10,7 @@ const SYNC_STEPS = [
   ['credit_cards', setCreditCards],
   ['extra_debts', setExtraDebts],
   ['debtors', setDebtors],
+  ['extra_receipts', setExtraReceipts],
 ]
 
 export const syncData = async (dispatch, supabase, user) => {

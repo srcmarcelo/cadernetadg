@@ -13,8 +13,8 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeletExtraDebt, dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
-import { getExtraDebts } from '../../../containers/Outcome/redux/reducer';
+import { dispatchDeletExtraReceipt, dispatchEditExtraReceipts } from '../../../containers/Income/redux';
+import { getExtraReceipts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
 import {
@@ -33,58 +33,58 @@ import {
   ItemContent,
   DisplayValue,
   ConfirmButton,
-} from '../FixedDebts/styles';
+} from '../FixedReceipts/styles';
 
-export default function ExtraDebts() {
+export default function ExtraReceipts() {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
   const user = useUser();
 
-  const extraDebts = useSelector(getExtraDebts);
-  const hasDebts = !_.isEmpty(extraDebts);
+  const extraReceipts = useSelector(getExtraReceipts);
+  const hasReceipts = !_.isEmpty(extraReceipts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const handleCreateDebt = () => {
-    const number = hasDebts ? getMaxId(extraDebts) + 1 : 1;
+  const handleCreateReceipt = () => {
+    const number = hasReceipts ? getMaxId(extraReceipts) + 1 : 1;
     const id = `${user.id}_${number}`;
-    const newDebt = {
+    const newReceipt = {
       id: id,
       value: undefined,
       name: '',
       user_uuid: user.id,
     };
-    const newDebts = [...extraDebts, newDebt];
-    dispatchEditExtraDebts(dispatch, newDebts, supabase, newDebts.length-1);
+    const newReceipts = [...extraReceipts, newReceipt];
+    dispatchEditExtraReceipts(dispatch, newReceipts, supabase, newReceipts.length-1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
 
-  const handleEditDebt = async (values, id) => {
-    const index = extraDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(extraDebts);
-    const debtValue =
+  const handleEditReceipt = async (values, id) => {
+    const index = extraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(extraReceipts);
+    const receiptValue =
       typeof values.value === 'string'
         ? parseFloat(
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newDebts[index].value = debtValue;
-    newDebts[index].name = values.name;
-    dispatchEditExtraDebts(dispatch, newDebts, supabase, index);
+    newReceipts[index].value = receiptValue;
+    newReceipts[index].name = values.name;
+    dispatchEditExtraReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
   };
 
-  const handleDeleteDebt = async (id) => {
-    const index = extraDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(extraDebts);
-    newDebts.splice(index, 1);
-    dispatchDeletExtraDebt(dispatch, newDebts, supabase, id);
+  const handleDeleteReceipt = async (id) => {
+    const index = extraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(extraReceipts);
+    newReceipts.splice(index, 1);
+    dispatchDeletExtraReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -104,7 +104,7 @@ export default function ExtraDebts() {
 
   const RenderForm = ({ item }) => (
     <FormContainer
-      onFinish={(values) => handleEditDebt(values, item.id)}
+      onFinish={(values) => handleEditReceipt(values, item.id)}
       initialValues={{ ...item }}
       onFinishFailed={() => setErrorFinish(true)}
     >
@@ -115,14 +115,14 @@ export default function ExtraDebts() {
           rules={[
             {
               required: true,
-              message: 'Digite um nome para identificacar o débito.',
+              message: 'Digite um nome para identificacar o recebimento.',
             },
           ]}
         >
           <TitleInput
             key={`name_${item.id}`}
             id={`name_${item.id}`}
-            placeholder='Exemplo: Parcela do Empréstimo'
+            placeholder='Exemplo: Décimo terceiro'
           />
         </Form.Item>
         <Form.Item
@@ -131,7 +131,7 @@ export default function ExtraDebts() {
           rules={[
             {
               required: true,
-              message: 'Digite o valor do débito.',
+              message: 'Digite o valor do recebimento.',
             },
           ]}
         >
@@ -151,7 +151,7 @@ export default function ExtraDebts() {
         <ActionButton
           color='red'
           onClick={() =>
-            creating ? handleDeleteDebt(item.id) : setCurrentIdEditing(null)
+            creating ? handleDeleteReceipt(item.id) : setCurrentIdEditing(null)
           }
         >
           {creating ? <DeleteOutlined /> : <CloseOutlined />}
@@ -179,7 +179,7 @@ export default function ExtraDebts() {
         <ConfirmButton
           color='red'
           disabled={currentIdEditing}
-          onClick={() => handleDeleteDebt(item.id)}
+          onClick={() => handleDeleteReceipt(item.id)}
         >
           <DeleteOutlined />
         </ConfirmButton>
@@ -200,20 +200,20 @@ export default function ExtraDebts() {
   };
 
   return (
-    <Container items={extraDebts.length} error={errorFinish ? 30 : 0}>
+    <Container items={extraReceipts.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Despesas Extras</Label>
-        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
+        <Label>Recebimentos Extras</Label>
+        <AddButton onClick={handleCreateReceipt} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
       </Head>
-      {!hasDebts ? (
+      {!hasReceipts ? (
         <Empty
-          title='Nenhuma despesa extra cadastrada'
-          message='Clique em adicionar para adicionar débito'
+          title='Nenhuma saldo extra cadastrada'
+          message='Clique em adicionar para adicionar recebimento'
         />
       ) : (
-        extraDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        extraReceipts.map((item) => <RenderItem key={item.id} item={item} />)
       )}
     </Container>
   );

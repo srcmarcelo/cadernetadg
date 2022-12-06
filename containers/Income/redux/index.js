@@ -1,4 +1,4 @@
-import { setDebtors, setFixedReceipts } from './reducer';
+import { setDebtors, setExtraReceipts, setFixedReceipts } from './reducer';
 
 export const dispatchEditFixedReceipts = async (dispatch, values, supabase, index) => {
   try {
@@ -32,6 +32,24 @@ export const dispatchDeletDebtor = async (dispatch, values, supabase, id) => {
   try {
     await supabase.from('debtors').delete().eq('id', id);
     dispatch(setDebtors(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
+export const dispatchEditExtraReceipts = async (dispatch, values, supabase, index) => {
+  try {
+    await supabase.from('extra_receipts').upsert(values[index]);
+    dispatch(setExtraReceipts(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
+export const dispatchDeletExtraReceipt = async (dispatch, values, supabase, id) => {
+  try {
+    await supabase.from('extra_receipts').delete().eq('id', id);
+    dispatch(setExtraReceipts(values));
   } catch (error) {
     console.log('error:', error);
   }

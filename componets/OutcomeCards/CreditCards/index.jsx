@@ -130,7 +130,7 @@ export default function CreditCards() {
       initialValues={{ ...item }}
       onFinishFailed={() => setErrorFinish(true)}
     >
-      <ValueContainer>
+      <ValueContainer editing={true}>
         <Form.Item
           style={{ margin: 0 }}
           name='name'

@@ -64,7 +64,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 60%;
+  width: ${({editing}) => editing ? '80%' : '60%'};
 `;
 
 export const TitleInput = styled(Input)`

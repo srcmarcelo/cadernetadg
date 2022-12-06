@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   fixedReceipts: [],
   debtors: [],
+  extraReceipts: [],
 };
 
 export const incomeSlice = createSlice({
@@ -15,13 +16,18 @@ export const incomeSlice = createSlice({
     setDebtors: (state, action) => {
       state.debtors = action.payload;
     },
+    setExtraReceipts: (state, action) => {
+      state.extraReceipts = action.payload;
+    },
   },
 });
 
-export const { setFixedReceipts, setDebtors } = incomeSlice.actions;
+export const { setFixedReceipts, setDebtors, setExtraReceipts } = incomeSlice.actions;
 
 export const getFixedReceipts = (state) => state.income.fixedReceipts;
 
 export const getDebtors = (state) => state.income.debtors;
+
+export const getExtraReceipts = (state) => state.income.extraReceipts;
 
 export default incomeSlice.reducer;
