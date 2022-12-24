@@ -292,7 +292,7 @@ export default function Debtors() {
       </ValueContainer>
       <InstallmentsContainer>
         <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div style={{ fontSize: '1.1rem' }}>
+        <div style={{ fontSize: '1.1rem', color: 'black' }}>
           {debt.current_pay} de {debt.installments}
         </div>
       </InstallmentsContainer>
