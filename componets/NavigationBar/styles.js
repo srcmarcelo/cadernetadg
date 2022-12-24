@@ -4,7 +4,7 @@ import { Button } from 'antd';
 export const Container = styled.div`
   display: flex;
   width: 100%;
-  height: 5vh;
+  height: 5.5vh;
   border-radius: 10px;
   padding: 10px;
   background-color: ${({ color }) => color};

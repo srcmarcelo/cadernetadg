@@ -79,12 +79,12 @@ export const InstallmentsContainer = styled.div`
   justify-content: center;
   align-items: center;
   width: 35%;
-  background-color: orange;
 `;
 
 export const InstalmentsLabel = styled.div`
   font-size: 0.8rem;
-`
+  color: black;
+`;
 
 export const TitleInput = styled(Input)`
   font-size: 0.9rem;
