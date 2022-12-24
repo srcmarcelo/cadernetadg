@@ -12,7 +12,6 @@ export default function Calendar() {
         height: '4vh',
         borderRadius: '10px',
         color: 'white',
-        marginBottom: '5px',
       }}
     >
       Seu Perfil | Zerar Caderneta

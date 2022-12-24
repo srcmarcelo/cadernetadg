@@ -13,11 +13,14 @@ export const Container = styled.div`
 `;
 
 export const NavigationButton = styled(Button)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: ${({ color }) => color};
   color: white;
   font-size: 1rem;
   border-color: transparent;
-  height: 100%;
+  height: 30px;
   width: 30%;
   border-radius: 30px;
   border-width: ${({ selected }) => selected && '1px'};
@@ -25,7 +28,7 @@ export const NavigationButton = styled(Button)`
 
   &:hover {
     background-color: ${({ color }) => color};
-    border-color: ${({ selected }) => selected ? 'white' : 'transparent'};
+    border-color: ${({ selected }) => (selected ? 'white' : 'transparent')};
     color: white;
   }
 

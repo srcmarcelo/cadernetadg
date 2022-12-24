@@ -32,11 +32,11 @@ export default function Main() {
         {currentTab === 'panel' && <ControlPanel />}
         {currentTab === 'income' && <Income />}
         {currentTab === 'outcome' && <Outcome />}
+        <NavigationBar
+          onClick={(value) => setCurrentTab(value)}
+          currentTab={currentTab}
+        />
       </Content>
-      <NavigationBar
-        onClick={(value) => setCurrentTab(value)}
-        currentTab={currentTab}
-      />
     </Container>
   );
 }

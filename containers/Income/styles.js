@@ -6,9 +6,20 @@ export const Container = styled.div`
   align-items: center;
   background-color: #368f42;
   width: 100%;
-  height: 59vh;
+  height: 58vh;
   border-radius: 10px;
-  padding: 20px;
+  padding: 10px 0px;
+`;
+
+export const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #368f42;
+  width: 100%;
+  height: 100%;
+  padding: 0px 10px;
+  border-radius: 10px;
   overflow-x: hidden;
   overflow-y: auto;
 `;

@@ -100,8 +100,8 @@ export default function Debtors() {
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const handleCreateDebt = (debtorId, hasDebts) => {
-    const number = hasDebts ? getMaxId(debts, 2) + 1 : 1;
+  const handleCreateDebt = (debtorId, hasDebts, debtorDebts) => {
+    const number = hasDebts ? getMaxId(debtorDebts, 2) + 1 : 1;
     const id = `${debtorId}_${number}`;
     const newDebt = {
       id: id,
@@ -146,7 +146,8 @@ export default function Debtors() {
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const handleConfirmDeleteModal = (id) => {
+  const handleConfirmDeleteModal = (id, debtorDebts) => {
+    console.log('debtorDebts:', debtorDebts);
     Modal.confirm({
       title: 'Realmente deseja excluir este devedor?',
       icon: <ExclamationCircleOutlined />,
@@ -156,6 +157,7 @@ export default function Debtors() {
       cancelText: 'NÃO',
       onOk() {
         handleDeleteDebtor(id);
+        debtorDebts.forEach((debt) => handleDeleteDebt(debt.id));
       },
     });
   };
@@ -223,31 +225,46 @@ export default function Debtors() {
       </ValueContainer>
       <InstallmentsContainer>
         <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+          }}
+        >
           <Form.Item
-          style={{ width: '30%', display: 'flex' }}
-          name='current_pay'
-          rules={[
-            {
-              required: true,
-              message: 'Coloque a parcela atual.',
-            },
-          ]}
+            style={{ width: '30%', display: 'flex' }}
+            name='current_pay'
+            rules={[
+              {
+                required: true,
+                message: 'Coloque a parcela atual.',
+              },
+            ]}
           >
-            <InputNumber min={1} size='small' style={{width: '100%'}} />
+            <InputNumber min={1} size='small' style={{ width: '100%' }} />
           </Form.Item>
-          <div style={{ width: '20%', textAlign: 'center', alignItems: 'center', paddingTop: '7px'}}>de</div>
-          <Form.Item
-          style={{ width: '30%' }}
-          name='installments'
-          rules={[
-            {
-              required: true,
-              message: 'Coloque a quantidade de parcelas.',
-            },
-          ]}
+          <div
+            style={{
+              width: '20%',
+              textAlign: 'center',
+              alignItems: 'center',
+              paddingTop: '7px',
+            }}
           >
-            <InputNumber min={1} size='small' style={{width: '100%'}} />
+            de
+          </div>
+          <Form.Item
+            style={{ width: '30%' }}
+            name='installments'
+            rules={[
+              {
+                required: true,
+                message: 'Coloque a quantidade de parcelas.',
+              },
+            ]}
+          >
+            <InputNumber min={1} size='small' style={{ width: '100%' }} />
           </Form.Item>
         </div>
       </InstallmentsContainer>
@@ -275,7 +292,9 @@ export default function Debtors() {
       </ValueContainer>
       <InstallmentsContainer>
         <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div style={{fontSize: '1.1rem'}}>{debt.current_pay} de {debt.installments}</div>
+        <div style={{ fontSize: '1.1rem' }}>
+          {debt.current_pay} de {debt.installments}
+        </div>
       </InstallmentsContainer>
       <ButtonsContainer>
         <ActionButton
@@ -353,11 +372,11 @@ export default function Debtors() {
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
 
-    debtorDebts.forEach(({value}, index) => {
+    debtorDebts.forEach(({ value }, index) => {
       if (value) {
         index === 0 ? (debtsValue = value) : (debtsValue += value);
       }
-    })
+    });
 
     return (
       <DebtorContainer>
@@ -385,14 +404,14 @@ export default function Debtors() {
             <ActionButton
               color='red'
               disabled={currentIdEditing}
-              onClick={() => {}}
+              onClick={() => handleConfirmDeleteModal(debtor.id, debtorDebts)}
             >
               <DeleteOutlined />
             </ActionButton>
             <ActionButton
               color='blue'
               disabled={currentIdEditing}
-              onClick={() => handleCreateDebt(debtor.id, hasDebtorDebts)}
+              onClick={() => handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)}
             >
               <PlusOutlined />
             </ActionButton>
@@ -414,7 +433,11 @@ export default function Debtors() {
   };
 
   return (
-    <Container debtors={debtors.length} debts={debts.length} error={errorFinish ? 30 : 0}>
+    <Container
+      debtors={debtors.length}
+      debts={debts.length}
+      error={errorFinish ? 30 : 0}
+    >
       <Head>
         <Label>Seus Devedores</Label>
         <AddButton onClick={handleCreateDebtor} disabled={currentIdEditing}>

@@ -2,14 +2,16 @@ import React from 'react';
 import Debtors from '../../componets/IncomeCards/Debtors';
 import ExtraReceipts from '../../componets/IncomeCards/ExtraReceipts';
 import FixedReceipts from '../../componets/IncomeCards/FixedReceipts';
-import { Container } from './styles';
+import { Container, Content } from './styles';
 
 export default function Income(props) {
   return (
     <Container>
-      <FixedReceipts />
-      <Debtors />
-      <ExtraReceipts />
+      <Content>
+        <FixedReceipts />
+        <Debtors />
+        <ExtraReceipts />
+      </Content>
     </Container>
   );
 }

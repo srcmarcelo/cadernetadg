@@ -10,7 +10,6 @@ export const Container = styled.div`
   padding: 5px 10px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 5px;
 `;
 
 export const BalancesContainer = styled.div`
