@@ -50,6 +50,7 @@ import {
   TitleDebt,
   InstallmentsContainer,
   InstalmentsLabel,
+  TitleInputContainer,
 } from './styles';
 
 export default function Debtors() {
@@ -321,7 +322,7 @@ export default function Debtors() {
       initialValues={{ ...debtor }}
       onFinishFailed={() => setErrorFinish(true)}
     >
-      <ValueContainer editing={true}>
+      <TitleInputContainer>
         <Form.Item
           style={{ margin: 0 }}
           name='name'
@@ -338,7 +339,7 @@ export default function Debtors() {
             placeholder='Exemplo: Cumadre Marisa'
           />
         </Form.Item>
-      </ValueContainer>
+      </TitleInputContainer>
       <ButtonsContainer>
         <EditNameButton color='green' htmlType='submit'>
           <CheckOutlined />
@@ -381,11 +382,11 @@ export default function Debtors() {
     return (
       <DebtorContainer>
         <DebtorHeader>
-          <DebtorNameContainer>
-            {debtor.id === currentIdEditing ? (
-              <RenderFormName debtor={debtor} />
-            ) : (
-              <>
+          {debtor.id === currentIdEditing ? (
+            <RenderFormName debtor={debtor} />
+          ) : (
+            <>
+              <DebtorNameContainer>
                 <Title>{debtor.name.toUpperCase()}</Title>
                 <EditNameButton
                   color='black'
@@ -394,28 +395,32 @@ export default function Debtors() {
                 >
                   <EditOutlined />
                 </EditNameButton>
-              </>
-            )}
-          </DebtorNameContainer>
-          <DebtorValueContainer>
-            <RenderValue value={debtsValue} />
-          </DebtorValueContainer>
-          <DebtorButtonsContainer>
-            <ActionButton
-              color='red'
-              disabled={currentIdEditing}
-              onClick={() => handleConfirmDeleteModal(debtor.id, debtorDebts)}
-            >
-              <DeleteOutlined />
-            </ActionButton>
-            <ActionButton
-              color='blue'
-              disabled={currentIdEditing}
-              onClick={() => handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)}
-            >
-              <PlusOutlined />
-            </ActionButton>
-          </DebtorButtonsContainer>
+              </DebtorNameContainer>
+              <DebtorValueContainer>
+                <RenderValue value={debtsValue} />
+              </DebtorValueContainer>
+              <DebtorButtonsContainer>
+                <ActionButton
+                  color='red'
+                  disabled={currentIdEditing}
+                  onClick={() =>
+                    handleConfirmDeleteModal(debtor.id, debtorDebts)
+                  }
+                >
+                  <DeleteOutlined />
+                </ActionButton>
+                <ActionButton
+                  color='blue'
+                  disabled={currentIdEditing}
+                  onClick={() =>
+                    handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)
+                  }
+                >
+                  <PlusOutlined />
+                </ActionButton>
+              </DebtorButtonsContainer>
+            </>
+          )}
         </DebtorHeader>
         <DebtsContainer>
           {hasDebtorDebts ? (

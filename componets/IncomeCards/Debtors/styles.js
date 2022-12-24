@@ -58,6 +58,7 @@ export const FormContainer = styled(Form)`
   justify-content: center;
   width: 100%;
 `;
+
 export const DebtContent = styled.div`
   display: flex;
   flex-direction: row;
@@ -84,6 +85,13 @@ export const InstallmentsContainer = styled.div`
 export const InstalmentsLabel = styled.div`
   font-size: 0.8rem;
   color: black;
+`;
+
+export const TitleInputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 69%;
 `;
 
 export const TitleInput = styled(Input)`
