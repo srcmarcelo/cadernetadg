@@ -9,15 +9,17 @@ import {
   RollbackOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal } from 'antd';
+import { Form, InputNumber, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  dispatchDeleteDebt,
   dispatchDeleteDebtor,
   dispatchEditDebtors,
+  dispatchEditDebts,
 } from '../../../containers/Income/redux';
-import { getDebtors } from '../../../containers/Income/redux/reducer';
+import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
 import {
@@ -25,7 +27,6 @@ import {
   Head,
   Label,
   AddButton,
-  ItemContainer,
   ValueContainer,
   Title,
   Value,
@@ -33,10 +34,23 @@ import {
   ActionButton,
   FormContainer,
   TitleInput,
-  ItemContent,
   DisplayValue,
   ConfirmButton,
-} from '../FixedReceipts/styles';
+  DebtorContainer,
+  DebtorHeader,
+  DebtorNameContainer,
+  DebtorValueContainer,
+  DebtorButtonsContainer,
+  EditNameButton,
+  DebtsContainer,
+  DebtContainer,
+  TitleDebtInput,
+  DisplayDebtValue,
+  DebtContent,
+  TitleDebt,
+  InstallmentsContainer,
+  InstalmentsLabel,
+} from './styles';
 
 export default function Debtors() {
   const dispatch = useDispatch();
@@ -47,6 +61,8 @@ export default function Debtors() {
   const debtors = useSelector(getDebtors);
   const hasDebtors = !_.isEmpty(debtors);
 
+  const debts = useSelector(getDebts);
+
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -56,7 +72,6 @@ export default function Debtors() {
     const id = `${user.id}_${number}`;
     const newDebtor = {
       id: id,
-      value: undefined,
       name: '',
       user_uuid: user.id,
     };
@@ -69,13 +84,6 @@ export default function Debtors() {
   const handleEditDebtor = async (values, id) => {
     const index = debtors.findIndex((item) => item.id === id);
     const newDebtors = _.cloneDeep(debtors);
-    const debtValue =
-      typeof values.value === 'string'
-        ? parseFloat(
-            values.value.slice(3).replaceAll('.', '').replace(',', '.')
-          )
-        : values.value;
-    newDebtors[index].value = debtValue;
     newDebtors[index].name = values.name;
     dispatchEditDebtors(dispatch, newDebtors, supabase, index);
     setCurrentIdEditing(null);
@@ -92,12 +100,50 @@ export default function Debtors() {
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const handleResetDebtor = async (id) => {
-    const index = debtors.findIndex((item) => item.id === id);
-    const newDebtors = _.cloneDeep(debtors);
-    newDebtors[index].value = 0;
-    if (debtors[index].value > 0)
-      dispatchEditDebtors(dispatch, newDebtors, supabase, index);
+  const handleCreateDebt = (debtorId, hasDebts) => {
+    const number = hasDebts ? getMaxId(debts, 2) + 1 : 1;
+    const id = `${debtorId}_${number}`;
+    const newDebt = {
+      id: id,
+      value: undefined,
+      name: '',
+      user_uuid: user.id,
+      debtor_id: debtorId,
+      installments: 1,
+      current_pay: 1,
+    };
+    const newDebts = [...debts, newDebt];
+    dispatchEditDebts(dispatch, newDebts, supabase, newDebts.length - 1);
+    setCreating(true);
+    setCurrentIdEditing(id);
+  };
+
+  const handleEditDebt = async (values, id) => {
+    const index = debts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(debts);
+    newDebts[index].name = values.name;
+    newDebts[index].installments = values.installments;
+    newDebts[index].current_pay = values.current_pay;
+    const debtValue =
+      typeof values.value === 'string'
+        ? parseFloat(
+            values.value.slice(3).replaceAll('.', '').replace(',', '.')
+          )
+        : values.value;
+    newDebts[index].value = debtValue;
+    dispatchEditDebts(dispatch, newDebts, supabase, index);
+    setCurrentIdEditing(null);
+    setErrorFinish(false);
+    setCreating(false);
+  };
+
+  const handleDeleteDebt = async (id) => {
+    const index = debts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(debts);
+    newDebts.splice(index, 1);
+    dispatchDeleteDebt(dispatch, newDebts, supabase, id);
+    creating && setCreating(false);
+    currentIdEditing && setCurrentIdEditing(null);
   };
 
   const handleConfirmDeleteModal = (id) => {
@@ -114,7 +160,7 @@ export default function Debtors() {
     });
   };
 
-  const RenderValue = ({ value }) => (
+  const RenderValue = ({ value, debt }) => (
     <CurrencyFormat
       value={value}
       displayType={'text'}
@@ -123,14 +169,20 @@ export default function Debtors() {
       fixedDecimalScale={true}
       decimalScale={2}
       prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
+      renderText={(textValue) =>
+        debt ? (
+          <DisplayDebtValue>{textValue}</DisplayDebtValue>
+        ) : (
+          <DisplayValue>{textValue}</DisplayValue>
+        )
+      }
     />
   );
 
-  const RenderForm = ({ item }) => (
+  const RenderForm = ({ debt }) => (
     <FormContainer
-      onFinish={(values) => handleEditDebtor(values, item.id)}
-      initialValues={{ ...item }}
+      onFinish={(values) => handleEditDebt(values, debt.id)}
+      initialValues={{ ...debt }}
       onFinishFailed={() => setErrorFinish(true)}
     >
       <ValueContainer editing={true}>
@@ -144,10 +196,10 @@ export default function Debtors() {
             },
           ]}
         >
-          <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
-            placeholder='Exemplo: Cumadre Marisa'
+          <TitleDebtInput
+            key={`name_${debt.id}`}
+            id={`name_${debt.id}`}
+            placeholder='Exemplo: Emprestado'
           />
         </Form.Item>
         <Form.Item
@@ -162,13 +214,43 @@ export default function Debtors() {
         >
           <Value
             prefix='R$ '
-            key={`value_${item.id}`}
+            key={`value_${debt.id}`}
             decimalSeparator=','
             thousandSeparator='.'
             precision={2}
           />
         </Form.Item>
       </ValueContainer>
+      <InstallmentsContainer>
+        <InstalmentsLabel>Parcela</InstalmentsLabel>
+        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
+          <Form.Item
+          style={{ width: '30%', display: 'flex' }}
+          name='current_pay'
+          rules={[
+            {
+              required: true,
+              message: 'Coloque a parcela atual.',
+            },
+          ]}
+          >
+            <InputNumber min={1} size='small' style={{width: '100%'}} />
+          </Form.Item>
+          <div style={{ width: '20%', textAlign: 'center', alignItems: 'center', paddingTop: '7px'}}>de</div>
+          <Form.Item
+          style={{ width: '30%' }}
+          name='installments'
+          rules={[
+            {
+              required: true,
+              message: 'Coloque a quantidade de parcelas.',
+            },
+          ]}
+          >
+            <InputNumber min={1} size='small' style={{width: '100%'}} />
+          </Form.Item>
+        </div>
+      </InstallmentsContainer>
       <ButtonsContainer>
         <ActionButton color='green' htmlType='submit'>
           <CheckOutlined />
@@ -176,7 +258,7 @@ export default function Debtors() {
         <ActionButton
           color='red'
           onClick={() =>
-            creating ? handleDeleteDebtor(item.id) : setCurrentIdEditing(null)
+            creating ? handleDeleteDebt(debt.id) : setCurrentIdEditing(null)
           }
         >
           {creating ? <DeleteOutlined /> : <CloseOutlined />}
@@ -185,54 +267,154 @@ export default function Debtors() {
     </FormContainer>
   );
 
-  const RenderItemContent = ({ item }) => (
-    <ItemContent>
+  const RenderDebtContent = ({ debt }) => (
+    <DebtContent>
       <ValueContainer>
-        <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <TitleDebt>{debt.name.toUpperCase()}</TitleDebt>
+        <RenderValue value={debt.value} debt={true} />
       </ValueContainer>
+      <InstallmentsContainer>
+        <InstalmentsLabel>Parcela</InstalmentsLabel>
+        <div style={{fontSize: '1.1rem'}}>{debt.current_pay} de {debt.installments}</div>
+      </InstallmentsContainer>
       <ButtonsContainer>
         <ActionButton
           color='orange'
           disabled={currentIdEditing}
-          onClick={() => setCurrentIdEditing(item.id)}
+          onClick={() => setCurrentIdEditing(debt.id)}
         >
           <EditOutlined />
         </ActionButton>
         <ActionButton
-          color='red'
+          color='#368f42'
           disabled={currentIdEditing}
-          onClick={() => handleConfirmDeleteModal(item.id)}
-        >
-          <DeleteOutlined />
-        </ActionButton>
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <ConfirmButton
-          disabled={currentIdEditing}
-          color={item.value == 0 ? 'grey' : '#368f42'}
-          onClick={() => handleResetDebtor(item.id)}
+          onClick={() => handleDeleteDebt(debt.id)}
         >
           <CarryOutOutlined />
-        </ConfirmButton>
+        </ActionButton>
       </ButtonsContainer>
-    </ItemContent>
+    </DebtContent>
   );
 
-  const RenderItem = ({ item }) => {
+  const RenderFormName = ({ debtor }) => (
+    <FormContainer
+      onFinish={(values) => handleEditDebtor(values, debtor.id)}
+      initialValues={{ ...debtor }}
+      onFinishFailed={() => setErrorFinish(true)}
+    >
+      <ValueContainer editing={true}>
+        <Form.Item
+          style={{ margin: 0 }}
+          name='name'
+          rules={[
+            {
+              required: true,
+              message: 'Digite um nome para identificacar o devedor.',
+            },
+          ]}
+        >
+          <TitleInput
+            key={`name_${debtor.id}`}
+            id={`name_${debtor.id}`}
+            placeholder='Exemplo: Cumadre Marisa'
+          />
+        </Form.Item>
+      </ValueContainer>
+      <ButtonsContainer>
+        <EditNameButton color='green' htmlType='submit'>
+          <CheckOutlined />
+        </EditNameButton>
+        <EditNameButton
+          color='red'
+          onClick={() =>
+            creating ? handleDeleteDebtor(debtor.id) : setCurrentIdEditing(null)
+          }
+        >
+          {creating ? <DeleteOutlined /> : <CloseOutlined />}
+        </EditNameButton>
+      </ButtonsContainer>
+    </FormContainer>
+  );
+
+  const RenderDebt = ({ debt }) => {
     return (
-      <ItemContainer>
-        {item.id === currentIdEditing ? (
-          <RenderForm item={item} />
+      <DebtContainer>
+        {debt.id === currentIdEditing ? (
+          <RenderForm debt={debt} />
         ) : (
-          <RenderItemContent item={item} />
+          <RenderDebtContent debt={debt} />
         )}
-      </ItemContainer>
+      </DebtContainer>
+    );
+  };
+
+  const RenderDebtor = ({ debtor }) => {
+    const debtorDebts = debts.filter((debt) => debt.debtor_id === debtor.id);
+    const hasDebtorDebts = !_.isEmpty(debtorDebts);
+    let debtsValue = 0;
+
+    debtorDebts.forEach(({value}, index) => {
+      if (value) {
+        index === 0 ? (debtsValue = value) : (debtsValue += value);
+      }
+    })
+
+    return (
+      <DebtorContainer>
+        <DebtorHeader>
+          <DebtorNameContainer>
+            {debtor.id === currentIdEditing ? (
+              <RenderFormName debtor={debtor} />
+            ) : (
+              <>
+                <Title>{debtor.name.toUpperCase()}</Title>
+                <EditNameButton
+                  color='black'
+                  disabled={currentIdEditing}
+                  onClick={() => setCurrentIdEditing(debtor.id)}
+                >
+                  <EditOutlined />
+                </EditNameButton>
+              </>
+            )}
+          </DebtorNameContainer>
+          <DebtorValueContainer>
+            <RenderValue value={debtsValue} />
+          </DebtorValueContainer>
+          <DebtorButtonsContainer>
+            <ActionButton
+              color='red'
+              disabled={currentIdEditing}
+              onClick={() => {}}
+            >
+              <DeleteOutlined />
+            </ActionButton>
+            <ActionButton
+              color='blue'
+              disabled={currentIdEditing}
+              onClick={() => handleCreateDebt(debtor.id, hasDebtorDebts)}
+            >
+              <PlusOutlined />
+            </ActionButton>
+          </DebtorButtonsContainer>
+        </DebtorHeader>
+        <DebtsContainer>
+          {hasDebtorDebts ? (
+            debtorDebts.map((debt) => <RenderDebt key={debt.id} debt={debt} />)
+          ) : (
+            <Empty
+              title='Nenhum débito cadastrado'
+              message='Clique em adicionar para adicionar dívida'
+              sizeAdjust={4}
+            />
+          )}
+        </DebtsContainer>
+      </DebtorContainer>
     );
   };
 
   return (
-    <Container items={debtors.length} error={errorFinish ? 30 : 0}>
+    <Container debtors={debtors.length} debts={debts.length} error={errorFinish ? 30 : 0}>
       <Head>
         <Label>Seus Devedores</Label>
         <AddButton onClick={handleCreateDebtor} disabled={currentIdEditing}>
@@ -245,7 +427,9 @@ export default function Debtors() {
           message='Clique em adicionar para adicionar devedor'
         />
       ) : (
-        debtors.map((item) => <RenderItem key={item.id} item={item} />)
+        debtors.map((debtor) => (
+          <RenderDebtor key={debtor.id} debtor={debtor} />
+        ))
       )}
     </Container>
   );

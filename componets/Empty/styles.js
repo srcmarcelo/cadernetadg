@@ -8,12 +8,12 @@ export const Container = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 20px;
+  font-size: ${({sizeAdjust}) => `${16-(sizeAdjust || 0)}px`};
   color: black;
 `;
 
 export const Message = styled.p`
-  font-size: 16px;
+  font-size: ${({sizeAdjust}) => `${12-(sizeAdjust || 0)}px`};
   color: black;
   text-align: center;
 `;

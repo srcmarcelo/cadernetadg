@@ -13,7 +13,7 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeletFixedDebt, dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
+import { dispatchDeleteFixedDebt, dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
 import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
@@ -86,7 +86,7 @@ export default function FixedDebts() {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts.splice(index, 1);
-    dispatchDeletFixedDebt(dispatch, newDebts, supabase, id);
+    dispatchDeleteFixedDebt(dispatch, newDebts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

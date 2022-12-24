@@ -25,7 +25,7 @@ import {
 
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
 import Empty from '../../Empty';
-import { dispatchDeletFixedReceipt, dispatchEditFixedReceipts } from '../../../containers/Income/redux';
+import { dispatchDeleteFixedReceipt, dispatchEditFixedReceipts } from '../../../containers/Income/redux';
 import {
   CheckOutlined,
   CloseOutlined,
@@ -88,7 +88,7 @@ export default function FixedReceipts() {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts.splice(index, 1);
-    dispatchDeletFixedReceipt(dispatch, newReceipts, supabase, id);
+    dispatchDeleteFixedReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

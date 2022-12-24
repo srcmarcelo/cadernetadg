@@ -13,7 +13,7 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeletExtraDebt, dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
+import { dispatchDeleteExtraDebt, dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
 import { getExtraDebts } from '../../../containers/Outcome/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
@@ -84,7 +84,7 @@ export default function ExtraDebts() {
     const index = extraDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(extraDebts);
     newDebts.splice(index, 1);
-    dispatchDeletExtraDebt(dispatch, newDebts, supabase, id);
+    dispatchDeleteExtraDebt(dispatch, newDebts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };

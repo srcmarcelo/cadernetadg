@@ -9,7 +9,7 @@ export const dispatchEditFixedDebts = async (dispatch, values, supabase, index) 
   }
 };
 
-export const dispatchDeletFixedDebt = async (dispatch, values, supabase, id) => {
+export const dispatchDeleteFixedDebt = async (dispatch, values, supabase, id) => {
   try {
     await supabase.from('fixed_debts').delete().eq('id', id);
     dispatch(setFixedDebts(values));
@@ -27,7 +27,7 @@ export const dispatchEditExtraDebts = async (dispatch, values, supabase, index) 
   }
 };
 
-export const dispatchDeletExtraDebt = async (dispatch, values, supabase, id) => {
+export const dispatchDeleteExtraDebt = async (dispatch, values, supabase, id) => {
   try {
     await supabase.from('extra_debts').delete().eq('id', id);
     dispatch(setExtraDebts(values));

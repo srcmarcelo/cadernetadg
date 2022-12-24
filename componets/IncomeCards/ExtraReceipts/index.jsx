@@ -13,7 +13,7 @@ import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeletExtraReceipt, dispatchEditExtraReceipts } from '../../../containers/Income/redux';
+import { dispatchDeleteExtraReceipt, dispatchEditExtraReceipts } from '../../../containers/Income/redux';
 import { getExtraReceipts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
@@ -84,7 +84,7 @@ export default function ExtraReceipts() {
     const index = extraReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(extraReceipts);
     newReceipts.splice(index, 1);
-    dispatchDeletExtraReceipt(dispatch, newReceipts, supabase, id);
+    dispatchDeleteExtraReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -209,7 +209,7 @@ export default function ExtraReceipts() {
       </Head>
       {!hasReceipts ? (
         <Empty
-          title='Nenhuma saldo extra cadastrada'
+          title='Nenhum saldo extra cadastrado'
           message='Clique em adicionar para adicionar recebimento'
         />
       ) : (
