@@ -1,12 +1,22 @@
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Button, Form, Input } from 'antd';
+import { Button, Form, Input, message } from 'antd';
+import _ from 'lodash';
 import React, { useState } from 'react';
 import { Container, RegistrationForm } from './styles';
 
 export default function Auth() {
   const supabase = useSupabaseClient();
 
-  const [creating, setCreating] = useState(false);
+  const [mode, setMode] = useState('signin');
+  const [confirmationSent, setConfirmationSent] = useState(false);
+
+  const verifyUserExist = async (email) => {
+    let { data } = await supabase
+      .from('current_balance')
+      .select('*')
+      .eq('email', email);
+    return !_.isEmpty(data);
+  };
 
   const SignIn = async (values) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -16,15 +26,29 @@ export default function Auth() {
   };
 
   const SignUp = async (values) => {
+    const alreadyRegistered = await verifyUserExist(values.email);
+    console.log('alreadyRegistered:', alreadyRegistered);
+    if (alreadyRegistered) {
+      message.warning('Usuário já cadastrado.');
+      setMode('signin');
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {
         data: {
           user_name: values.user_name,
-        }
-      }
+        },
+      },
     });
+    if (!error) {
+      message.success('Entre no seu email para verificar seu registro!');
+      setMode('signin');
+      setConfirmationSent(true);
+    } else {
+      message.error('Algo deu errado :(');
+    }
   };
 
   const SignInForm = () => (
@@ -124,21 +148,52 @@ export default function Auth() {
     </RegistrationForm>
   );
 
+  const ChangeModeButton = ({ label, mode, color }) => (
+    <Button
+      onClick={() => setMode(mode)}
+      style={{
+        backgroundColor: color,
+        margin: confirmationSent ? '0px' : '40px',
+        color: 'white',
+        width: '150px',
+      }}
+    >
+      {label}
+    </Button>
+  );
+
+  const Main = {
+    signup: <SignUpForm />,
+    signin: <SignInForm />,
+  };
+
+  const SignModes = {
+    signin: {
+      label: 'Criar Conta',
+      mode: 'signup',
+      color: 'lightgreen',
+    },
+    signup: {
+      label: 'Já tenho conta',
+      mode: 'signin',
+      color: 'orange',
+    },
+  };
+
   return (
     <Container>
       <h1>Caderneta Digital</h1>
       <p>Controle seu dinheiro!</p>
-      {creating ? <SignUpForm /> : <SignInForm />}
-      <Button
-        onClick={() => setCreating(!creating)}
-        style={{
-          backgroundColor: creating ? 'orange' : 'lightgreen',
-          margin: '40px',
-          color: 'white'
-        }}
-      >
-        {creating ? 'Já tenho conta' : 'CRIAR CONTA'}
-      </Button>
+      {Main[mode]}
+      {confirmationSent && (
+        <p style={{margin: '20px', fontSize: '1rem'}}>
+          Foi enviado um link de confirmação. Entre no seu
+          email cadastrado e clique no link para confirmar!
+        </p>
+      )}
+      {['signup', 'signin'].includes(mode) && (
+        <ChangeModeButton {...SignModes[mode]} />
+      )}
     </Container>
   );
 }
