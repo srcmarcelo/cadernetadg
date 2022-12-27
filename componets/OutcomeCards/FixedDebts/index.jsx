@@ -145,8 +145,8 @@ export default function FixedDebts() {
           ]}
         >
           <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
+            key={`fixed_debt_name_${item.id}`}
+            id={`fixed_debt_name_${item.id}`}
             placeholder='Exemplo: Aluguel'
           />
         </Form.Item>

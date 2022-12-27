@@ -200,8 +200,8 @@ export default function Debtors() {
           ]}
         >
           <TitleDebtInput
-            key={`name_${debt.id}`}
-            id={`name_${debt.id}`}
+            key={`debt_name_${debt.id}`}
+            id={`debt_name_${debt.id}`}
             placeholder='Exemplo: Emprestado'
           />
         </Form.Item>
@@ -334,8 +334,8 @@ export default function Debtors() {
           ]}
         >
           <TitleInput
-            key={`name_${debtor.id}`}
-            id={`name_${debtor.id}`}
+            key={`debtor_name_${debtor.id}`}
+            id={`debtor_name_${debtor.id}`}
             placeholder='Exemplo: Cumadre Marisa'
           />
         </Form.Item>

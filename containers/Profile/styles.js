@@ -1,4 +1,5 @@
 
+import { Button } from 'antd';
 import styled from 'styled-components';
 
 export const Container = styled.div`
@@ -24,4 +25,9 @@ export const Content = styled.div`
   border-radius: 10px;
   overflow-x: hidden;
   overflow-y: auto;
+`;
+
+export const ProfileButton = styled(Button)`
+  width: 200px;
+  margin: 20px;
 `;

@@ -48,6 +48,19 @@ export const syncData = async (dispatch, supabase, user) => {
   }
 };
 
+export const clearData = async (supabase, user) => {
+  try {
+    SYNC_STEPS.forEach(async (step) => {
+      await supabase
+        .from(step[0])
+        .delete()
+        .eq('user_uuid', user.id);
+    });
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
 export const dispatchSetCurrentBalance = async (
   dispatch,
   value,

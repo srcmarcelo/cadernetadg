@@ -142,8 +142,8 @@ export default function CreditCards() {
           ]}
         >
           <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
+            key={`credit_card_name_${item.id}`}
+            id={`credit_card_name_${item.id}`}
             placeholder='Exemplo: Itau'
           />
         </Form.Item>

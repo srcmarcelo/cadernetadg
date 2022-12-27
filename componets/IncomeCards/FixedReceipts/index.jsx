@@ -147,8 +147,8 @@ export default function FixedReceipts() {
           ]}
         >
           <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
+            key={`fixed_receipt_name_${item.id}`}
+            id={`fixed_receipt_name_${item.id}`}
             placeholder='Exemplo: Salário'
           />
         </Form.Item>

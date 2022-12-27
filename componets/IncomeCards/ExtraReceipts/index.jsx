@@ -120,8 +120,8 @@ export default function ExtraReceipts() {
           ]}
         >
           <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
+            key={`extra_receipt_name_${item.id}`}
+            id={`extra_receipt_name_${item.id}`}
             placeholder='Exemplo: Décimo terceiro'
           />
         </Form.Item>

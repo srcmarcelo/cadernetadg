@@ -33,7 +33,7 @@ export default function Main() {
         {currentTab === 'panel' && <ControlPanel />}
         {currentTab === 'income' && <Income />}
         {currentTab === 'outcome' && <Outcome />}
-        {currentTab === 'profile' && <Profile />}
+        {currentTab === 'profile' && <Profile dispatch={dispatch} />}
         <NavigationBar
           onClick={(value) => setCurrentTab(value)}
           currentTab={currentTab}

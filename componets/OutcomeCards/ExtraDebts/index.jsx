@@ -120,8 +120,8 @@ export default function ExtraDebts() {
           ]}
         >
           <TitleInput
-            key={`name_${item.id}`}
-            id={`name_${item.id}`}
+            key={`extra_debt_name_${item.id}`}
+            id={`extra_debt_name_${item.id}`}
             placeholder='Exemplo: Parcela do Empréstimo'
           />
         </Form.Item>
