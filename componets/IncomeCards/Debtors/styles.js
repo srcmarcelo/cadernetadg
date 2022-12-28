@@ -6,13 +6,14 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   background: #fff;
-  padding: 5px 15px 15px 15px;
+  padding: 5px 15px 5px 15px;
   width: 100%;
   height: ${({ debtors, debts, error }) =>
     `${
-      55 +
+      20 +
+      (debtors > 0 ? 100 : 0) +
       115 * (debtors > 0 ? debtors : 1) +
-      80 * (debts > 0 ? debts : 1) +
+      80 * (debts) +
       error
     }px`};
   border-radius: 10px;

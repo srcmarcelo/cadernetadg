@@ -18,6 +18,7 @@ import {
   dispatchDeleteDebtor,
   dispatchEditDebtors,
   dispatchEditDebts,
+  dispatchFetchDebts,
 } from '../../../containers/Income/redux';
 import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
@@ -146,13 +147,12 @@ export default function Debtors() {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
     newDebts.splice(index, 1);
-    dispatchDeleteDebt(dispatch, newDebts, supabase, id);
+    await dispatchDeleteDebt(dispatch, newDebts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
 
   const handleConfirmDeleteModal = (id, debtorDebts) => {
-    console.log('debtorDebts:', debtorDebts);
     Modal.confirm({
       title: 'Realmente deseja excluir este devedor?',
       icon: <ExclamationCircleOutlined />,
@@ -160,9 +160,10 @@ export default function Debtors() {
       okText: 'SIM',
       okType: 'danger',
       cancelText: 'NÃO',
-      onOk() {
-        handleDeleteDebtor(id);
-        debtorDebts.forEach((debt) => handleDeleteDebt(debt.id));
+      onOk: async () => {
+        await debtorDebts.forEach(async (debt) => await handleDeleteDebt(debt.id));
+        await handleDeleteDebtor(id);
+        await dispatchFetchDebts(dispatch, supabase, user);
       },
     });
   };
@@ -451,9 +452,11 @@ export default function Debtors() {
   const RenderTotalDebtorsDebts = () => {
     const total = 0;
     debts.forEach((debt, index) => {
-      if(index === 0) total = debt.value;
-      else total += debt.value;
-    })
+      if (debt.value) {
+        if (index === 0) total = debt.value;
+        else total += debt.value;
+      }
+    });
     return (
       <TotalContainer>
         <TotalLabel>Valor total:</TotalLabel>

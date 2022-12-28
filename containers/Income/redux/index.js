@@ -1,6 +1,16 @@
-import { setDebtors, setDebts, setExtraReceipts, setFixedReceipts } from './reducer';
+import {
+  setDebtors,
+  setDebts,
+  setExtraReceipts,
+  setFixedReceipts,
+} from './reducer';
 
-export const dispatchEditFixedReceipts = async (dispatch, values, supabase, index) => {
+export const dispatchEditFixedReceipts = async (
+  dispatch,
+  values,
+  supabase,
+  index
+) => {
   try {
     await supabase.from('fixed_receipts').upsert(values[index]);
     dispatch(setFixedReceipts(values));
@@ -9,7 +19,12 @@ export const dispatchEditFixedReceipts = async (dispatch, values, supabase, inde
   }
 };
 
-export const dispatchDeleteFixedReceipt = async (dispatch, values, supabase, id) => {
+export const dispatchDeleteFixedReceipt = async (
+  dispatch,
+  values,
+  supabase,
+  id
+) => {
   try {
     await supabase.from('fixed_receipts').delete().eq('id', id);
     dispatch(setFixedReceipts(values));
@@ -18,7 +33,12 @@ export const dispatchDeleteFixedReceipt = async (dispatch, values, supabase, id)
   }
 };
 
-export const dispatchEditDebtors = async (dispatch, values, supabase, index) => {
+export const dispatchEditDebtors = async (
+  dispatch,
+  values,
+  supabase,
+  index
+) => {
   try {
     await supabase.from('debtors').upsert(values[index]);
     dispatch(setDebtors(values));
@@ -31,6 +51,15 @@ export const dispatchDeleteDebtor = async (dispatch, values, supabase, id) => {
   try {
     await supabase.from('debtors').delete().eq('id', id);
     dispatch(setDebtors(values));
+  } catch (error) {
+    console.log('error:', error);
+  }
+};
+
+export const dispatchFetchDebts = async (dispatch, supabase, user) => {
+  try {
+    let { data } = await supabase.from('debts').select('*').eq('user_uuid', user.id);
+    dispatch(setDebts(data));
   } catch (error) {
     console.log('error:', error);
   }
@@ -54,7 +83,12 @@ export const dispatchDeleteDebt = async (dispatch, values, supabase, id) => {
   }
 };
 
-export const dispatchEditExtraReceipts = async (dispatch, values, supabase, index) => {
+export const dispatchEditExtraReceipts = async (
+  dispatch,
+  values,
+  supabase,
+  index
+) => {
   try {
     await supabase.from('extra_receipts').upsert(values[index]);
     dispatch(setExtraReceipts(values));
@@ -63,7 +97,12 @@ export const dispatchEditExtraReceipts = async (dispatch, values, supabase, inde
   }
 };
 
-export const dispatchDeleteExtraReceipt = async (dispatch, values, supabase, id) => {
+export const dispatchDeleteExtraReceipt = async (
+  dispatch,
+  values,
+  supabase,
+  id
+) => {
   try {
     await supabase.from('extra_receipts').delete().eq('id', id);
     dispatch(setExtraReceipts(values));
