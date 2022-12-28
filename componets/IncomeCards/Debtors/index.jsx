@@ -51,6 +51,9 @@ import {
   InstallmentsContainer,
   InstalmentsLabel,
   TitleInputContainer,
+  TotalContainer,
+  TotalLabel,
+  TotalValueContainer,
 } from './styles';
 
 export default function Debtors() {
@@ -60,6 +63,7 @@ export default function Debtors() {
   const user = useUser();
 
   const debtors = useSelector(getDebtors);
+  const reversedDebtors = _.reverse(_.cloneDeep(debtors));
   const hasDebtors = !_.isEmpty(debtors);
 
   const debts = useSelector(getDebts);
@@ -123,8 +127,8 @@ export default function Debtors() {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
     newDebts[index].name = values.name;
-    newDebts[index].installments = values.installments;
-    newDebts[index].current_pay = values.current_pay;
+    newDebts[index].installments = values.installments || 0;
+    newDebts[index].current_pay = values.current_pay || 0;
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
@@ -163,7 +167,7 @@ export default function Debtors() {
     });
   };
 
-  const RenderValue = ({ value, debt }) => (
+  const RenderValue = ({ value, debt, color }) => (
     <CurrencyFormat
       value={value}
       displayType={'text'}
@@ -176,7 +180,7 @@ export default function Debtors() {
         debt ? (
           <DisplayDebtValue>{textValue}</DisplayDebtValue>
         ) : (
-          <DisplayValue>{textValue}</DisplayValue>
+          <DisplayValue color={color}>{textValue}</DisplayValue>
         )
       }
     />
@@ -234,11 +238,11 @@ export default function Debtors() {
           }}
         >
           <Form.Item
-            style={{ width: '30%', display: 'flex' }}
+            style={{ width: '38%', display: 'flex' }}
             name='current_pay'
             rules={[
               {
-                required: true,
+                required: false,
                 message: 'Coloque a parcela atual.',
               },
             ]}
@@ -256,11 +260,11 @@ export default function Debtors() {
             de
           </div>
           <Form.Item
-            style={{ width: '30%' }}
+            style={{ width: '38%' }}
             name='installments'
             rules={[
               {
-                required: true,
+                required: false,
                 message: 'Coloque a quantidade de parcelas.',
               },
             ]}
@@ -293,7 +297,7 @@ export default function Debtors() {
       </ValueContainer>
       <InstallmentsContainer>
         <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div style={{ fontSize: '1.1rem', color: 'black' }}>
+        <div style={{ fontSize: '0.9rem', color: 'black' }}>
           {debt.current_pay} de {debt.installments}
         </div>
       </InstallmentsContainer>
@@ -370,6 +374,7 @@ export default function Debtors() {
 
   const RenderDebtor = ({ debtor }) => {
     const debtorDebts = debts.filter((debt) => debt.debtor_id === debtor.id);
+    const reversedDebtorsDebts = _.reverse(_.cloneDeep(debtorDebts));
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
 
@@ -424,7 +429,13 @@ export default function Debtors() {
         </DebtorHeader>
         <DebtsContainer>
           {hasDebtorDebts ? (
-            debtorDebts.map((debt) => <RenderDebt key={debt.id} debt={debt} />)
+            reversedDebtorsDebts.map((debt) => (
+              <RenderDebt key={debt.id} debt={debt} />
+            ))
+          ) : debtor.id === currentIdEditing ? (
+            <div>
+              <h5>Digite o nome da pessoa que te deve algo este mês</h5>
+            </div>
           ) : (
             <Empty
               title='Nenhum débito cadastrado'
@@ -434,6 +445,22 @@ export default function Debtors() {
           )}
         </DebtsContainer>
       </DebtorContainer>
+    );
+  };
+
+  const RenderTotalDebtorsDebts = () => {
+    const total = 0;
+    debts.forEach((debt, index) => {
+      if(index === 0) total = debt.value;
+      else total += debt.value;
+    })
+    return (
+      <TotalContainer>
+        <TotalLabel>Valor total:</TotalLabel>
+        <div>
+          <RenderValue value={total} color='#fff' />
+        </div>
+      </TotalContainer>
     );
   };
 
@@ -455,9 +482,12 @@ export default function Debtors() {
           message='Clique em adicionar para adicionar devedor'
         />
       ) : (
-        debtors.map((debtor) => (
-          <RenderDebtor key={debtor.id} debtor={debtor} />
-        ))
+        <>
+          <RenderTotalDebtorsDebts />
+          {reversedDebtors.map((debtor) => (
+            <RenderDebtor key={debtor.id} debtor={debtor} />
+          ))}
+        </>
       )}
     </Container>
   );

@@ -13,12 +13,13 @@ import {
   getFixedReceipts,
   getExtraReceipts
 } from '../../containers/Income/redux/reducer';
-import { getCurrentBalance } from '../../containers/Main/redux/reducer';
+import { getCurrentBalance, getKeptBalance } from '../../containers/Main/redux/reducer';
 import { useSelector } from 'react-redux';
 import { getFixedDebts, getExtraDebts, getCreditCards } from '../../containers/Outcome/redux/reducer';
 
 export default function MainInfo() {
   const currentBalance = useSelector(getCurrentBalance);
+  const keptBalance = useSelector(getKeptBalance);
   const extraReceipts = useSelector(getExtraReceipts);
   const fixedReceipts = useSelector(getFixedReceipts);
   const fixedDebts = useSelector(getFixedDebts);

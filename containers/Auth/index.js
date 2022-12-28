@@ -183,11 +183,11 @@ export default function Auth() {
   return (
     <Container>
       <h1>Caderneta Digital</h1>
-      <p>Controle seu dinheiro!</p>
+      <p style={{ color: 'black' }}>Controle seu dinheiro!</p>
       {Main[mode]}
       {confirmationSent && (
-        <p style={{margin: '20px', fontSize: '1rem'}}>
-          Foi enviado um link de confirmação. Entre no seu
+        <p style={{ margin: '20px', fontSize: '1rem', color: 'black' }}>
+          Foi enviado um link de confirmação para o seu email. Entre no seu
           email cadastrado e clique no link para confirmar!
         </p>
       )}

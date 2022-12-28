@@ -77,8 +77,10 @@ export const ValueContainer = styled.div`
 export const InstallmentsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  padding-left: 1%;
+  padding-right: 1%;
   width: 35%;
 `;
 
@@ -120,7 +122,7 @@ export const TitleDebtInput = styled(Input)`
 `;
 
 export const Title = styled.div`
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: ${({ received }) => (received ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
@@ -137,7 +139,7 @@ export const Title = styled.div`
 `;
 
 export const TitleDebt = styled.div`
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: ${({ received }) => (received ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
@@ -164,9 +166,9 @@ export const Value = styled(CurrencyInput)`
 `;
 
 export const DisplayValue = styled.div`
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   height: '36px';
-  color: #368f42;
+  color: ${({color}) => color || '#368f42'};
   border-radius: 10px;
   padding: 0px 5px;
   border: none;
@@ -177,7 +179,7 @@ export const DisplayValue = styled.div`
 `;
 
 export const DisplayDebtValue = styled.div`
-  font-size: 1.1rem;
+  font-size: 1rem;
   height: '36px';
   color: #368f42;
   border-radius: 10px;
@@ -203,11 +205,11 @@ export const ActionButton = styled(Button)`
   justify-content: center;
   align-items: center;
   color: white;
-  font-size: 1rem;
-  border-radius: 40px;
-  margin-right: 5px;
-  margin-left: 5px;
-  width: 50px;
+  font-size: 0.8rem;
+  border-radius: 10px;
+  margin-right: 2px;
+  margin-left: 2px;
+  width: 30px;
 
   &:hover {
     background-color: ${({ color }) => color};
@@ -309,4 +311,20 @@ export const DebtsContainer = styled.div`
   width: 100%;
   justify-content: center;
   align-items: center;
+`;
+
+export const TotalContainer = styled.div`
+  display: flex;
+  margin-bottom: 10px;
+  flex-direction: row;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #368f42;
+`;
+
+export const TotalLabel = styled.h1`
+  font-size: 1.2rem;
+  margin: 0px;
+  color: #fff;
 `;

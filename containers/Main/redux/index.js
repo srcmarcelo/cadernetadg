@@ -1,5 +1,5 @@
 import React from 'react';
-import { setCurrentBalance } from './reducer';
+import { setCurrentBalance, setKeptBalance } from './reducer';
 import {
   setDebtors,
   setDebts,
@@ -15,6 +15,7 @@ import _ from 'lodash';
 
 const SYNC_STEPS = [
   ['current_balance', setCurrentBalance],
+  ['kept_balance', setKeptBalance],
   ['fixed_receipts', setFixedReceipts],
   ['fixed_debts', setFixedDebts],
   ['credit_cards', setCreditCards],
@@ -37,6 +38,15 @@ export const syncData = async (dispatch, supabase, user) => {
           await supabase
             .from('current_balance')
             .upsert({ value: 0, user_uuid: user.id, email: user.email });
+          dispatch(step[1](0));
+        } else {
+          dispatch(step[1](data[0].value));
+        }
+      } else if (step[0] === 'kept_balance') {
+        if (_.isEmpty(data)) {
+          await supabase
+            .from('kept_balance')
+            .upsert({ value: 0, user_uuid: user.id });
           dispatch(step[1](0));
         } else {
           dispatch(step[1](data[0].value));
@@ -72,4 +82,17 @@ export const dispatchSetCurrentBalance = async (
     .update({ value: value })
     .eq('user_uuid', user.id);
   dispatch(setCurrentBalance(value));
+};
+
+export const dispatchSetKeptBalance = async (
+  dispatch,
+  value,
+  supabase,
+  user
+) => {
+  await supabase
+    .from('kept_balance')
+    .update({ value: value })
+    .eq('user_uuid', user.id);
+  dispatch(setKeptBalance(value));
 };
