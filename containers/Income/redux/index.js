@@ -74,10 +74,10 @@ export const dispatchEditDebts = async (dispatch, values, supabase, index) => {
   }
 };
 
-export const dispatchDeleteDebt = async (dispatch, values, supabase, id) => {
+export const dispatchDeleteDebt = async (dispatch, user, supabase, id) => {
   try {
     await supabase.from('debts').delete().eq('id', id);
-    dispatch(setDebts(values));
+    await dispatchFetchDebts(dispatch, supabase, user);
   } catch (error) {
     console.log('error:', error);
   }

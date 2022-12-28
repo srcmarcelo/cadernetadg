@@ -144,10 +144,7 @@ export default function Debtors() {
   };
 
   const handleDeleteDebt = async (id) => {
-    const index = debts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(debts);
-    newDebts.splice(index, 1);
-    await dispatchDeleteDebt(dispatch, newDebts, supabase, id);
+    await dispatchDeleteDebt(dispatch, user, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
@@ -163,7 +160,6 @@ export default function Debtors() {
       onOk: async () => {
         await debtorDebts.forEach(async (debt) => await handleDeleteDebt(debt.id));
         await handleDeleteDebtor(id);
-        await dispatchFetchDebts(dispatch, supabase, user);
       },
     });
   };
