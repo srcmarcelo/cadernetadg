@@ -24,10 +24,10 @@ export default function Profile({dispatch}) {
   return (
     <Container>
       <Content>
-        <div style={{ color: 'white', fontSize: '1.5rem' }}>
+        <div style={{ color: 'white', fontSize: '1.3rem' }}>
           {user.user_metadata.user_name}
         </div>
-        <div style={{ color: 'white', margin: '30px', fontSize: '1.5rem' }}>
+        <div style={{ color: 'white', margin: '30px', fontSize: '1.3rem' }}>
           {user.email}
         </div>
         <ProfileButton onClick={() => supabase.auth.signOut()}>

@@ -5,17 +5,29 @@ import {
   BalanceLabel,
   BalancesContainer,
   BalanceValue,
+  CardContainer,
   Container,
+  SituationContainer,
+  SituationDescription,
+  SituationTitle,
   WarningContainer,
 } from './styles';
 import CurrencyFormat from 'react-currency-format';
 import {
   getFixedReceipts,
-  getExtraReceipts
+  getExtraReceipts,
+  getDebts,
 } from '../../containers/Income/redux/reducer';
-import { getCurrentBalance, getKeptBalance } from '../../containers/Main/redux/reducer';
+import {
+  getCurrentBalance,
+  getKeptBalance,
+} from '../../containers/Main/redux/reducer';
 import { useSelector } from 'react-redux';
-import { getFixedDebts, getExtraDebts, getCreditCards } from '../../containers/Outcome/redux/reducer';
+import {
+  getFixedDebts,
+  getExtraDebts,
+  getCreditCards,
+} from '../../containers/Outcome/redux/reducer';
 
 export default function MainInfo() {
   const currentBalance = useSelector(getCurrentBalance);
@@ -25,20 +37,22 @@ export default function MainInfo() {
   const fixedDebts = useSelector(getFixedDebts);
   const extraDebts = useSelector(getExtraDebts);
   const creditCards = useSelector(getCreditCards);
+  const debtorsDebts = useSelector(getDebts);
 
   const [willReceive, setWillReceive] = useState(0);
   const [totalDebts, setTotalDebts] = useState(0);
+  const [totalDebtorsDebts, setTotalDebtorsDebts] = useState(0);
 
   useEffect(() => {
     let total = 0;
-    const receipts = [...fixedReceipts, ...extraReceipts];
+    const receipts = [...fixedReceipts, ...extraReceipts, ...debtorsDebts];
     receipts.forEach(({ value, received }, index) => {
       if (value && !received) {
         index === 0 ? (total = value) : (total += value);
       }
     });
     setWillReceive(total);
-  }, [fixedReceipts, extraReceipts]);
+  }, [fixedReceipts, extraReceipts, debtorsDebts]);
 
   useEffect(() => {
     let total = 0;
@@ -51,6 +65,16 @@ export default function MainInfo() {
     setTotalDebts(total);
   }, [fixedDebts, extraDebts, creditCards]);
 
+  useEffect(() => {
+    let total = 0;
+    debtorsDebts.forEach(({ value }, index) => {
+      if (value) {
+        index === 0 ? (total = value) : (total += value);
+      }
+    });
+    setTotalDebtorsDebts(total);
+  }, [debtorsDebts]);
+
   const RenderValue = ({ color, value }) => (
     <CurrencyFormat
       value={value}
@@ -61,28 +85,66 @@ export default function MainInfo() {
       decimalScale={2}
       prefix={'R$'}
       renderText={(textValue) => (
-        <BalanceValue color={color}>{textValue}</BalanceValue>
+        <BalanceValue color={color} width={screen.width}>
+          {textValue}
+        </BalanceValue>
       )}
     />
+  );
+
+  const RenderBalance = ({ label, value, color }) => (
+    <Balance>
+      <BalanceLabel color={color}>{label}</BalanceLabel>
+      <RenderValue color={color} value={value} />
+    </Balance>
+  );
+
+  const RenderBalanceCard = ({ label, value, color }) => (
+    <CardContainer>
+      <SituationTitle color={color} width={screen.width}>
+        {label}
+      </SituationTitle>
+      <RenderValue color={color} value={value} />
+    </CardContainer>
   );
 
   return (
     <Container>
       <BalancesContainer>
-        <Balance>
-          <BalanceLabel>Quanto você tem:</BalanceLabel>
-          <RenderValue color='#368F42' value={currentBalance} />
-        </Balance>
-        <Balance>
-          <BalanceLabel>Quanto receberá este mês:</BalanceLabel>
-          <RenderValue color='#368F42' value={willReceive} />
-        </Balance>
-        <Balance>
-          <BalanceLabel>Quanto você deve este mês:</BalanceLabel>
-          <RenderValue color='#C83126' value={totalDebts} />
-        </Balance>
+        <RenderBalance
+          color='#368F42'
+          label='Quanto você tem:'
+          value={currentBalance}
+        />
+        <RenderBalance
+          color='#368F42'
+          label='Quanto receberá este mês:'
+          value={willReceive}
+        />
+        <RenderBalance
+          color='#C83126'
+          label='Quanto você deve este mês:'
+          value={totalDebts}
+        />
       </BalancesContainer>
-      <WarningContainer>Está tudo ok!</WarningContainer>
+      <WarningContainer>
+        <RenderBalanceCard
+          label='Vai sobrar'
+          color='#368F42'
+          value={willReceive - totalDebts}
+        />
+        <SituationContainer>
+          <SituationTitle color='orange'>1 alerta</SituationTitle>
+          <SituationDescription width={screen.width} color='darkorange'>
+            Dependência de devedores
+          </SituationDescription>
+        </SituationContainer>
+        <RenderBalanceCard
+          label='Novo saldo'
+          color='#368F42'
+          value={willReceive - totalDebts + currentBalance}
+        />
+      </WarningContainer>
     </Container>
   );
 }

@@ -6,7 +6,7 @@ export default function NavigationBar({ onClick, currentTab }) {
     income: '#368F42',
     panel: '#232C68',
     outcome: '#C83126',
-    profile: 'blue',
+    profile: '#8176fb',
   };
 
   const names = {

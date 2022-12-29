@@ -38,8 +38,8 @@ const Home = () => {
             <Image
               src='/linkedin.png'
               alt='LinkedIn'
-              width={30}
-              height={30}
+              width={20}
+              height={20}
             />
           </span>
         </a>

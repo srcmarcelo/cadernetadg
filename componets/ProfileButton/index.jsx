@@ -1,10 +1,12 @@
 import React from 'react';
-import { Container } from './styles';
+import { Container, LinkText } from './styles';
 
-export default function ProfileButton({onClick}) {
+export default function ProfileButton({ onClick }) {
   return (
     <Container>
-      <a onClick={() => onClick('profile')}>Perfil e Configurações</a>
+      <LinkText onClick={() => onClick('profile')}>
+        Perfil e Configurações
+      </LinkText>
     </Container>
   );
 }
