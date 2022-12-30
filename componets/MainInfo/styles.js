@@ -32,6 +32,7 @@ export const BalanceLabel = styled.div`
 export const BalanceValue = styled.div`
   font-size: ${({ width }) => (width < 400 ? '1.1rem' : '1.3rem')};
   color: ${({ color }) => color};
+  white-space: nowrap;
 `;
 
 export const WarningContainer = styled.div`

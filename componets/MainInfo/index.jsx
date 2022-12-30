@@ -43,6 +43,31 @@ export default function MainInfo() {
   const [totalDebts, setTotalDebts] = useState(0);
   const [totalDebtorsDebts, setTotalDebtorsDebts] = useState(0);
 
+  const [monthlySituation, setMonthlySituation] = useState('profit');
+  const [generalSituation, setGeneralSituation] = useState('positive');
+
+  const monthlyBalance = {
+    profit: {
+      label: 'Lucro de',
+      color: '#368F42',
+    },
+    deficit: {
+      label: 'Déficit de',
+      color: '#C83126',
+    },
+  };
+
+  const generalBalance = {
+    positive: {
+      label: 'Novo saldo',
+      color: '#368F42',
+    },
+    negative: {
+      label: 'Faltará',
+      color: '#C83126',
+    },
+  };
+
   useEffect(() => {
     let total = 0;
     const receipts = [...fixedReceipts, ...extraReceipts, ...debtorsDebts];
@@ -74,6 +99,15 @@ export default function MainInfo() {
     });
     setTotalDebtorsDebts(total);
   }, [debtorsDebts]);
+
+  useEffect(() => {
+    willReceive - totalDebts < 0
+      ? setMonthlySituation('deficit')
+      : setMonthlySituation('profit');
+    willReceive - totalDebts + currentBalance < 0
+      ? setGeneralSituation('negative')
+      : setGeneralSituation('positive');
+  }, [totalDebts, willReceive, currentBalance]);
 
   const RenderValue = ({ color, value }) => (
     <CurrencyFormat
@@ -129,9 +163,12 @@ export default function MainInfo() {
       </BalancesContainer>
       <WarningContainer>
         <RenderBalanceCard
-          label='Vai sobrar'
-          color='#368F42'
-          value={willReceive - totalDebts}
+          label={monthlyBalance[monthlySituation].label}
+          color={monthlyBalance[monthlySituation].color}
+          value={
+            (willReceive - totalDebts) *
+            (monthlySituation === 'deficit' ? -1 : 1)
+          }
         />
         <SituationContainer>
           <SituationTitle color='orange'>1 alerta</SituationTitle>
@@ -140,9 +177,12 @@ export default function MainInfo() {
           </SituationDescription>
         </SituationContainer>
         <RenderBalanceCard
-          label='Novo saldo'
-          color='#368F42'
-          value={willReceive - totalDebts + currentBalance}
+          label={generalBalance[generalSituation].label}
+          color={generalBalance[generalSituation].color}
+          value={
+            (willReceive - totalDebts + currentBalance) *
+            (generalSituation === 'negative' ? -1 : 1)
+          }
         />
       </WarningContainer>
     </Container>
