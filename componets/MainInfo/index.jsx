@@ -46,6 +46,9 @@ export default function MainInfo() {
   const [monthlySituation, setMonthlySituation] = useState('profit');
   const [generalSituation, setGeneralSituation] = useState('positive');
 
+  const [debtorDependency, setDebtorDependency] = useState(false);
+  const [loss, setLoss] = useState(false);
+
   const monthlyBalance = {
     profit: {
       label: 'Lucro de',
@@ -66,6 +69,11 @@ export default function MainInfo() {
       label: 'Faltará',
       color: '#C83126',
     },
+  };
+
+  const warningLabels = {
+    debtorDependency: 'Dependência de devedores',
+    loss: 'Saldo mensal negativo',
   };
 
   useEffect(() => {
@@ -101,9 +109,19 @@ export default function MainInfo() {
   }, [debtorsDebts]);
 
   useEffect(() => {
-    willReceive - totalDebts < 0
-      ? setMonthlySituation('deficit')
-      : setMonthlySituation('profit');
+    if (willReceive - totalDebts < 0) {
+      setMonthlySituation('deficit');
+      setLoss(true);
+      if (totalDebtorsDebts > 0) setDebtorDependency(true);
+      else setDebtorDependency(false);
+    } else {
+      setMonthlySituation('profit');
+      setLoss(false);
+      if (willReceive + currentBalance - totalDebts - totalDebtorsDebts < 0)
+        setDebtorDependency(true);
+      else setDebtorDependency(false);
+    }
+
     willReceive - totalDebts + currentBalance < 0
       ? setGeneralSituation('negative')
       : setGeneralSituation('positive');
@@ -142,6 +160,28 @@ export default function MainInfo() {
     </CardContainer>
   );
 
+  const RenderWarning = ({ debtorDependency, loss }) => {
+    const warnings = [{ debtorDependency: debtorDependency }, { loss: loss }];
+    const filteredWarnings = warnings.filter(
+      (obj) => Object.values(obj)[0] === true
+    );
+    const alertAmount = filteredWarnings.length;
+    console.log('filteredWarnings:', filteredWarnings);
+    if (_.isEmpty(filteredWarnings)) return;
+    return (
+      <SituationContainer>
+        <SituationTitle color='orange'>
+          {alertAmount} {alertAmount > 1 ? 'alertas' : 'alerta'}
+        </SituationTitle>
+        <SituationDescription width={screen.width} color='darkorange'>
+          {alertAmount > 1
+            ? 'Veja detalhes no Painel'
+            : warningLabels[Object.keys(filteredWarnings[0])[0]]}
+        </SituationDescription>
+      </SituationContainer>
+    );
+  };
+
   return (
     <Container>
       <BalancesContainer>
@@ -151,14 +191,14 @@ export default function MainInfo() {
           value={currentBalance}
         />
         <RenderBalance
-          color='#368F42'
-          label='Quanto receberá este mês:'
-          value={willReceive}
+          color='#C83126'
+          label='Quanto ainda deve:'
+          value={totalDebts}
         />
         <RenderBalance
-          color='#C83126'
-          label='Quanto você deve este mês:'
-          value={totalDebts}
+          color='#368F42'
+          label='Quanto ainda receberá:'
+          value={willReceive}
         />
       </BalancesContainer>
       <WarningContainer>
@@ -170,12 +210,7 @@ export default function MainInfo() {
             (monthlySituation === 'deficit' ? -1 : 1)
           }
         />
-        <SituationContainer>
-          <SituationTitle color='orange'>1 alerta</SituationTitle>
-          <SituationDescription width={screen.width} color='darkorange'>
-            Dependência de devedores
-          </SituationDescription>
-        </SituationContainer>
+        <RenderWarning debtorDependency={debtorDependency} loss={loss} />
         <RenderBalanceCard
           label={generalBalance[generalSituation].label}
           color={generalBalance[generalSituation].color}
