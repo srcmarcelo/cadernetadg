@@ -6,17 +6,20 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
-  RollbackOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
-import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeleteCreditCard, dispatchEditCreditCards } from '../../../containers/Outcome/redux';
+import {
+  dispatchDeleteCreditCard,
+  dispatchEditCreditCards,
+} from '../../../containers/Outcome/redux';
 import { getCreditCards } from '../../../containers/Outcome/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import RenderValue from '../../RenderValue';
+import Total from '../../Total';
 import {
   Container,
   Head,
@@ -31,7 +34,6 @@ import {
   FormContainer,
   TitleInput,
   ItemContent,
-  DisplayValue,
   ConfirmButton,
 } from '../FixedDebts/styles';
 
@@ -58,7 +60,7 @@ export default function CreditCards() {
       user_uuid: user.id,
     };
     const newCards = [...creditCards, newCard];
-    dispatchEditCreditCards(dispatch, newCards, supabase, newCards.length-1);
+    dispatchEditCreditCards(dispatch, newCards, supabase, newCards.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -110,19 +112,6 @@ export default function CreditCards() {
       },
     });
   };
-
-  const RenderValue = ({ value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
-    />
-  );
 
   const RenderForm = ({ item }) => (
     <FormContainer
@@ -186,7 +175,12 @@ export default function CreditCards() {
     <ItemContent>
       <ValueContainer>
         <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <RenderValue
+          value={item.value}
+          fontSize='1.5rem'
+          color='#c83126'
+          start='true'
+        />
       </ValueContainer>
       <ButtonsContainer>
         <ActionButton
@@ -242,7 +236,12 @@ export default function CreditCards() {
           message='Clique em adicionar para adicionar cartão'
         />
       ) : (
-        creditCards.map((item) => <RenderItem key={item.id} item={item} />)
+        <>
+          <Total array={creditCards} color='#c83126' />
+          {creditCards.map((item) => (
+            <RenderItem key={item.id} item={item} />
+          ))}
+        </>
       )}
     </Container>
   );

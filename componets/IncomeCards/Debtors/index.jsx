@@ -23,6 +23,7 @@ import {
 import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import Total from '../../Total';
 import {
   Container,
   Head,
@@ -445,24 +446,6 @@ export default function Debtors() {
     );
   };
 
-  const RenderTotalDebtorsDebts = () => {
-    const total = 0;
-    debts.forEach((debt, index) => {
-      if (debt.value) {
-        if (index === 0) total = debt.value;
-        else total += debt.value;
-      }
-    });
-    return (
-      <TotalContainer>
-        <TotalLabel>Valor total:</TotalLabel>
-        <div>
-          <RenderValue value={total} color='#fff' />
-        </div>
-      </TotalContainer>
-    );
-  };
-
   return (
     <Container
       debtors={debtors.length}
@@ -482,7 +465,7 @@ export default function Debtors() {
         />
       ) : (
         <>
-          <RenderTotalDebtorsDebts />
+          <Total array={debts} />
           {reversedDebtors.map((debtor) => (
             <RenderDebtor key={debtor.id} debtor={debtor} />
           ))}

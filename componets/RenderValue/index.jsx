@@ -1,0 +1,26 @@
+import React from 'react';
+import CurrencyFormat from 'react-currency-format';
+import { DisplayDebtValue, DisplayValue } from './styles';
+
+export default function RenderValue({ value, debt, color, fontSize, start }) {
+  return (
+    <CurrencyFormat
+      value={value}
+      displayType={'text'}
+      thousandSeparator='.'
+      decimalSeparator=','
+      fixedDecimalScale={true}
+      decimalScale={2}
+      prefix={'R$ '}
+      renderText={(textValue) =>
+        debt ? (
+          <DisplayDebtValue>{textValue}</DisplayDebtValue>
+        ) : (
+          <DisplayValue color={color} fontSize={fontSize} start={start}>
+            {textValue}
+          </DisplayValue>
+        )
+      }
+    />
+  );
+}

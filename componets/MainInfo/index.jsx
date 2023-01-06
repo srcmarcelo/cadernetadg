@@ -166,7 +166,6 @@ export default function MainInfo() {
       (obj) => Object.values(obj)[0] === true
     );
     const alertAmount = filteredWarnings.length;
-    console.log('filteredWarnings:', filteredWarnings);
     if (_.isEmpty(filteredWarnings)) return;
     return (
       <SituationContainer>

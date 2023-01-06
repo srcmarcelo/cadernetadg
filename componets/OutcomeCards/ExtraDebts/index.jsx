@@ -3,20 +3,22 @@ import {
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
   FileDoneOutlined,
   PlusOutlined,
-  RollbackOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal } from 'antd';
+import { Form } from 'antd';
 import React, { useState } from 'react';
-import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeleteExtraDebt, dispatchEditExtraDebts } from '../../../containers/Outcome/redux';
+import {
+  dispatchDeleteExtraDebt,
+  dispatchEditExtraDebts,
+} from '../../../containers/Outcome/redux';
 import { getExtraDebts } from '../../../containers/Outcome/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import RenderValue from '../../RenderValue';
+import Total from '../../Total';
 import {
   Container,
   Head,
@@ -31,7 +33,6 @@ import {
   FormContainer,
   TitleInput,
   ItemContent,
-  DisplayValue,
   ConfirmButton,
 } from '../FixedDebts/styles';
 
@@ -58,7 +59,7 @@ export default function ExtraDebts() {
       user_uuid: user.id,
     };
     const newDebts = [...extraDebts, newDebt];
-    dispatchEditExtraDebts(dispatch, newDebts, supabase, newDebts.length-1);
+    dispatchEditExtraDebts(dispatch, newDebts, supabase, newDebts.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -88,19 +89,6 @@ export default function ExtraDebts() {
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
-
-  const RenderValue = ({ value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      extraDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
-    />
-  );
 
   const RenderForm = ({ item }) => (
     <FormContainer
@@ -164,7 +152,12 @@ export default function ExtraDebts() {
     <ItemContent>
       <ValueContainer>
         <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <RenderValue
+          value={item.value}
+          fontSize='1.5rem'
+          color='#c83126'
+          start='true'
+        />
       </ValueContainer>
       <ButtonsContainer>
         <ConfirmButton
@@ -177,11 +170,11 @@ export default function ExtraDebts() {
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
-          color='red'
+          color='#368f42'
           disabled={currentIdEditing}
           onClick={() => handleDeleteDebt(item.id)}
         >
-          <DeleteOutlined />
+          <FileDoneOutlined />
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -213,7 +206,12 @@ export default function ExtraDebts() {
           message='Clique em adicionar para adicionar débito'
         />
       ) : (
-        extraDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        <>
+          <Total array={extraDebts} color='#c83126' />
+          {extraDebts.map((item) => (
+            <RenderItem key={item.id} item={item} />
+          ))}
+        </>
       )}
     </Container>
   );

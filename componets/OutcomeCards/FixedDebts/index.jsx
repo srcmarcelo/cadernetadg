@@ -11,12 +11,16 @@ import {
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form, Modal } from 'antd';
 import React, { useState } from 'react';
-import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeleteFixedDebt, dispatchEditFixedDebts } from '../../../containers/Outcome/redux';
+import {
+  dispatchDeleteFixedDebt,
+  dispatchEditFixedDebts,
+} from '../../../containers/Outcome/redux';
 import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import RenderValue from '../../RenderValue';
+import Total from '../../Total';
 import {
   Container,
   Head,
@@ -31,7 +35,6 @@ import {
   FormContainer,
   TitleInput,
   ItemContent,
-  DisplayValue,
   ConfirmButton,
 } from './styles';
 
@@ -59,7 +62,7 @@ export default function FixedDebts() {
       user_uuid: user.id,
     };
     const newDebts = [...fixedDebts, newDebt];
-    dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length-1);
+    dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -113,19 +116,6 @@ export default function FixedDebts() {
       },
     });
   };
-
-  const RenderValue = ({ value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
-    />
-  );
 
   const RenderForm = ({ item }) => (
     <FormContainer
@@ -189,7 +179,12 @@ export default function FixedDebts() {
     <ItemContent>
       <ValueContainer>
         <Title payed={item.payed}>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <RenderValue
+          value={item.value}
+          color='#c83126'
+          fontSize='1.5rem'
+          start='true'
+        />
       </ValueContainer>
       <ButtonsContainer>
         {!item.payed && (
@@ -249,7 +244,12 @@ export default function FixedDebts() {
           message='Clique em adicionar para adicionar débito'
         />
       ) : (
-        fixedDebts.map((item) => <RenderItem key={item.id} item={item} />)
+        <>
+          <Total array={fixedDebts} color='#c83126' />
+          {fixedDebts.map((item) => (
+            <RenderItem key={item.id} item={item} />
+          ))}
+        </>
       )}
     </Container>
   );

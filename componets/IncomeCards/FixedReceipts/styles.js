@@ -9,7 +9,7 @@ export const Container = styled.div`
   padding: 5px 15px 15px 15px;
   width: 100%;
   height: ${({ items, error }) =>
-    `${55 + 80 * (items > 0 ? items : 1) + error}px`};
+    `${125 + 80 * (items > 0 ? items : 1) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -64,7 +64,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: ${({editing}) => editing ? '80%' : '60%'};
+  width: ${({ editing }) => (editing ? '80%' : '60%')};
 `;
 
 export const TitleInput = styled(Input)`
@@ -84,14 +84,14 @@ export const TitleInput = styled(Input)`
 
 export const Title = styled.div`
   font-size: 20px;
-  color: ${({received}) => received ? '#fff' : 'black'};
+  color: ${({ received }) => (received ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: ${({received}) => received ? '#368f42' : '#fff'};
+  background: ${({ received }) => (received ? '#368f42' : '#fff')};
   margin: 0;
   width: 100%;
   white-space: nowrap;
@@ -109,18 +109,6 @@ export const Value = styled(CurrencyInput)`
   width: 100%;
 `;
 
-export const DisplayValue = styled.div`
-  font-size: 1.5rem;
-  height: '36px';
-  color: #368f42;
-  border-radius: 10px;
-  padding: 0px 5px;
-  border: none;
-  width: 100%;
-  white-space: nowrap;
-  overflow-x: auto;
-`;
-
 export const ButtonsContainer = styled.div`
   display: flex;
   width: 20%;
@@ -130,6 +118,9 @@ export const ButtonsContainer = styled.div`
 `;
 
 export const ActionButton = styled(Button)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: ${({ color }) => color};
   color: white;
   border-radius: 40px;
@@ -155,6 +146,9 @@ export const ConfirmButton = styled(Button)`
   font-size: 2rem;
   width: 100%;
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
     background-color: ${({ color }) => color};

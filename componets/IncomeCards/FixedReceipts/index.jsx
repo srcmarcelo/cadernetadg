@@ -37,6 +37,8 @@ import {
   RollbackOutlined,
 } from '@ant-design/icons';
 import { getMaxId } from '../../../utils/getMaxId';
+import RenderValue from '../../RenderValue';
+import Total from '../../Total';
 
 export default function FixedReceipts() {
   const dispatch = useDispatch();
@@ -116,19 +118,6 @@ export default function FixedReceipts() {
     });
   };
 
-  const RenderValue = ({ value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
-    />
-  );
-
   const RenderForm = ({ item }) => (
     <FormContainer
       onFinish={(values) => handleEditReceipt(values, item.id)}
@@ -191,7 +180,7 @@ export default function FixedReceipts() {
     <ItemContent>
       <ValueContainer>
         <Title received={item.received}>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <RenderValue value={item.value} fontSize='1.5rem' start='true' />
       </ValueContainer>
       <ButtonsContainer>
         {!item.received && (
@@ -251,7 +240,10 @@ export default function FixedReceipts() {
           message='Clique em adicionar para adicionar recebimento'
         />
       ) : (
-        fixedReceipts.map((item) => <RenderItem key={item.id} item={item} />)
+        <>
+        <Total array={fixedReceipts} />
+        {fixedReceipts.map((item) => <RenderItem key={item.id} item={item} />)}
+        </>
       )}
     </Container>
   );

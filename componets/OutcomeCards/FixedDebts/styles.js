@@ -9,7 +9,7 @@ export const Container = styled.div`
   padding: 5px 15px 15px 15px;
   width: 100%;
   height: ${({ items, error }) =>
-    `${55 + 80 * (items > 0 ? items : 1) + error}px`};
+    `${115 + 80 * (items > 0 ? items : 1) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -64,7 +64,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: ${({editing}) => editing ? '80%' : '60%'};
+  width: ${({ editing }) => (editing ? '80%' : '60%')};
 `;
 
 export const TitleInput = styled(Input)`
@@ -129,6 +129,9 @@ export const ButtonsContainer = styled.div`
 `;
 
 export const ActionButton = styled(Button)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: ${({ color }) => color};
   color: white;
   border-radius: 40px;
@@ -149,6 +152,9 @@ export const ActionButton = styled(Button)`
 `;
 
 export const ConfirmButton = styled(Button)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: ${({ color }) => color};
   color: white;
   font-size: 2rem;

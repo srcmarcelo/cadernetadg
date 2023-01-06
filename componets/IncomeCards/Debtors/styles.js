@@ -313,19 +313,3 @@ export const DebtsContainer = styled.div`
   justify-content: center;
   align-items: center;
 `;
-
-export const TotalContainer = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-  flex-direction: row;
-  justify-content: space-between;
-  border-radius: 10px;
-  padding: 10px;
-  background-color: #368f42;
-`;
-
-export const TotalLabel = styled.h1`
-  font-size: 1.2rem;
-  margin: 0px;
-  color: #fff;
-`;

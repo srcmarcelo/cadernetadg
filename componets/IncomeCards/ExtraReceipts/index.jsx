@@ -2,21 +2,23 @@ import {
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
+  DollarOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
-  FileDoneOutlined,
   PlusOutlined,
-  RollbackOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal } from 'antd';
+import { Form } from 'antd';
 import React, { useState } from 'react';
-import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { dispatchDeleteExtraReceipt, dispatchEditExtraReceipts } from '../../../containers/Income/redux';
+import {
+  dispatchDeleteExtraReceipt,
+  dispatchEditExtraReceipts,
+} from '../../../containers/Income/redux';
 import { getExtraReceipts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import RenderValue from '../../RenderValue';
+import Total from '../../Total';
 import {
   Container,
   Head,
@@ -31,8 +33,8 @@ import {
   FormContainer,
   TitleInput,
   ItemContent,
-  DisplayValue,
   ConfirmButton,
+  DisplayValue,
 } from '../FixedReceipts/styles';
 
 export default function ExtraReceipts() {
@@ -58,7 +60,12 @@ export default function ExtraReceipts() {
       user_uuid: user.id,
     };
     const newReceipts = [...extraReceipts, newReceipt];
-    dispatchEditExtraReceipts(dispatch, newReceipts, supabase, newReceipts.length-1);
+    dispatchEditExtraReceipts(
+      dispatch,
+      newReceipts,
+      supabase,
+      newReceipts.length - 1
+    );
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -88,19 +95,6 @@ export default function ExtraReceipts() {
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
-
-  const RenderValue = ({ value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      extraDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) => <DisplayValue>{textValue}</DisplayValue>}
-    />
-  );
 
   const RenderForm = ({ item }) => (
     <FormContainer
@@ -164,7 +158,7 @@ export default function ExtraReceipts() {
     <ItemContent>
       <ValueContainer>
         <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} />
+        <RenderValue value={item.value} fontSize='1.5rem' start={'true'} />
       </ValueContainer>
       <ButtonsContainer>
         <ConfirmButton
@@ -177,11 +171,11 @@ export default function ExtraReceipts() {
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
-          color='red'
+          color='#368f42'
           disabled={currentIdEditing}
           onClick={() => handleDeleteReceipt(item.id)}
         >
-          <DeleteOutlined />
+          <DollarOutlined />
         </ConfirmButton>
       </ButtonsContainer>
     </ItemContent>
@@ -213,7 +207,12 @@ export default function ExtraReceipts() {
           message='Clique em adicionar para adicionar recebimento'
         />
       ) : (
-        extraReceipts.map((item) => <RenderItem key={item.id} item={item} />)
+        <>
+          <Total array={extraReceipts} />
+          {extraReceipts.map((item) => (
+            <RenderItem key={item.id} item={item} />
+          ))}
+        </>
       )}
     </Container>
   );
