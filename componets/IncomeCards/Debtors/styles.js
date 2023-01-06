@@ -82,12 +82,12 @@ export const InstallmentsContainer = styled.div`
   align-items: center;
   padding-left: 1%;
   padding-right: 1%;
-  width: 35%;
+  width: ${({form}) => form ? '35%' : '20%'};
 `;
 
 export const InstalmentsLabel = styled.div`
   font-size: 0.8rem;
-  color: black;
+  color: ${({color}) => color || 'black'};
 `;
 
 export const TitleInputContainer = styled.div`
@@ -141,7 +141,7 @@ export const Title = styled.div`
 
 export const TitleDebt = styled.div`
   font-size: 0.8rem;
-  color: ${({ received }) => (received ? '#fff' : 'black')};
+  color: ${({ disabled }) => (disabled ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
   border-left: none;
@@ -154,6 +154,7 @@ export const TitleDebt = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background-color: ${({disabled}) => disabled ? 'grey' : 'none'};
 `;
 
 export const Value = styled(CurrencyInput)`
@@ -194,7 +195,7 @@ export const DisplayDebtValue = styled.div`
 
 export const ButtonsContainer = styled.div`
   display: flex;
-  width: 30%;
+  width: ${({form}) => form ? '30%' : '45%'};
   justify-content: space-around;
   align-items: center;
   flex-wrap: nowrap;
@@ -206,7 +207,7 @@ export const ActionButton = styled(Button)`
   justify-content: center;
   align-items: center;
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   border-radius: 10px;
   margin-right: 2px;
   margin-left: 2px;

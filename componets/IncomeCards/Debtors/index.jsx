@@ -7,6 +7,8 @@ import {
   ExclamationCircleOutlined,
   PlusOutlined,
   RollbackOutlined,
+  SelectOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form, InputNumber, Modal } from 'antd';
@@ -23,6 +25,7 @@ import {
 import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
 import Empty from '../../Empty';
+import RenderValue from '../../RenderValue';
 import Total from '../../Total';
 import {
   Container,
@@ -138,10 +141,28 @@ export default function Debtors() {
           )
         : values.value;
     newDebts[index].value = debtValue;
-    dispatchEditDebts(dispatch, newDebts, supabase, index);
+    await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
     setErrorFinish(false);
     setCreating(false);
+  };
+
+  const handleDisableDebt = async (id) => {
+    const index = debts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(debts);
+    newDebts[index].disabled = !newDebts[index].disabled;
+    await dispatchEditDebts(dispatch, newDebts, supabase, index);
+    setCurrentIdEditing(null);
+    setErrorFinish(false);
+  };
+
+  const handleIncreaseInstallment = async (id) => {
+    const index = debts.findIndex((item) => item.id === id);
+    const newDebts = _.cloneDeep(debts);
+    newDebts[index].current_pay = newDebts[index].current_pay + 1;
+    await dispatchEditDebts(dispatch, newDebts, supabase, index);
+    setCurrentIdEditing(null);
+    setErrorFinish(false);
   };
 
   const handleDeleteDebt = async (id) => {
@@ -159,30 +180,13 @@ export default function Debtors() {
       okType: 'danger',
       cancelText: 'NÃO',
       onOk: async () => {
-        await debtorDebts.forEach(async (debt) => await handleDeleteDebt(debt.id));
+        await debtorDebts.forEach(
+          async (debt) => await handleDeleteDebt(debt.id)
+        );
         await handleDeleteDebtor(id);
       },
     });
   };
-
-  const RenderValue = ({ value, debt, color }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) =>
-        debt ? (
-          <DisplayDebtValue>{textValue}</DisplayDebtValue>
-        ) : (
-          <DisplayValue color={color}>{textValue}</DisplayValue>
-        )
-      }
-    />
-  );
 
   const RenderForm = ({ debt }) => (
     <FormContainer
@@ -226,7 +230,7 @@ export default function Debtors() {
           />
         </Form.Item>
       </ValueContainer>
-      <InstallmentsContainer>
+      <InstallmentsContainer form={'true'}>
         <InstalmentsLabel>Parcela</InstalmentsLabel>
         <div
           style={{
@@ -271,7 +275,7 @@ export default function Debtors() {
           </Form.Item>
         </div>
       </InstallmentsContainer>
-      <ButtonsContainer>
+      <ButtonsContainer form={'true'}>
         <ActionButton color='green' htmlType='submit'>
           <CheckOutlined />
         </ActionButton>
@@ -290,27 +294,51 @@ export default function Debtors() {
   const RenderDebtContent = ({ debt }) => (
     <DebtContent>
       <ValueContainer>
-        <TitleDebt>{debt.name.toUpperCase()}</TitleDebt>
-        <RenderValue value={debt.value} debt={true} />
+        <TitleDebt disabled={debt.disabled}>
+          {debt.name.toUpperCase()}
+        </TitleDebt>
+        <RenderValue
+          value={debt.value}
+          debt={true}
+          color={debt.disabled ? 'grey' : null}
+        />
       </ValueContainer>
       <InstallmentsContainer>
-        <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div style={{ fontSize: '0.9rem', color: 'black' }}>
+        <InstalmentsLabel color={debt.disabled ? 'grey' : 'black'}>
+          Parcela
+        </InstalmentsLabel>
+        <div
+          style={{
+            fontSize: '0.9rem',
+            color: debt.disabled ? 'grey' : 'black',
+          }}
+        >
           {debt.current_pay} de {debt.installments}
         </div>
       </InstallmentsContainer>
       <ButtonsContainer>
         <ActionButton
-          color='orange'
+          color={debt.disabled ? '#368f42' : 'grey'}
           disabled={currentIdEditing}
+          onClick={() => handleDisableDebt(debt.id)}
+        >
+          {debt.disabled ? <SelectOutlined /> : <StopOutlined />}
+        </ActionButton>
+        <ActionButton
+          color='orange'
+          disabled={currentIdEditing || debt.disabled}
           onClick={() => setCurrentIdEditing(debt.id)}
         >
           <EditOutlined />
         </ActionButton>
         <ActionButton
           color='#368f42'
-          disabled={currentIdEditing}
-          onClick={() => handleDeleteDebt(debt.id)}
+          disabled={currentIdEditing || debt.disabled}
+          onClick={() =>
+            debt.installments - debt.current_pay < 1
+              ? handleDeleteDebt(debt.id)
+              : handleIncreaseInstallment(debt.id)
+          }
         >
           <CarryOutOutlined />
         </ActionButton>
@@ -376,8 +404,8 @@ export default function Debtors() {
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
 
-    debtorDebts.forEach(({ value }, index) => {
-      if (value) {
+    debtorDebts.forEach(({ value, disabled }, index) => {
+      if (value && !disabled) {
         index === 0 ? (debtsValue = value) : (debtsValue += value);
       }
     });

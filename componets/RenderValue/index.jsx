@@ -14,7 +14,7 @@ export default function RenderValue({ value, debt, color, fontSize, start }) {
       prefix={'R$ '}
       renderText={(textValue) =>
         debt ? (
-          <DisplayDebtValue>{textValue}</DisplayDebtValue>
+          <DisplayDebtValue color={color}>{textValue}</DisplayDebtValue>
         ) : (
           <DisplayValue color={color} fontSize={fontSize} start={start}>
             {textValue}

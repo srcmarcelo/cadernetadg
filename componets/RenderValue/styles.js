@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const DisplayDebtValue = styled.div`
   font-size: 1rem;
   height: '36px';
-  color: #368f42;
+  color: ${({color}) => color || '#368f42'};
   border-radius: 10px;
   padding: 0px 5px;
   border: none;

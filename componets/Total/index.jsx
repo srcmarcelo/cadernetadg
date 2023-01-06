@@ -5,7 +5,7 @@ import { TotalContainer, TotalLabel } from "./styles";
 export default function Total({array, color}) {
     let total = 0;
     array.forEach((item, index) => {
-      if (item.value && !(item.payed || item.received)) {
+      if (item.value && !(item.payed || item.received || item.disabled)) {
         if (index === 0) total = item.value;
         else total += item.value;
       }

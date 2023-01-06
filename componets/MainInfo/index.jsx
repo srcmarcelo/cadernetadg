@@ -79,8 +79,8 @@ export default function MainInfo() {
   useEffect(() => {
     let total = 0;
     const receipts = [...fixedReceipts, ...extraReceipts, ...debtorsDebts];
-    receipts.forEach(({ value, received }, index) => {
-      if (value && !received) {
+    receipts.forEach(({ value, received, disabled }, index) => {
+      if (value && !received && !disabled) {
         index === 0 ? (total = value) : (total += value);
       }
     });
@@ -100,8 +100,8 @@ export default function MainInfo() {
 
   useEffect(() => {
     let total = 0;
-    debtorsDebts.forEach(({ value }, index) => {
-      if (value) {
+    debtorsDebts.forEach(({ value, disabled }, index) => {
+      if (value && !disabled) {
         index === 0 ? (total = value) : (total += value);
       }
     });
