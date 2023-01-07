@@ -34,7 +34,6 @@ import {
   TitleInput,
   ItemContent,
   ConfirmButton,
-  DisplayValue,
 } from '../FixedReceipts/styles';
 
 export default function ExtraReceipts() {
@@ -44,6 +43,8 @@ export default function ExtraReceipts() {
   const user = useUser();
 
   const extraReceipts = useSelector(getExtraReceipts);
+  const reversedExtraReceipts = _.reverse(_.cloneDeep(extraReceipts));
+
   const hasReceipts = !_.isEmpty(extraReceipts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
@@ -209,7 +210,7 @@ export default function ExtraReceipts() {
       ) : (
         <>
           <Total array={extraReceipts} />
-          {extraReceipts.map((item) => (
+          {reversedExtraReceipts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}
         </>

@@ -64,13 +64,13 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: ${({ editing }) => (editing ? '80%' : '60%')};
+  width: ${({ editing, installments }) => (editing ? '80%' : installments ? '40%' : '60%')};
 `;
 
 export const TitleInput = styled(Input)`
-  font-size: 20px;
+  font-size: ${({size}) => size || '1.3rem'};
   color: black;
-  padding: 0px 10px;
+  padding: ${({size}) => size ? '0px 5px' : '0px 10px'};
   border-top: none;
   border-left: none;
   border-right: none;
@@ -83,15 +83,16 @@ export const TitleInput = styled(Input)`
 `;
 
 export const Title = styled.div`
-  font-size: 20px;
-  color: ${({ payed }) => (payed ? '#fff' : 'black')};
+  font-size: ${({size}) => size || '1.3rem'};
+  color: ${({ disabled, payed }) => (disabled || payed ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: ${({ payed }) => (payed ? '#368f42' : '#fff')};
+  background: ${({ disabled, payed }) =>
+    disabled ? 'grey' : payed ? '#c83126' : '#fff'};
   margin: 0;
   width: 100%;
   white-space: nowrap;
@@ -100,7 +101,7 @@ export const Title = styled.div`
 `;
 
 export const Value = styled(CurrencyInput)`
-  font-size: 1.5rem;
+  font-size: ${({size}) => size || '1.5rem'};
   height: 36px;
   color: #c83126;
   background: #f0f0f0;
@@ -134,9 +135,10 @@ export const ActionButton = styled(Button)`
   align-items: center;
   background-color: ${({ color }) => color};
   color: white;
-  border-radius: 40px;
-  font-size: 1rem;
-  width: 50px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  width: 40px;
+  margin: 1px 0px;
 
   &:hover {
     background-color: ${({ color }) => color};

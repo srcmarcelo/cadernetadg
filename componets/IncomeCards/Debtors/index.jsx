@@ -119,6 +119,7 @@ export default function Debtors() {
       name: '',
       user_uuid: user.id,
       debtor_id: debtorId,
+      disbaled: false,
       installments: 1,
       current_pay: 1,
     };
@@ -132,8 +133,8 @@ export default function Debtors() {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
     newDebts[index].name = values.name;
-    newDebts[index].installments = values.installments || 0;
-    newDebts[index].current_pay = values.current_pay || 0;
+    newDebts[index].installments = values.installments || 1;
+    newDebts[index].current_pay = values.current_pay || 1;
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(

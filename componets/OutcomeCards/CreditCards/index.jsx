@@ -44,6 +44,8 @@ export default function CreditCards() {
   const user = useUser();
 
   const creditCards = useSelector(getCreditCards);
+  const reversedCreditCards = _.reverse(_.cloneDeep(creditCards));
+
   const hasCards = !_.isEmpty(creditCards);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
@@ -238,7 +240,7 @@ export default function CreditCards() {
       ) : (
         <>
           <Total array={creditCards} color='#c83126' />
-          {creditCards.map((item) => (
+          {reversedCreditCards.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}
         </>

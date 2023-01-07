@@ -45,6 +45,8 @@ export default function FixedDebts() {
   const user = useUser();
 
   const fixedDebts = useSelector(getFixedDebts);
+  const reversedFixedDebts = _.reverse(_.cloneDeep(fixedDebts));
+
   const hasDebts = !_.isEmpty(fixedDebts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
@@ -181,7 +183,7 @@ export default function FixedDebts() {
         <Title payed={item.payed}>{item.name.toUpperCase()}</Title>
         <RenderValue
           value={item.value}
-          color='#c83126'
+          color={item.payed ? 'grey' : '#c83126'}
           fontSize='1.5rem'
           start='true'
         />
@@ -246,7 +248,7 @@ export default function FixedDebts() {
       ) : (
         <>
           <Total array={fixedDebts} color='#c83126' />
-          {fixedDebts.map((item) => (
+          {reversedFixedDebts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}
         </>

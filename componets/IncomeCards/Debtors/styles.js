@@ -78,7 +78,7 @@ export const ValueContainer = styled.div`
 export const InstallmentsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding-left: 1%;
   padding-right: 1%;

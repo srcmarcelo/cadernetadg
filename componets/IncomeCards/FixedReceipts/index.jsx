@@ -25,7 +25,10 @@ import {
 
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
 import Empty from '../../Empty';
-import { dispatchDeleteFixedReceipt, dispatchEditFixedReceipts } from '../../../containers/Income/redux';
+import {
+  dispatchDeleteFixedReceipt,
+  dispatchEditFixedReceipts,
+} from '../../../containers/Income/redux';
 import {
   CheckOutlined,
   CloseOutlined,
@@ -47,6 +50,8 @@ export default function FixedReceipts() {
   const user = useUser();
 
   const fixedReceipts = useSelector(getFixedReceipts);
+  const reversedFixedReceipts = _.reverse(_.cloneDeep(fixedReceipts));
+
   const hasReceipts = !_.isEmpty(fixedReceipts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
@@ -64,7 +69,12 @@ export default function FixedReceipts() {
       user_uuid: user.id,
     };
     const newReceipts = [...fixedReceipts, newReceipt];
-    dispatchEditFixedReceipts(dispatch, newReceipts, supabase, newReceipts.length-1);
+    dispatchEditFixedReceipts(
+      dispatch,
+      newReceipts,
+      supabase,
+      newReceipts.length - 1
+    );
     setCreating(true);
     setCurrentIdEditing(id);
   };
@@ -180,7 +190,12 @@ export default function FixedReceipts() {
     <ItemContent>
       <ValueContainer>
         <Title received={item.received}>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} fontSize='1.5rem' start='true' />
+        <RenderValue
+          value={item.value}
+          fontSize='1.5rem'
+          start='true'
+          color={item.received ? 'grey' : '#368f42'}
+        />
       </ValueContainer>
       <ButtonsContainer>
         {!item.received && (
@@ -241,8 +256,10 @@ export default function FixedReceipts() {
         />
       ) : (
         <>
-        <Total array={fixedReceipts} />
-        {fixedReceipts.map((item) => <RenderItem key={item.id} item={item} />)}
+          <Total array={fixedReceipts} />
+          {reversedFixedReceipts.map((item) => (
+            <RenderItem key={item.id} item={item} />
+          ))}
         </>
       )}
     </Container>

@@ -90,8 +90,8 @@ export default function MainInfo() {
   useEffect(() => {
     let total = 0;
     const debts = [...fixedDebts, ...extraDebts, ...creditCards];
-    debts.forEach(({ value, payed }, index) => {
-      if (value && !payed) {
+    debts.forEach(({ value, payed, disabled }, index) => {
+      if (value && !payed && !disabled) {
         index === 0 ? (total = value) : (total += value);
       }
     });
