@@ -33,7 +33,6 @@ export const AddButton = styled(Button)`
   background-color: blue;
   color: white;
   border-radius: 20px;
-  color: white;
 
   &:enabled {
     background-color: blue;
@@ -53,6 +52,7 @@ export const FormContainer = styled(Form)`
   justify-content: center;
   width: 100%;
 `;
+
 export const ItemContent = styled.div`
   display: flex;
   flex-direction: row;
@@ -84,14 +84,14 @@ export const TitleInput = styled(Input)`
 
 export const Title = styled.div`
   font-size: 20px;
-  color: ${({ received }) => (received ? '#fff' : 'black')};
+  color: ${({ received, disabled }) => (received || disabled ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: ${({ received }) => (received ? '#368f42' : '#fff')};
+  background: ${({ received, disabled }) => (received ? '#368f42' : disabled ? 'grey' : '#fff')};
   margin: 0;
   width: 100%;
   white-space: nowrap;
@@ -123,9 +123,10 @@ export const ActionButton = styled(Button)`
   align-items: center;
   background-color: ${({ color }) => color};
   color: white;
-  border-radius: 40px;
-  font-size: 1rem;
-  width: 50px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  width: 40px;
+  margin: 1px 0px;
 
   &:hover {
     background-color: ${({ color }) => color};

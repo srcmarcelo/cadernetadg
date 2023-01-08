@@ -5,6 +5,8 @@ import {
   DollarOutlined,
   EditOutlined,
   PlusOutlined,
+  SelectOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { Form } from 'antd';
@@ -88,6 +90,15 @@ export default function ExtraReceipts() {
     setCreating(false);
   };
 
+  const handleDisableReceipt = async (id) => {
+    const index = extraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(extraReceipts);
+    newReceipts[index].disabled = !newReceipts[index].disabled;
+    await dispatchEditExtraReceipts(dispatch, newReceipts, supabase, index);
+    setCurrentIdEditing(null);
+    setErrorFinish(false);
+  };
+
   const handleDeleteReceipt = async (id) => {
     const index = extraReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(extraReceipts);
@@ -158,17 +169,29 @@ export default function ExtraReceipts() {
   const RenderItemContent = ({ item }) => (
     <ItemContent>
       <ValueContainer>
-        <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue value={item.value} fontSize='1.5rem' start={'true'} />
+        <Title disabled={item.disabled}>{item.name.toUpperCase()}</Title>
+        <RenderValue
+          value={item.value}
+          fontSize='1.5rem'
+          start={'true'}
+          color={item.disabled ? 'grey' : '#368f42'}
+        />
       </ValueContainer>
       <ButtonsContainer>
-        <ConfirmButton
-          color='orange'
+        <ActionButton
+          color={item.disabled ? '#368f42' : 'grey'}
           disabled={currentIdEditing}
+          onClick={() => handleDisableReceipt(item.id)}
+        >
+          {item.disabled ? <SelectOutlined /> : <StopOutlined />}
+        </ActionButton>
+        <ActionButton
+          color='orange'
+          disabled={currentIdEditing || item.disabled}
           onClick={() => setCurrentIdEditing(item.id)}
         >
           <EditOutlined />
-        </ConfirmButton>
+        </ActionButton>
       </ButtonsContainer>
       <ButtonsContainer>
         <ConfirmButton
