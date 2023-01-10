@@ -28,7 +28,7 @@ export default function Main() {
   return (
     <Container>
       <Content>
-        <MainInfo />
+        <MainInfo dispatch={dispatch} />
         <ProfileButton onClick={setCurrentTab} />
         {currentTab === 'panel' && <ControlPanel />}
         {currentTab === 'income' && <Income />}

@@ -21,15 +21,17 @@ import {
 import {
   getCurrentBalance,
   getKeptBalance,
+  setCurrentDebtorDependency,
+  setMonthlyLoss,
 } from '../../containers/Main/redux/reducer';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   getFixedDebts,
   getExtraDebts,
   getCreditCards,
 } from '../../containers/Outcome/redux/reducer';
 
-export default function MainInfo() {
+export default function MainInfo({ dispatch }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const extraReceipts = useSelector(getExtraReceipts);
@@ -111,21 +113,31 @@ export default function MainInfo() {
   useEffect(() => {
     if (willReceive - totalDebts < 0) {
       setMonthlySituation('deficit');
-      setLoss(true);
-      if (totalDebtorsDebts > 0) setDebtorDependency(true);
-      else setDebtorDependency(false);
+      handleSetLoss(true);
+      if (totalDebtorsDebts > 0) {
+        handleSetDebtorsDependency(true);
+      } else handleSetDebtorsDependency(false);
     } else {
       setMonthlySituation('profit');
-      setLoss(false);
-      if (willReceive + currentBalance - totalDebts - totalDebtorsDebts < 0)
-        setDebtorDependency(true);
-      else setDebtorDependency(false);
+      handleSetLoss(false);
+      if (willReceive + currentBalance - totalDebts - totalDebtorsDebts < 0) {
+        handleSetDebtorsDependency(true);
+      } else handleSetDebtorsDependency(false);
     }
 
     willReceive - totalDebts + currentBalance < 0
       ? setGeneralSituation('negative')
       : setGeneralSituation('positive');
   }, [totalDebts, willReceive, currentBalance]);
+
+  const handleSetLoss = (value) => {
+    setLoss(value);
+    dispatch(setMonthlyLoss(value));
+  };
+  const handleSetDebtorsDependency = (value) => {
+    setDebtorDependency(value);
+    dispatch(setCurrentDebtorDependency(value));
+  };
 
   const RenderValue = ({ color, value }) => (
     <CurrencyFormat
@@ -186,18 +198,18 @@ export default function MainInfo() {
       <BalancesContainer>
         <RenderBalance
           color='#368F42'
-          label='Quanto você tem:'
+          label='Quanto você tem agora:'
           value={currentBalance}
-        />
-        <RenderBalance
-          color='#C83126'
-          label='Quanto ainda deve:'
-          value={totalDebts}
         />
         <RenderBalance
           color='#368F42'
           label='Quanto ainda receberá:'
           value={willReceive}
+        />
+        <RenderBalance
+          color='#C83126'
+          label='Quanto ainda deve:'
+          value={totalDebts}
         />
       </BalancesContainer>
       <WarningContainer>
