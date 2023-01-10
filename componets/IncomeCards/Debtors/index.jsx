@@ -119,7 +119,7 @@ export default function Debtors() {
       name: '',
       user_uuid: user.id,
       debtor_id: debtorId,
-      disbaled: false,
+      disabled: false,
       installments: 1,
       current_pay: 1,
     };
