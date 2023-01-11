@@ -9,7 +9,7 @@ export default function ControlPanel() {
     <Container>
       <Content>
         <BalanceCard />
-        {/* <SituationCard /> */}
+        <SituationCard />
         <AlertsCard />
       </Content>
     </Container>

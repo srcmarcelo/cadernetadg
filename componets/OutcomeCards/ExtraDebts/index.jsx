@@ -298,7 +298,7 @@ export default function ExtraDebts() {
   return (
     <Container items={extraDebts.length} error={errorFinish ? 30 : 0}>
       <Head>
-        <Label>Outras Despezas</Label>
+        <Label>Outras Despesas</Label>
         <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>

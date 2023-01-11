@@ -21,8 +21,14 @@ import {
 import {
   getCurrentBalance,
   getKeptBalance,
+  getTotalDebtorsDebts,
+  getTotalDebts,
+  getWillReceive,
   setCurrentDebtorDependency,
   setMonthlyLoss,
+  setTotalDebtorsDebts,
+  setTotalDebts,
+  setWillReceive,
 } from '../../containers/Main/redux/reducer';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -40,10 +46,10 @@ export default function MainInfo({ dispatch }) {
   const extraDebts = useSelector(getExtraDebts);
   const creditCards = useSelector(getCreditCards);
   const debtorsDebts = useSelector(getDebts);
-
-  const [willReceive, setWillReceive] = useState(0);
-  const [totalDebts, setTotalDebts] = useState(0);
-  const [totalDebtorsDebts, setTotalDebtorsDebts] = useState(0);
+  
+  const willReceive = useSelector(getWillReceive);
+  const totalDebts = useSelector(getTotalDebts);
+  const totalDebtorsDebts = useSelector(getTotalDebtorsDebts);
 
   const [monthlySituation, setMonthlySituation] = useState('profit');
   const [generalSituation, setGeneralSituation] = useState('positive');
@@ -86,7 +92,7 @@ export default function MainInfo({ dispatch }) {
         index === 0 ? (total = value) : (total += value);
       }
     });
-    setWillReceive(total);
+    dispatch(setWillReceive(total));
   }, [fixedReceipts, extraReceipts, debtorsDebts]);
 
   useEffect(() => {
@@ -97,7 +103,7 @@ export default function MainInfo({ dispatch }) {
         index === 0 ? (total = value) : (total += value);
       }
     });
-    setTotalDebts(total);
+    dispatch(setTotalDebts(total));
   }, [fixedDebts, extraDebts, creditCards]);
 
   useEffect(() => {
@@ -107,7 +113,7 @@ export default function MainInfo({ dispatch }) {
         index === 0 ? (total = value) : (total += value);
       }
     });
-    setTotalDebtorsDebts(total);
+    dispatch(setTotalDebtorsDebts(total));
   }, [debtorsDebts]);
 
   useEffect(() => {

@@ -13,6 +13,20 @@ export const Container = styled.div`
 
 export const Title = styled.h1`
     font-size: 1.5rem;
-    color: #8176fb;
+    color: ${({color}) => color || 'black'};
+    margin: 0px;
+`;
+
+export const Description = styled.div`
+    font-size: 1rem;
+    color: black;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+`;
+
+export const Situation = styled.h3`
+    font-size: 1.3rem;
+    color: ${({color}) => color || 'black'};
     margin: 0px;
 `;
