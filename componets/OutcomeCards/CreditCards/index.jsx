@@ -181,7 +181,7 @@ export default function CreditCards() {
           value={item.value}
           fontSize='1.5rem'
           color='#c83126'
-          start='true'
+          textAlign='start'
         />
       </ValueContainer>
       <ButtonsContainer>

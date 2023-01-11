@@ -23,5 +23,5 @@ export const DisplayValue = styled.div`
   width: 100%;
   white-space: nowrap;
   overflow-x: auto;
-  text-align: ${({start}) => start ? 'start' : 'center'};
+  text-align: ${({textAlign}) => textAlign ? textAlign : 'center'};
 `;

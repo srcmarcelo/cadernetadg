@@ -235,7 +235,7 @@ export default function ExtraDebts() {
         <RenderValue
           value={item.value}
           color={item.disabled ? 'grey' : '#c83126'}
-          start='true'
+          textAlign='start'
         />
       </ValueContainer>
       <InstallmentsContainer>

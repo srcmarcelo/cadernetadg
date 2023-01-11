@@ -2,7 +2,7 @@ import React from 'react';
 import CurrencyFormat from 'react-currency-format';
 import { DisplayDebtValue, DisplayValue } from './styles';
 
-export default function RenderValue({ value, debt, color, fontSize, start }) {
+export default function RenderValue({ value, debt, color, fontSize, textAlign }) {
   return (
     <CurrencyFormat
       value={value}
@@ -16,7 +16,7 @@ export default function RenderValue({ value, debt, color, fontSize, start }) {
         debt ? (
           <DisplayDebtValue color={color}>{textValue}</DisplayDebtValue>
         ) : (
-          <DisplayValue color={color} fontSize={fontSize} start={start}>
+          <DisplayValue color={color} fontSize={fontSize} textAlign={textAlign}>
             {textValue}
           </DisplayValue>
         )

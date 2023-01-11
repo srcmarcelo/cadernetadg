@@ -193,7 +193,7 @@ export default function FixedReceipts() {
         <RenderValue
           value={item.value}
           fontSize='1.5rem'
-          start='true'
+          textAlign='start'
           color={item.received ? 'grey' : '#368f42'}
         />
       </ValueContainer>

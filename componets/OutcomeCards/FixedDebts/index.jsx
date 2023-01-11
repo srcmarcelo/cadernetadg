@@ -185,7 +185,7 @@ export default function FixedDebts() {
           value={item.value}
           color={item.payed ? 'grey' : '#c83126'}
           fontSize='1.5rem'
-          start='true'
+          textAlign='start'
         />
       </ValueContainer>
       <ButtonsContainer>

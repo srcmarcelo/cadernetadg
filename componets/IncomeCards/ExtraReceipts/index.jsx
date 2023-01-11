@@ -173,7 +173,7 @@ export default function ExtraReceipts() {
         <RenderValue
           value={item.value}
           fontSize='1.5rem'
-          start={'true'}
+          textAlign='start'
           color={item.disabled ? 'grey' : '#368f42'}
         />
       </ValueContainer>
