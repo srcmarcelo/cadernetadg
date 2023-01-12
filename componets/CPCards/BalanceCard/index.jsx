@@ -1,9 +1,18 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { dispatchSetCurrentBalance, dispatchSetKeptBalance } from '../../../containers/Main/redux';
-import { getCurrentBalance, getKeptBalance } from '../../../containers/Main/redux/reducer';
+import {
+  dispatchSetCurrentBalance,
+  dispatchSetKeptBalance,
+} from '../../../containers/Main/redux';
+import {
+  getCurrentBalance,
+  getKeptBalance,
+} from '../../../containers/Main/redux/reducer';
 import { Container, ValueContainer, Title, Value } from './styles';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useCallback } from 'react';
+import { debounce } from 'lodash';
 
 export default function BalanceCard() {
   const currentBalance = useSelector(getCurrentBalance);
@@ -13,14 +22,32 @@ export default function BalanceCard() {
   const supabase = useSupabaseClient();
   const user = useUser();
 
+  const debouncedSaveCurrent = useCallback(
+    debounce(
+      (nextValue) =>
+        dispatchSetCurrentBalance(dispatch, nextValue, supabase, user),
+      1000
+    ),
+    []
+  );
+
+  const debouncedSaveKept = useCallback(
+    debounce(
+      (nextValue) =>
+        dispatchSetKeptBalance(dispatch, nextValue, supabase, user),
+      1000
+    ),
+    []
+  );
+
   const handleChangeCurrentBalance = (e) => {
     const value = e.target.value.slice(3).replace('.', '').replace(',', '.');
-    dispatchSetCurrentBalance(dispatch, parseFloat(value), supabase, user);
+    debouncedSaveCurrent(parseFloat(value));
   };
 
   const handleChangeKeptBalance = (e) => {
     const value = e.target.value.slice(3).replace('.', '').replace(',', '.');
-    dispatchSetKeptBalance(dispatch, parseFloat(value), supabase, user);
+    debouncedSaveKept(parseFloat(value));
   };
 
   return (
