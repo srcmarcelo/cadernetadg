@@ -1,8 +1,16 @@
 import {
   setDebtors,
+  setDebtorsError,
+  setDebtorsSuccess,
   setDebts,
+  setDebtsError,
+  setDebtsSuccess,
   setExtraReceipts,
+  setExtraReceiptsError,
+  setExtraReceiptsSuccess,
   setFixedReceipts,
+  setFixedReceiptsError,
+  setFixedReceiptsSuccess,
 } from './reducer';
 
 export const dispatchEditFixedReceipts = async (
@@ -11,10 +19,12 @@ export const dispatchEditFixedReceipts = async (
   supabase,
   index
 ) => {
+  dispatch(setFixedReceipts());
   try {
     await supabase.from('fixed_receipts').upsert(values[index]);
-    dispatch(setFixedReceipts(values));
+    dispatch(setFixedReceiptsSuccess(values));
   } catch (error) {
+    dispatch(setFixedReceiptsError());
     console.log('error:', error);
   }
 };
@@ -25,10 +35,12 @@ export const dispatchDeleteFixedReceipt = async (
   supabase,
   id
 ) => {
+  dispatch(setFixedReceipts());
   try {
     await supabase.from('fixed_receipts').delete().eq('id', id);
-    dispatch(setFixedReceipts(values));
+    dispatch(setFixedReceiptsSuccess(values));
   } catch (error) {
+    dispatch(setFixedReceiptsError());
     console.log('error:', error);
   }
 };
@@ -39,37 +51,45 @@ export const dispatchEditDebtors = async (
   supabase,
   index
 ) => {
+  dispatch(setDebtors());
   try {
     await supabase.from('debtors').upsert(values[index]);
-    dispatch(setDebtors(values));
+    dispatch(setDebtorsSuccess(values));
   } catch (error) {
+    dispatch(setDebtorsError());
     console.log('error:', error);
   }
 };
 
 export const dispatchDeleteDebtor = async (dispatch, values, supabase, id) => {
+  dispatch(setDebtors());
   try {
     await supabase.from('debtors').delete().eq('id', id);
-    dispatch(setDebtors(values));
+    dispatch(setDebtorsSuccess(values));
   } catch (error) {
+    dispatch(setDebtorsError());
     console.log('error:', error);
   }
 };
 
 export const dispatchFetchDebts = async (dispatch, supabase, user) => {
+  dispatch(setDebts());
   try {
     let { data } = await supabase.from('debts').select('*').eq('user_uuid', user.id);
-    dispatch(setDebts(data));
+    dispatch(setDebtsSuccess(data));
   } catch (error) {
+    dispatch(setDebtsError());
     console.log('error:', error);
   }
 };
 
 export const dispatchEditDebts = async (dispatch, values, supabase, index) => {
+  dispatch(setDebts());
   try {
     await supabase.from('debts').upsert(values[index]);
-    dispatch(setDebts(values));
+    dispatch(setDebtsSuccess(values));
   } catch (error) {
+    dispatch(setDebtsError(values));
     console.log('error:', error);
   }
 };
@@ -89,10 +109,12 @@ export const dispatchEditExtraReceipts = async (
   supabase,
   index
 ) => {
+  dispatch(setExtraReceipts());
   try {
     await supabase.from('extra_receipts').upsert(values[index]);
-    dispatch(setExtraReceipts(values));
+    dispatch(setExtraReceiptsSuccess(values));
   } catch (error) {
+    dispatch(setExtraReceiptsError());
     console.log('error:', error);
   }
 };
@@ -103,10 +125,12 @@ export const dispatchDeleteExtraReceipt = async (
   supabase,
   id
 ) => {
+  dispatch(setExtraReceipts());
   try {
     await supabase.from('extra_receipts').delete().eq('id', id);
-    dispatch(setExtraReceipts(values));
+    dispatch(setExtraReceiptsSuccess(values));
   } catch (error) {
+    dispatch(setExtraReceiptsError());
     console.log('error:', error);
   }
 };

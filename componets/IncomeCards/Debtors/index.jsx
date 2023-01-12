@@ -39,8 +39,6 @@ import {
   ActionButton,
   FormContainer,
   TitleInput,
-  DisplayValue,
-  ConfirmButton,
   DebtorContainer,
   DebtorHeader,
   DebtorNameContainer,
@@ -50,15 +48,11 @@ import {
   DebtsContainer,
   DebtContainer,
   TitleDebtInput,
-  DisplayDebtValue,
   DebtContent,
   TitleDebt,
   InstallmentsContainer,
   InstalmentsLabel,
   TitleInputContainer,
-  TotalContainer,
-  TotalLabel,
-  TotalValueContainer,
 } from './styles';
 
 export default function Debtors() {

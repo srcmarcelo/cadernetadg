@@ -20,7 +20,7 @@ import {
 } from '../../containers/Income/redux/reducer';
 import {
   getCurrentBalance,
-  getKeptBalance,
+  getSyncing,
   getTotalDebtorsDebts,
   getTotalDebts,
   getWillReceive,
@@ -36,20 +36,22 @@ import {
   getExtraDebts,
   getCreditCards,
 } from '../../containers/Outcome/redux/reducer';
+import { Skeleton } from 'antd';
 
 export default function MainInfo({ dispatch }) {
   const currentBalance = useSelector(getCurrentBalance);
-  const keptBalance = useSelector(getKeptBalance);
   const extraReceipts = useSelector(getExtraReceipts);
   const fixedReceipts = useSelector(getFixedReceipts);
   const fixedDebts = useSelector(getFixedDebts);
   const extraDebts = useSelector(getExtraDebts);
   const creditCards = useSelector(getCreditCards);
   const debtorsDebts = useSelector(getDebts);
-  
+
   const willReceive = useSelector(getWillReceive);
   const totalDebts = useSelector(getTotalDebts);
   const totalDebtorsDebts = useSelector(getTotalDebtorsDebts);
+
+  const syncing = useSelector(getSyncing);
 
   const [monthlySituation, setMonthlySituation] = useState('profit');
   const [generalSituation, setGeneralSituation] = useState('positive');
@@ -201,42 +203,48 @@ export default function MainInfo({ dispatch }) {
 
   return (
     <Container>
-      <BalancesContainer>
-        <RenderBalance
-          color='#368F42'
-          label='Quanto você tem agora:'
-          value={currentBalance}
-        />
-        <RenderBalance
-          color='#368F42'
-          label='Quanto ainda receberá:'
-          value={willReceive}
-        />
-        <RenderBalance
-          color='#C83126'
-          label='Quanto ainda deve:'
-          value={totalDebts}
-        />
-      </BalancesContainer>
-      <WarningContainer>
-        <RenderBalanceCard
-          label={monthlyBalance[monthlySituation].label}
-          color={monthlyBalance[monthlySituation].color}
-          value={
-            (willReceive - totalDebts) *
-            (monthlySituation === 'deficit' ? -1 : 1)
-          }
-        />
-        <RenderWarning debtorDependency={debtorDependency} loss={loss} />
-        <RenderBalanceCard
-          label={generalBalance[generalSituation].label}
-          color={generalBalance[generalSituation].color}
-          value={
-            (willReceive - totalDebts + currentBalance) *
-            (generalSituation === 'negative' ? -1 : 1)
-          }
-        />
-      </WarningContainer>
+      {syncing ? (
+        <Skeleton active />
+      ) : (
+        <>
+          <BalancesContainer>
+            <RenderBalance
+              color='#368F42'
+              label='Quanto você tem agora:'
+              value={currentBalance}
+            />
+            <RenderBalance
+              color='#368F42'
+              label='Quanto ainda receberá:'
+              value={willReceive}
+            />
+            <RenderBalance
+              color='#C83126'
+              label='Quanto ainda deve:'
+              value={totalDebts}
+            />
+          </BalancesContainer>
+          <WarningContainer>
+            <RenderBalanceCard
+              label={monthlyBalance[monthlySituation].label}
+              color={monthlyBalance[monthlySituation].color}
+              value={
+                (willReceive - totalDebts) *
+                (monthlySituation === 'deficit' ? -1 : 1)
+              }
+            />
+            <RenderWarning debtorDependency={debtorDependency} loss={loss} />
+            <RenderBalanceCard
+              label={generalBalance[generalSituation].label}
+              color={generalBalance[generalSituation].color}
+              value={
+                (willReceive - totalDebts + currentBalance) *
+                (generalSituation === 'negative' ? -1 : 1)
+              }
+            />
+          </WarningContainer>
+        </>
+      )}
     </Container>
   );
 }

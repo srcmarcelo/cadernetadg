@@ -1,32 +1,45 @@
 import React from 'react';
-import { setCurrentBalance, setKeptBalance, setUserInfo } from './reducer';
 import {
-  setDebtors,
-  setDebts,
-  setExtraReceipts,
-  setFixedReceipts,
+  setCurrentBalance,
+  setCurrentBalanceError,
+  setCurrentBalanceSuccess,
+  setKeptBalance,
+  setKeptBalanceError,
+  setKeptBalanceSuccess,
+  setSyncError,
+  setSyncing,
+  setUserInfo,
+  setUserInfoError,
+  setUserInfoSuccess,
+} from './reducer';
+import {
+  setDebtorsSuccess,
+  setDebtsSuccess,
+  setExtraReceiptsSuccess,
+  setFixedReceiptsSuccess,
 } from '../../Income/redux/reducer';
 import {
-  setCreditCards,
-  setExtraDebts,
-  setFixedDebts,
+  setCreditCardsSuccess,
+  setExtraDebtsSuccess,
+  setFixedDebtsSuccess,
 } from '../../Outcome/redux/reducer';
 import _ from 'lodash';
 
 const SYNC_STEPS = [
-  ['registered_users', setUserInfo],
-  ['current_balance', setCurrentBalance],
-  ['kept_balance', setKeptBalance],
-  ['fixed_receipts', setFixedReceipts],
-  ['fixed_debts', setFixedDebts],
-  ['credit_cards', setCreditCards],
-  ['extra_debts', setExtraDebts],
-  ['debtors', setDebtors],
-  ['debts', setDebts],
-  ['extra_receipts', setExtraReceipts],
+  ['registered_users', setUserInfoSuccess],
+  ['current_balance', setCurrentBalanceSuccess],
+  ['kept_balance', setKeptBalanceSuccess],
+  ['fixed_receipts', setFixedReceiptsSuccess],
+  ['fixed_debts', setFixedDebtsSuccess],
+  ['credit_cards', setCreditCardsSuccess],
+  ['extra_debts', setExtraDebtsSuccess],
+  ['debtors', setDebtorsSuccess],
+  ['debts', setDebtsSuccess],
+  ['extra_receipts', setExtraReceiptsSuccess],
 ];
 
 export const syncData = async (dispatch, supabase, user) => {
+  dispatch(setSyncing(true));
   try {
     SYNC_STEPS.forEach(async (step) => {
       let { data } = await supabase
@@ -62,8 +75,13 @@ export const syncData = async (dispatch, supabase, user) => {
           dispatch(step[1]({ name: user.user_metadata.user_name }));
         }
       } else dispatch(step[1](data));
+
+      if (step[0] === 'extra_receipts') {
+        dispatch(setSyncing(false));
+      }
     });
   } catch (error) {
+    dispatch(setSyncError());
     console.log('error:', error);
   }
 };
@@ -84,11 +102,16 @@ export const dispatchSetCurrentBalance = async (
   supabase,
   user
 ) => {
-  await supabase
-    .from('current_balance')
-    .update({ value: value })
-    .eq('user_uuid', user.id);
-  dispatch(setCurrentBalance(value));
+  dispatch(setCurrentBalance());
+  try {
+    await supabase
+      .from('current_balance')
+      .update({ value: value })
+      .eq('user_uuid', user.id);
+    dispatch(setCurrentBalanceSuccess(value));
+  } catch (error) {
+    dispatch(setCurrentBalanceError());
+  }
 };
 
 export const dispatchSetKeptBalance = async (
@@ -97,17 +120,27 @@ export const dispatchSetKeptBalance = async (
   supabase,
   user
 ) => {
-  await supabase
-    .from('kept_balance')
-    .update({ value: value })
-    .eq('user_uuid', user.id);
-  dispatch(setKeptBalance(value));
+  dispatch(setKeptBalance());
+  try {
+    await supabase
+      .from('kept_balance')
+      .update({ value: value })
+      .eq('user_uuid', user.id);
+    dispatch(setKeptBalanceSuccess(value));
+  } catch (error) {
+    dispatch(setKeptBalanceError());
+  }
 };
 
 export const dispatchSetUserName = async (dispatch, name, supabase, user) => {
-  await supabase
-    .from('registered_users')
-    .update({ name: name })
-    .eq('user_uuid', user.id);
-  dispatch(setUserInfo({ name: name }));
+  dispatch(setUserInfo());
+  try {
+    await supabase
+      .from('registered_users')
+      .update({ name: name })
+      .eq('user_uuid', user.id);
+    dispatch(setUserInfoSuccess({ name: name }));
+  } catch (error) {
+    dispatch(setUserInfoError());
+  }
 };

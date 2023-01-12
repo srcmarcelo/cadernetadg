@@ -123,7 +123,7 @@ export const TitleDebtInput = styled(Input)`
 `;
 
 export const Title = styled.div`
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: ${({ received }) => (received ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
@@ -268,6 +268,7 @@ export const DebtorNameContainer = styled.div`
   display: flex;
   width: 35%;
   justify-content: center;
+  align-items: center;
 `;
 
 export const EditNameButton = styled(Button)`

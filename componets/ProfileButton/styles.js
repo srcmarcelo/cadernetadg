@@ -11,7 +11,7 @@ export const Container = styled.div`
 `;
 
 export const LinkText = styled.a`
-  width: 100%;
+  width: 80%;
   text-align: center;
   color: white;
 

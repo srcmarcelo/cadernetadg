@@ -74,8 +74,8 @@ export const Content = styled.div`
 `;
 
 export const ContentTitle = styled.h2`
-    font-size: 1.1rem;
-    margin: 0px;
+  font-size: 1.1rem;
+  margin: 0px;
 `;
 
 export const Balance = styled.div`
