@@ -5,11 +5,12 @@ export const Container = styled.div`
   flex-direction: column;
   background-color: #f0f0f0;
   width: 100%;
-  height: 22vh;
+  min-height: 22vh;
   border-radius: 10px;
   padding: 5px 10px;
   justify-content: center;
   align-items: center;
+  margin-bottom: 1px;
 `;
 
 export const BalancesContainer = styled.div`

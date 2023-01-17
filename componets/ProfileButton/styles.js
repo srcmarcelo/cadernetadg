@@ -6,8 +6,9 @@ export const Container = styled.div`
   justify-content: center;
   background-color: #8176fb;
   width: 100%;
-  height: 4vh;
+  min-height: 4vh;
   border-radius: 10px;
+  margin-bottom: 1px;
 `;
 
 export const LinkText = styled.a`

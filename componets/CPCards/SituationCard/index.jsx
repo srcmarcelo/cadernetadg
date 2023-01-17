@@ -7,12 +7,7 @@ import {
   getTotalDebts,
   getWillReceive,
 } from '../../../containers/Main/redux/reducer';
-import {
-  Container,
-  Description,
-  Situation,
-  Title,
-} from './styles';
+import { Container, Description, Situation, Title } from './styles';
 
 export default function SituationCard() {
   const currentBalance = useSelector(getCurrentBalance);
@@ -70,10 +65,18 @@ export default function SituationCard() {
         'Com os débitos e saldos atuais, não conseguirá quitar as dívidas do mês.',
       color: '#c83126',
     },
+    pending: {
+      title: 'Pendente',
+      description:
+        'Adicione seus recebimentos e dívidas do mês nas telas de saldos e debitos para começar a usar a Caderneta!',
+      color: '#232C68',
+    },
   };
 
   useEffect(() => {
-    if (willReceive >= totalDebts) {
+    if (!willReceive && !totalDebts && !currentBalance) {
+      setPaymentStatus('pending');
+    } else if (willReceive >= totalDebts) {
       setPaymentStatus('receipts');
     } else if (willReceive + currentBalance >= totalDebts) {
       setPaymentStatus('balance');

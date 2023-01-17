@@ -86,12 +86,19 @@ export const syncData = async (dispatch, supabase, user) => {
   }
 };
 
-export const clearData = async (supabase, user) => {
+export const clearData = async (dispatch, supabase, user) => {
+  dispatch(setSyncing(true));
   try {
     SYNC_STEPS.forEach(async (step) => {
-      await supabase.from(step[0]).delete().eq('user_uuid', user.id);
+      step[0] !== 'registered_users' &&
+        (await supabase.from(step[0]).delete().eq('user_uuid', user.id));
+
+      if (step[0] === 'extra_receipts') {
+        dispatch(setSyncing(false));
+      }
     });
   } catch (error) {
+    dispatch(setSyncError());
     console.log('error:', error);
   }
 };

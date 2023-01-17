@@ -28,7 +28,7 @@ export default function Profile({ dispatch }) {
   const [editing, setEditing] = useState(false);
 
   const confirmClearData = async () => {
-    await clearData(supabase, user);
+    await clearData(dispatch, supabase, user);
     await syncData(dispatch, supabase, user);
   };
 
@@ -38,12 +38,13 @@ export default function Profile({ dispatch }) {
       content:
         'Ao cliclar em confirmar, todos os dados serão apagados e você terá que registra-los novamente.',
       onOk: confirmClearData,
+      okText: 'Confirmar',
     });
 
   const handleEditName = async (values) => {
-    await dispatchSetUserName(dispatch, values.userName, supabase, user)
+    await dispatchSetUserName(dispatch, values.userName, supabase, user);
     setEditing(false);
-  }
+  };
 
   const RenderFormName = ({ name }) => (
     <FormContainer
@@ -80,10 +81,14 @@ export default function Profile({ dispatch }) {
       <Content>
         <NameContainer>
           {editing ? (
-            <RenderFormName name={userInfo.name || user.user_metadata.user_name} />
+            <RenderFormName
+              name={userInfo.name || user.user_metadata.user_name}
+            />
           ) : (
             <>
-              <DisplayName>{userInfo.name || user.user_metadata.user_name}</DisplayName>
+              <DisplayName>
+                {userInfo.name || user.user_metadata.user_name}
+              </DisplayName>
               <EditButton color='orange' onClick={() => setEditing(true)}>
                 <EditOutlined />
               </EditButton>
