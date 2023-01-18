@@ -8,8 +8,6 @@ export const Container = styled.div`
   background: #fff;
   padding: 5px 15px 15px 15px;
   width: 100%;
-  height: ${({ items, error }) =>
-    `${125 + 80 * (items > 0 ? items : 1) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -67,8 +65,24 @@ export const ValueContainer = styled.div`
   width: ${({ editing }) => (editing ? '80%' : '60%')};
 `;
 
+export const InputContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin: 0px;
+`;
+
+export const InputLabel = styled.div`
+  display: flex;
+  margin-right: 5px;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+`;
+
 export const TitleInput = styled(Input)`
-  font-size: 20px;
+  font-size: 1rem;
   color: black;
   padding: 0px 10px;
   border-top: none;
@@ -83,15 +97,17 @@ export const TitleInput = styled(Input)`
 `;
 
 export const Title = styled.div`
-  font-size: 20px;
-  color: ${({ received, disabled }) => (received || disabled ? '#fff' : 'black')};
+  font-size: 1rem;
+  color: ${({ received, disabled }) =>
+    received || disabled ? '#fff' : 'black'};
   padding: 0px 5px;
   border-top: none;
   border-left: none;
   border-right: none;
   border-bottom-color: black;
   border-bottom-width: 1px;
-  background: ${({ received, disabled }) => (received ? '#368f42' : disabled ? 'grey' : '#fff')};
+  background: ${({ received, disabled }) =>
+    received ? '#368f42' : disabled ? 'grey' : '#fff'};
   margin: 0;
   width: 100%;
   white-space: nowrap;

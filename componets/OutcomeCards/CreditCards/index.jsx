@@ -35,6 +35,8 @@ import {
   TitleInput,
   ItemContent,
   ConfirmButton,
+  InputContainer,
+  InputLabel,
 } from '../FixedDebts/styles';
 
 export default function CreditCards() {
@@ -122,40 +124,46 @@ export default function CreditCards() {
       onFinishFailed={() => setErrorFinish(true)}
     >
       <ValueContainer editing={true}>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='name'
-          rules={[
-            {
-              required: true,
-              message: 'Digite um nome para identificacar o débito.',
-            },
-          ]}
-        >
-          <TitleInput
-            key={`credit_card_name_${item.id}`}
-            id={`credit_card_name_${item.id}`}
-            placeholder='Exemplo: Itau'
-          />
-        </Form.Item>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='value'
-          rules={[
-            {
-              required: true,
-              message: 'Digite o valor do débito.',
-            },
-          ]}
-        >
-          <Value
-            prefix='R$ '
-            key={`value_${item.id}`}
-            decimalSeparator=','
-            thousandSeparator='.'
-            precision={2}
-          />
-        </Form.Item>
+        <InputContainer>
+          <InputLabel>Nome:</InputLabel>
+          <Form.Item
+            style={{ margin: 0 }}
+            name='name'
+            rules={[
+              {
+                required: true,
+                message: 'Digite um nome para identificacar o débito.',
+              },
+            ]}
+          >
+            <TitleInput
+              key={`credit_card_name_${item.id}`}
+              id={`credit_card_name_${item.id}`}
+              placeholder='Exemplo: Nubank'
+            />
+          </Form.Item>
+        </InputContainer>
+        <InputContainer>
+          <InputLabel>Valor:</InputLabel>
+          <Form.Item
+            style={{ margin: 0 }}
+            name='value'
+            rules={[
+              {
+                required: true,
+                message: 'Digite o valor do débito.',
+              },
+            ]}
+          >
+            <Value
+              prefix='R$ '
+              key={`value_${item.id}`}
+              decimalSeparator=','
+              thousandSeparator='.'
+              precision={2}
+            />
+          </Form.Item>
+        </InputContainer>
       </ValueContainer>
       <ButtonsContainer>
         <ActionButton color='green' htmlType='submit'>
@@ -225,7 +233,7 @@ export default function CreditCards() {
   };
 
   return (
-    <Container items={creditCards.length} error={errorFinish ? 30 : 0}>
+    <Container>
       <Head>
         <Label>Faturas</Label>
         <AddButton onClick={handleCreateCard} disabled={currentIdEditing}>
@@ -235,7 +243,7 @@ export default function CreditCards() {
       {!hasCards ? (
         <Empty
           title='Nenhum cartão de crédito cadastrado'
-          message='Clique em adicionar para adicionar cartão'
+          message='Clique no botão de "+" para adicionar cartão'
         />
       ) : (
         <>

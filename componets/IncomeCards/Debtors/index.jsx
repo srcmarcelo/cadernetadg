@@ -361,7 +361,7 @@ export default function Debtors() {
           <TitleInput
             key={`debtor_name_${debtor.id}`}
             id={`debtor_name_${debtor.id}`}
-            placeholder='Exemplo: Cumadre Marisa'
+            placeholder='Exemplo: Cunhado'
           />
         </Form.Item>
       </TitleInputContainer>
@@ -455,12 +455,15 @@ export default function Debtors() {
             ))
           ) : debtor.id === currentIdEditing ? (
             <div>
-              <h5>Digite o nome da pessoa que te deve algo este mês</h5>
+              <h4 style={{ textAlign: 'center', fontWeight: 'normal' }}>
+                Digite o {<strong>nome</strong>} da pessoa que te deve algo este
+                mês
+              </h4>
             </div>
           ) : (
             <Empty
               title='Nenhum débito cadastrado'
-              message='Clique em adicionar para adicionar dívida'
+              message='Clique no botão de "+" para adicionar dívida'
               sizeAdjust={4}
             />
           )}
@@ -470,11 +473,7 @@ export default function Debtors() {
   };
 
   return (
-    <Container
-      debtors={debtors.length}
-      debts={debts.length}
-      error={errorFinish ? 30 : 0}
-    >
+    <Container>
       <Head>
         <Label>Seus Devedores</Label>
         <AddButton onClick={handleCreateDebtor} disabled={currentIdEditing}>
@@ -484,7 +483,7 @@ export default function Debtors() {
       {!hasDebtors ? (
         <Empty
           title='Nenhum devedor cadastrado'
-          message='Clique em adicionar para adicionar devedor'
+          message='Clique no botão de "+" para adicionar devedor'
         />
       ) : (
         <>

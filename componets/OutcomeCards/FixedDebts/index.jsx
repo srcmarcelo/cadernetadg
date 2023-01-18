@@ -36,6 +36,8 @@ import {
   TitleInput,
   ItemContent,
   ConfirmButton,
+  InputContainer,
+  InputLabel,
 } from './styles';
 
 export default function FixedDebts() {
@@ -126,40 +128,46 @@ export default function FixedDebts() {
       onFinishFailed={() => setErrorFinish(true)}
     >
       <ValueContainer editing={true}>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='name'
-          rules={[
-            {
-              required: true,
-              message: 'Digite um nome para identificacar o débito.',
-            },
-          ]}
-        >
-          <TitleInput
-            key={`fixed_debt_name_${item.id}`}
-            id={`fixed_debt_name_${item.id}`}
-            placeholder='Exemplo: Aluguel'
-          />
-        </Form.Item>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='value'
-          rules={[
-            {
-              required: true,
-              message: 'Digite o valor do débito.',
-            },
-          ]}
-        >
-          <Value
-            prefix='R$ '
-            key={`value_${item.id}`}
-            decimalSeparator=','
-            thousandSeparator='.'
-            precision={2}
-          />
-        </Form.Item>
+        <InputContainer>
+          <InputLabel>Nome:</InputLabel>
+          <Form.Item
+            style={{ margin: 0 }}
+            name='name'
+            rules={[
+              {
+                required: true,
+                message: 'Digite um nome para identificacar o débito.',
+              },
+            ]}
+          >
+            <TitleInput
+              key={`fixed_debt_name_${item.id}`}
+              id={`fixed_debt_name_${item.id}`}
+              placeholder='Exemplo: Aluguel'
+            />
+          </Form.Item>
+        </InputContainer>
+        <InputContainer>
+          <InputLabel>Valor:</InputLabel>
+          <Form.Item
+            style={{ margin: 0 }}
+            name='value'
+            rules={[
+              {
+                required: true,
+                message: 'Digite o valor do débito.',
+              },
+            ]}
+          >
+            <Value
+              prefix='R$ '
+              key={`value_${item.id}`}
+              decimalSeparator=','
+              thousandSeparator='.'
+              precision={2}
+            />
+          </Form.Item>
+        </InputContainer>
       </ValueContainer>
       <ButtonsContainer>
         <ActionButton color='green' htmlType='submit'>
@@ -233,7 +241,7 @@ export default function FixedDebts() {
   };
 
   return (
-    <Container items={fixedDebts.length} error={errorFinish ? 30 : 0}>
+    <Container>
       <Head>
         <Label>Despesas Fixas</Label>
         <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
@@ -243,7 +251,7 @@ export default function FixedDebts() {
       {!hasDebts ? (
         <Empty
           title='Nenhuma despesa fixa cadastrada'
-          message='Clique em adicionar para adicionar débito'
+          message='Clique no botão de "+" para adicionar débito'
         />
       ) : (
         <>

@@ -296,7 +296,7 @@ export default function ExtraDebts() {
   };
 
   return (
-    <Container items={extraDebts.length} error={errorFinish ? 30 : 0}>
+    <Container>
       <Head>
         <Label>Outras Despesas</Label>
         <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
@@ -306,7 +306,7 @@ export default function ExtraDebts() {
       {!hasDebts ? (
         <Empty
           title='Nenhuma despesa extra cadastrada'
-          message='Clique em adicionar para adicionar débito'
+          message='Clique no botão de "+" para adicionar débito'
         />
       ) : (
         <>

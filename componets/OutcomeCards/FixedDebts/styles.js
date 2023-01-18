@@ -8,8 +8,6 @@ export const Container = styled.div`
   background: #fff;
   padding: 5px 15px 15px 15px;
   width: 100%;
-  height: ${({ items, error }) =>
-    `${115 + 80 * (items > 0 ? items : 1) + error}px`};
   border-radius: 10px;
   margin-bottom: 20px;
 `;
@@ -67,8 +65,24 @@ export const ValueContainer = styled.div`
   width: ${({ editing, installments }) => (editing ? '80%' : installments ? '40%' : '60%')};
 `;
 
+export const InputContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin: 0px;
+`;
+
+export const InputLabel = styled.div`
+  display: flex;
+  margin-right: 5px;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+`;
+
 export const TitleInput = styled(Input)`
-  font-size: ${({size}) => size || '1.3rem'};
+  font-size: ${({size}) => size || '1rem'};
   color: black;
   padding: ${({size}) => size ? '0px 5px' : '0px 10px'};
   border-top: none;
@@ -83,7 +97,7 @@ export const TitleInput = styled(Input)`
 `;
 
 export const Title = styled.div`
-  font-size: ${({size}) => size || '1.3rem'};
+  font-size: ${({size}) => size || '1.2rem'};
   color: ${({ disabled, payed }) => (disabled || payed ? '#fff' : 'black')};
   padding: 0px 5px;
   border-top: none;
