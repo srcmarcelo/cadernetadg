@@ -1,5 +1,5 @@
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Button, Form, Input, message, Result } from 'antd';
+import { Button, Form, Input, message, Modal, Result } from 'antd';
 import _ from 'lodash';
 import React, { useState } from 'react';
 import {
@@ -77,7 +77,9 @@ export default function Auth() {
       setLoading(false);
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email);
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      redirectTo: 'http://cadernetadg.com.br/update-password',
+    });
 
     if (!error) {
       setMode('recoverySucceed');
@@ -85,6 +87,27 @@ export default function Auth() {
       message.error('Algo deu errado :(');
     }
     setLoading(false);
+  };
+
+  const SpamAdvice = () => {
+    Modal.info({
+      title: 'Olhe na sua caixa de spam!',
+      content: (
+        <div>
+          <p>
+            Infelizmente, para algumas contas, nossos emails caem na caixa de
+            SPAM. Verifique a sua e marque o email como confiável, depois clique
+            no link.
+          </p>
+          <p>
+            Não se preocupe, o link é confiável! O responsável pelo site sou eu,
+            Marcelo Crístian. Se quiser ou precisar, pode entrar em contato comigo no número
+            (87) 98817-5129.
+          </p>
+        </div>
+      ),
+      onOk() {},
+    });
   };
 
   const SignInForm = () => (
@@ -238,7 +261,9 @@ export default function Auth() {
           >
             Ir para o login
           </Button>,
-          <Button key='didNotReceived'>Não recebi o email</Button>,
+          <Button key='didNotReceived' onClick={SpamAdvice}>
+            Não recebi o email
+          </Button>,
         ]}
       />
     </div>
@@ -258,7 +283,9 @@ export default function Auth() {
           >
             Ir para o login
           </Button>,
-          <Button key='didNotReceived'>Não recebi o email</Button>,
+          <Button key='didNotReceived' onClick={SpamAdvice}>
+            Não recebi o email
+          </Button>,
         ]}
       />
     </div>
