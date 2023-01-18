@@ -28,6 +28,7 @@ export const BalanceLabel = styled.div`
   font-size: 1rem;
   color: ${({ color }) => color};
   white-space: nowrap;
+  font-weight: ${({weight}) => weight || 'normal'};
 `;
 
 export const BalanceValue = styled.div`
@@ -69,6 +70,7 @@ export const SituationTitle = styled.h1`
   font-size: ${({ width }) => (width < 400 ? '0.8rem' : '1rem')};
   color: ${({ color }) => color || 'black'};
   margin: 0px;
+  font-weight: bold;
 `;
 
 export const SituationDescription = styled.div`

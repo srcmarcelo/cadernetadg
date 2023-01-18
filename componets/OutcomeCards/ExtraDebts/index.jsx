@@ -141,7 +141,7 @@ export default function ExtraDebts() {
           <TitleInput
             key={`extra_debt_name_${item.id}`}
             id={`extra_debt_name_${item.id}`}
-            placeholder='Exemplo: Parcela do Empréstimo'
+            placeholder='Exemplo: IPVA'
             size='1rem'
           />
         </Form.Item>

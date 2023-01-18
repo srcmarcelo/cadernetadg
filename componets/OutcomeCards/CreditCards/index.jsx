@@ -127,7 +127,7 @@ export default function CreditCards() {
         <InputContainer>
           <InputLabel>Nome:</InputLabel>
           <Form.Item
-            style={{ margin: 0 }}
+            style={{ margin: 0, width: '100%' }}
             name='name'
             rules={[
               {
@@ -146,7 +146,7 @@ export default function CreditCards() {
         <InputContainer>
           <InputLabel>Valor:</InputLabel>
           <Form.Item
-            style={{ margin: 0 }}
+            style={{ margin: 0, width: '100%' }}
             name='value'
             rules={[
               {

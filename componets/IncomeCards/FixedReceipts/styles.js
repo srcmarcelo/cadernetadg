@@ -68,7 +68,7 @@ export const ValueContainer = styled.div`
 export const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   margin: 0px;
 `;

@@ -164,9 +164,9 @@ export default function MainInfo({ dispatch }) {
     />
   );
 
-  const RenderBalance = ({ label, value, color }) => (
+  const RenderBalance = ({ label, value, color, weight }) => (
     <Balance>
-      <BalanceLabel color={color}>{label}</BalanceLabel>
+      <BalanceLabel weight={weight} color={color}>{label}</BalanceLabel>
       <RenderValue color={color} value={value} />
     </Balance>
   );
@@ -217,11 +217,13 @@ export default function MainInfo({ dispatch }) {
               color='#368F42'
               label='Quanto ainda receberá:'
               value={willReceive}
+              weight='bold'
             />
             <RenderBalance
               color='#C83126'
               label='Quanto ainda deve:'
               value={totalDebts}
+              weight='bold'
             />
           </BalancesContainer>
           <WarningContainer>

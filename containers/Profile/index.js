@@ -30,6 +30,7 @@ export default function Profile({ dispatch }) {
   const confirmClearData = async () => {
     await clearData(dispatch, supabase, user);
     await syncData(dispatch, supabase, user);
+    window.location.reload();
   };
 
   const handleClearData = () =>

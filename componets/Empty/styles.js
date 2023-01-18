@@ -8,13 +8,13 @@ export const Container = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: ${({sizeAdjust}) => `${16-(sizeAdjust || 0)}px`};
+  font-size: ${({sizeAdjust}) => `${20-(sizeAdjust || 0)}px`};
   color: black;
   text-align: center;
 `;
 
 export const Message = styled.p`
-  font-size: ${({sizeAdjust}) => `${12-(sizeAdjust || 0)}px`};
+  font-size: ${({sizeAdjust}) => `${16-(sizeAdjust || 0)}px`};
   color: black;
   text-align: center;
 `;
