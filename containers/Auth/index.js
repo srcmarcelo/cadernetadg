@@ -101,8 +101,8 @@ export default function Auth() {
           </p>
           <p>
             Não se preocupe, o link é confiável! O responsável pelo site sou eu,
-            Marcelo Crístian. Se quiser ou precisar, pode entrar em contato comigo no número
-            (87) 98817-5129.
+            Marcelo Crístian. Se quiser ou precisar, pode entrar em contato
+            comigo no número (87) 98817-5129.
           </p>
         </div>
       ),
@@ -251,8 +251,8 @@ export default function Auth() {
     <div>
       <Result
         status='success'
-        title='Confirme seu email!'
-        subTitle='Te enviamos um email com o link de confirmação, clique nesse link para confirmar e faça login!'
+        title='Entre no seu email para confirmar!'
+        subTitle='Acabamos de te enviar o link de confirmação, entre no seu email e clique nesse link para confirmar e faça login!'
         extra={[
           <Button
             type='primary'
@@ -336,7 +336,7 @@ export default function Auth() {
     credentials:
       'Senha inválida. Caso tenha esquecido, clique em "Esqueci Senha" no botão abaixo para redefinir.',
     notRegistered:
-      'Email não cadastrado. Você precisa criar uma conta para acessar a Caderneta, clique em "Criar Conta" ou prossiga com os outros métodos.',
+      'Email não cadastrado. Você precisa criar uma conta para acessar a Caderneta, clique em "Criar Conta" para se cadastrar.',
     notVerified:
       'Email não confirmado. Clique no link no email que te enviamos para verificar. Olhe também na caixa de spam.',
   };

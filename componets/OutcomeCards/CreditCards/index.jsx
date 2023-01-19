@@ -235,7 +235,7 @@ export default function CreditCards() {
   return (
     <Container>
       <Head>
-        <Label>Faturas</Label>
+        <Label>Cartões de crédito</Label>
         <AddButton onClick={handleCreateCard} disabled={currentIdEditing}>
           <PlusOutlined />
         </AddButton>
@@ -243,7 +243,7 @@ export default function CreditCards() {
       {!hasCards ? (
         <Empty
           title='Nenhum cartão de crédito cadastrado'
-          message='Clique no botão de "+" para adicionar cartão'
+          message='Clique no botão de "+" para adicionar fatura'
         />
       ) : (
         <>
