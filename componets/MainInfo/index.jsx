@@ -61,18 +61,18 @@ export default function MainInfo({ dispatch }) {
 
   const monthlyBalance = {
     profit: {
-      label: 'Lucro de',
+      label: 'Mês positivo',
       color: '#368F42',
     },
     deficit: {
-      label: 'Déficit de',
+      label: 'Mês negativo',
       color: '#C83126',
     },
   };
 
   const generalBalance = {
     positive: {
-      label: 'Novo saldo',
+      label: 'Restará',
       color: '#368F42',
     },
     negative: {

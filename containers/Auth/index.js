@@ -1,6 +1,7 @@
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Button, Form, Input, message, Modal, Result } from 'antd';
 import _ from 'lodash';
+import Image from 'next/image';
 import React, { useState } from 'react';
 import {
   ChangeModeButton,
@@ -103,6 +104,11 @@ export default function Auth() {
             Não se preocupe, o link é confiável! O responsável pelo site sou eu,
             Marcelo Crístian. Se quiser ou precisar, pode entrar em contato
             comigo no número (87) 98817-5129.
+          </p>
+          <p>
+            Caso não esteja nem na caixa de SPAM, favor aguardar 2 minutos. Caso
+            não apareça mesmo assim, tente se cadastrar novamente. Caso persista
+            o erro, favor enviar mensagem via Whatsapp para o número acima.
           </p>
         </div>
       ),
@@ -252,7 +258,7 @@ export default function Auth() {
       <Result
         status='success'
         title='Entre no seu email para confirmar!'
-        subTitle='Acabamos de te enviar o link de confirmação, entre no seu email e clique nesse link para confirmar e faça login!'
+        subTitle='Acabamos de te enviar o link de confirmação, entre no seu email e clique nesse link para confirmar!'
         extra={[
           <Button
             type='primary'
@@ -323,7 +329,7 @@ export default function Auth() {
     signin: {
       label: 'Criar Conta',
       mode: 'signup',
-      color: '#232c68',
+      color: '#368f42',
     },
     signup: {
       label: 'Já tenho conta',
@@ -347,8 +353,14 @@ export default function Auth() {
 
   return (
     <Container>
-      <h1>Caderneta Digital</h1>
-      <p style={{ color: 'black' }}>Controle seu dinheiro!</p>
+      <Image
+        src='/logo.png'
+        width={125}
+        height={74}
+        alt='Logo do Caderneta Digital'
+      />
+      <h1 style={{marginTop: '10px', marginBottom: 0, color: '#232C68'}}>Caderneta Digital</h1>
+      <p style={{marginBottom: '20px', color: '#232C68'}}>Controle seu dinheiro!</p>
       {Main[mode]}
       {signInError && <RenderErrorLabel error={signInError} />}
       {['signin'].includes(mode) && (
@@ -357,7 +369,7 @@ export default function Auth() {
             setMode('passwordRecovery');
             setSignInError(null);
           }}
-          color='grey'
+          color='#C83126'
         >
           Esqueci Senha
         </ChangeModeButton>

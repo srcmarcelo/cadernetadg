@@ -10,9 +10,9 @@ export default function NavigationBar({ onClick, currentTab }) {
   };
 
   const names = {
-    income: 'Saldos',
+    income: 'Ganhos',
     panel: 'Painel',
-    outcome: 'Débitos',
+    outcome: 'Dívidas',
   };
 
   const RenderButton = ({ label }) => (

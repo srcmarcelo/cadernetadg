@@ -68,7 +68,7 @@ export default function SituationCard() {
     pending: {
       title: 'Pendente',
       description:
-        'Adicione seus recebimentos e dívidas do mês nas telas de saldos e debitos para começar a usar a Caderneta!',
+        'Adicione seus recebimentos e débitos do mês nas telas de ganhos e dívidas para começar a usar a Caderneta!',
       color: '#232C68',
     },
   };
