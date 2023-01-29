@@ -8,6 +8,8 @@ import {
   Container,
   ErrorLabel,
   RegistrationForm,
+  Terms,
+  TermsLinks,
 } from './styles';
 
 export default function Auth() {
@@ -351,6 +353,14 @@ export default function Auth() {
     <ErrorLabel>{signInErrors[error]}</ErrorLabel>
   );
 
+  const RenderTerms = () => (
+    <Terms>
+      Ao se cadastrar você concorda com nossa{' '}
+      {<TermsLinks href='/privacy_policies'>Política de Privacidade</TermsLinks>} e nossos{' '}
+      {<TermsLinks href='/terms'>Termos e Condições</TermsLinks>}.
+    </Terms>
+  );
+
   return (
     <Container>
       <Image
@@ -359,9 +369,14 @@ export default function Auth() {
         height={74}
         alt='Logo do Caderneta Digital'
       />
-      <h1 style={{marginTop: '10px', marginBottom: 0, color: '#232C68'}}>Caderneta Digital</h1>
-      <p style={{marginBottom: '20px', color: '#232C68'}}>Controle seu dinheiro!</p>
+      <h1 style={{ marginTop: '10px', marginBottom: 0, color: '#232C68' }}>
+        Caderneta Digital
+      </h1>
+      <p style={{ marginBottom: '20px', color: '#232C68' }}>
+        Controle seu dinheiro!
+      </p>
       {Main[mode]}
+      {['signup'].includes(mode) && <RenderTerms />}
       {signInError && <RenderErrorLabel error={signInError} />}
       {['signin'].includes(mode) && (
         <ChangeModeButton

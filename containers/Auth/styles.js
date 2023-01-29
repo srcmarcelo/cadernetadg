@@ -7,6 +7,7 @@ export const Container = styled.div`
   align-items: center;
   justify-content: center;
   width: 100%;
+  padding-top: 10px;
 `;
 
 export const RegistrationForm = styled(Form)`
@@ -15,9 +16,9 @@ export const RegistrationForm = styled(Form)`
   justify-content: center;
   align-items: center;
   background-color: #232c68;
+  margin-bottom: 20px;
   padding: 20px;
   border-radius: 5px;
-  margin-bottom: 30px;
 `;
 
 export const ErrorLabel = styled.div`
@@ -41,4 +42,15 @@ export const ChangeModeButton = styled(Button)`
     color: white;
     border: none;
   }
+`;
+
+export const Terms = styled.div`
+  width: 30%;
+  color: #232c68;
+  margin-bottom: 20px;
+  text-align: center;
+`;
+
+export const TermsLinks = styled.a`
+  color: #368f42;
 `;
