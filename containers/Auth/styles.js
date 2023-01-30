@@ -45,7 +45,7 @@ export const ChangeModeButton = styled(Button)`
 `;
 
 export const Terms = styled.div`
-  width: 30%;
+  width: 320px;
   color: #232c68;
   margin-bottom: 20px;
   text-align: center;
@@ -54,3 +54,16 @@ export const Terms = styled.div`
 export const TermsLinks = styled.a`
   color: #368f42;
 `;
+
+export const GoogleButton = styled(Button)`
+  background-color: #c71610;
+  color: #fff;
+  width: 300px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 40px;
+  font-size: 1rem;
+`

@@ -1,9 +1,15 @@
 /* eslint-disable react/no-unescaped-entities */
+import Head from 'next/head';
 import React from 'react';
 
 export default function PrivacyPolicies() {
   return (
     <div style={{ padding: '30px' }}>
+      <Head>
+        <title>Termos e Condições</title>
+        <meta name='description' content='Termos e condições de uso do Caderneta Digital' />
+        <link rel='icon' href='/favicon.ico' />
+      </Head>
       <h2>
         <span style={{ color: 'rgb(68, 68, 68)' }}>1. Termos</span>
       </h2>

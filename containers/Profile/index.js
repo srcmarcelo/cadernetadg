@@ -88,7 +88,7 @@ export default function Profile({ dispatch }) {
           ) : (
             <>
               <DisplayName>
-                {userInfo.name || user.user_metadata.user_name}
+                {userInfo.name || user.user_metadata.user_name || '(insira seu nome)'}
               </DisplayName>
               <EditButton color='orange' onClick={() => setEditing(true)}>
                 <EditOutlined />

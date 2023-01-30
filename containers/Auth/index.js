@@ -1,3 +1,4 @@
+import { GoogleCircleFilled } from '@ant-design/icons';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Button, Form, Input, message, Modal, Result } from 'antd';
 import _ from 'lodash';
@@ -7,6 +8,7 @@ import {
   ChangeModeButton,
   Container,
   ErrorLabel,
+  GoogleButton,
   RegistrationForm,
   Terms,
   TermsLinks,
@@ -46,6 +48,16 @@ export default function Auth() {
     }
     setLoading(false);
   };
+
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+
+    if (error) {
+      setMode('googleError');
+    }
+  }
 
   const SignUp = async (values) => {
     setLoading(true);
@@ -115,6 +127,14 @@ export default function Auth() {
         </div>
       ),
       onOk() {},
+    });
+  };
+
+  const emailWarning = () => {
+    Modal.warning({
+      title: 'Pode demorar uns minutinhos...',
+      content:
+        'Infelizmente, para algumas contas, o email de confirmação está demorando até 10 minutos para chegar. Caso seu email seja "gmail", clique em "Continuar com o Google" para ser mais rápido!',
     });
   };
 
@@ -318,6 +338,25 @@ export default function Auth() {
     </div>
   );
 
+  const ErrorWithGoogle = () => (
+    <div>
+      <Result
+        status='error'
+        title='Algo deu errado'
+        subTitle='Algo deu errado ao tentar continuar com o Google. Por favor, utilize o email.'
+        extra={[
+          <Button
+            type='primary'
+            key='goToLogin'
+            onClick={() => setMode('signin')}
+          >
+            Ir para o login
+          </Button>,
+        ]}
+      />
+    </div>
+  );
+
   const Main = {
     signup: <SignUpForm />,
     signin: <SignInForm />,
@@ -325,6 +364,7 @@ export default function Auth() {
     successRegistry: <ResgistrySucceed />,
     alreadyRegistered: <AlreadyRegistered />,
     recoverySucceed: <RecoverySucceed />,
+    googleError: <ErrorWithGoogle />,
   };
 
   const SignModes = {
@@ -344,7 +384,7 @@ export default function Auth() {
     credentials:
       'Senha inválida. Caso tenha esquecido, clique em "Esqueci Senha" no botão abaixo para redefinir.',
     notRegistered:
-      'Email não cadastrado. Você precisa criar uma conta para acessar a Caderneta, clique em "Criar Conta" para se cadastrar.',
+      'Email não cadastrado. Você precisa criar uma conta para acessar a Caderneta, clique em "Continuar com o Google" ou "Criar Conta" para se cadastrar.',
     notVerified:
       'Email não confirmado. Clique no link no email que te enviamos para verificar. Olhe também na caixa de spam.',
   };
@@ -356,10 +396,33 @@ export default function Auth() {
   const RenderTerms = () => (
     <Terms>
       Ao se cadastrar você concorda com nossa{' '}
-      {<TermsLinks href='/privacy_policies'>Política de Privacidade</TermsLinks>} e nossos{' '}
-      {<TermsLinks href='/terms'>Termos e Condições</TermsLinks>}.
+      {
+        <TermsLinks
+          href='/privacy_policies'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Política de Privacidade
+        </TermsLinks>
+      }{' '}
+      e nossos{' '}
+      {
+        <TermsLinks href='/terms' target='_blank' rel='noopener noreferrer'>
+          Termos e Condições
+        </TermsLinks>
+      }
+      .
     </Terms>
   );
+
+  const RenderGoogleButton = () => (
+    <GoogleButton onClick={signInWithGoogle}>
+      <GoogleCircleFilled style={{ fontSize: '1.5rem', marginTop: '3px' }} />
+      Continuar com o Google
+    </GoogleButton>
+  );
+
+  const RenderSeparator = () => <div style={{ margin: '15px 0px' }}>ou</div>;
 
   return (
     <Container>
@@ -375,6 +438,8 @@ export default function Auth() {
       <p style={{ marginBottom: '20px', color: '#232C68' }}>
         Controle seu dinheiro!
       </p>
+      {['signup', 'signin'].includes(mode) && <RenderGoogleButton />}
+      {['signup', 'signin'].includes(mode) && <RenderSeparator />}
       {Main[mode]}
       {['signup'].includes(mode) && <RenderTerms />}
       {signInError && <RenderErrorLabel error={signInError} />}
@@ -405,6 +470,7 @@ export default function Auth() {
           onClick={() => {
             setMode(SignModes[mode].mode);
             setSignInError(null);
+            SignModes[mode].mode === 'signup' && emailWarning();
           }}
           color={SignModes[mode].color}
         >

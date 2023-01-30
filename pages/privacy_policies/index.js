@@ -1,8 +1,14 @@
+import Head from 'next/head';
 import React from 'react';
 
 export default function PrivacyPolicies() {
   return (
     <div style={{padding: '30px'}}>
+      <Head>
+        <title>Políticas de Privacidade</title>
+        <meta name='description' content='Políticas de Privacidade do Caderneta Digital' />
+        <link rel='icon' href='/favicon.ico' />
+      </Head>
       <h2>
         <span style={{ color: 'rgb(68, 68, 68)' }}>Política Privacidade</span>
       </h2>
