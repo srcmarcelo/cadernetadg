@@ -422,7 +422,9 @@ export default function Auth() {
     </GoogleButton>
   );
 
-  const RenderSeparator = () => <div style={{ margin: '15px 0px' }}>ou</div>;
+  const RenderSeparator = () => (
+    <div style={{ margin: '15px 0px', color: '#232c68' }}>ou</div>
+  );
 
   return (
     <Container>
