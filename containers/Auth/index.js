@@ -431,7 +431,16 @@ export default function Auth() {
   );
 
   const RenderSeparator = () => (
-    <div style={{ margin: '15px 0px', color: '#232c68', alignSelf: 'center', justifySelf: 'center' }}>ou</div>
+    <div
+      style={{
+        margin: '15px 0px',
+        color: '#232c68',
+        alignSelf: 'center',
+        justifySelf: 'center',
+      }}
+    >
+      ou
+    </div>
   );
 
   const RenderVideoModal = () => (
