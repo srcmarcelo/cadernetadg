@@ -21,9 +21,13 @@ export default function Auth() {
   const [mode, setMode] = useState('signin');
   const [signInError, setSignInError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
 
-  useEffect(() => setVideoModalOpen(true), []);
+  useEffect(() => {
+    setPageLoading(false);
+    setTimeout(() => setVideoModalOpen(true), 2000);
+  }, []);
 
   const verifyUserExist = async (email) => {
     let { data } = await supabase
@@ -427,7 +431,7 @@ export default function Auth() {
   );
 
   const RenderSeparator = () => (
-    <div style={{ margin: '15px 0px', color: '#232c68' }}>ou</div>
+    <div style={{ margin: '15px 0px', color: '#232c68', alignSelf: 'center', justifySelf: 'center' }}>ou</div>
   );
 
   const RenderVideoModal = () => (
@@ -435,9 +439,7 @@ export default function Auth() {
       open={videoModalOpen}
       onOk={() => {
         setVideoModalOpen(false),
-          open(
-            'https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc='
-          );
+          open('https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc=');
       }}
       onCancel={() => setVideoModalOpen(false)}
       cancelText='Já assisti'
@@ -448,7 +450,7 @@ export default function Auth() {
           O que é o Caderneta Digital?
         </h3>
       }
-      centered
+      centered={true}
     >
       <VideoModalContainer>
         <div
@@ -468,14 +470,24 @@ export default function Auth() {
           alt='Frame do vídeo de anúncio do Caderneta Digital'
           onClick={() => {
             setVideoModalOpen(false),
-              open(
-                'https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc='
-              );
+              open('https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc=');
           }}
         />
       </VideoModalContainer>
     </Modal>
   );
+
+  if (pageLoading)
+    return (
+      <Container>
+        <Image
+          src='/logo.png'
+          width={125}
+          height={74}
+          alt='Logo do Caderneta Digital'
+        />
+      </Container>
+    );
 
   return (
     <Container>
