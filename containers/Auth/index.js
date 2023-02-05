@@ -26,7 +26,7 @@ export default function Auth() {
 
   useEffect(() => {
     setPageLoading(false);
-    setTimeout(() => setVideoModalOpen(true), 2000);
+    setTimeout(() => setVideoModalOpen(true), 1000);
   }, []);
 
   const verifyUserExist = async (email) => {
