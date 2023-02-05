@@ -1,4 +1,4 @@
-import { Button, Form } from 'antd';
+import { Button, Form, Modal } from 'antd';
 import styled from 'styled-components';
 
 export const Container = styled.div`
@@ -67,3 +67,10 @@ export const GoogleButton = styled(Button)`
   height: 40px;
   font-size: 1rem;
 `
+
+export const VideoModalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;

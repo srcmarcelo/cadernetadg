@@ -3,7 +3,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Button, Form, Input, message, Modal, Result } from 'antd';
 import _ from 'lodash';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ChangeModeButton,
   Container,
@@ -12,6 +12,7 @@ import {
   RegistrationForm,
   Terms,
   TermsLinks,
+  VideoModalContainer,
 } from './styles';
 
 export default function Auth() {
@@ -20,6 +21,9 @@ export default function Auth() {
   const [mode, setMode] = useState('signin');
   const [signInError, setSignInError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+
+  useEffect(() => setVideoModalOpen(true), []);
 
   const verifyUserExist = async (email) => {
     let { data } = await supabase
@@ -426,6 +430,53 @@ export default function Auth() {
     <div style={{ margin: '15px 0px', color: '#232c68' }}>ou</div>
   );
 
+  const RenderVideoModal = () => (
+    <Modal
+      open={videoModalOpen}
+      onOk={() => {
+        setVideoModalOpen(false),
+          open(
+            'https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc='
+          );
+      }}
+      onCancel={() => setVideoModalOpen(false)}
+      cancelText='Já assisti'
+      okText='Ir para o vídeo'
+      closable={false}
+      title={
+        <h3 style={{ textAlign: 'center', margin: 0 }}>
+          O que é o Caderneta Digital?
+        </h3>
+      }
+      centered
+    >
+      <VideoModalContainer>
+        <div
+          style={{
+            textAlign: 'center',
+            marginBottom: '10px',
+            fontSize: '1rem',
+          }}
+        >
+          Assista o vídeo abaixo na minha conta do Instagram para saber do que
+          se trata!
+        </div>
+        <Image
+          src='/InstagramVideo.jpeg'
+          width={300}
+          height={298}
+          alt='Frame do vídeo de anúncio do Caderneta Digital'
+          onClick={() => {
+            setVideoModalOpen(false),
+              open(
+                'https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc='
+              );
+          }}
+        />
+      </VideoModalContainer>
+    </Modal>
+  );
+
   return (
     <Container>
       <Image
@@ -479,6 +530,7 @@ export default function Auth() {
           {SignModes[mode].label}
         </ChangeModeButton>
       )}
+      <RenderVideoModal />
     </Container>
   );
 }
