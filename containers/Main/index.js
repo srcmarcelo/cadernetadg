@@ -20,6 +20,7 @@ export default function Main() {
   const user = useUser();
 
   const [currentTab, setCurrentTab] = useState('panel');
+  const [future, setFuture] = useState(false);
 
   useEffect(() => {
     syncData(dispatch, supabase, user);
@@ -28,11 +29,15 @@ export default function Main() {
   return (
     <Container>
       <Content>
-        <MainInfo dispatch={dispatch} />
-        <ProfileButton onClick={setCurrentTab} />
-        {currentTab === 'panel' && <ControlPanel />}
-        {currentTab === 'income' && <Income />}
-        {currentTab === 'outcome' && <Outcome />}
+        <MainInfo dispatch={dispatch} future={future} />
+        <ProfileButton
+          onClickProfile={setCurrentTab}
+          onClickMonth={setFuture}
+          future={future}
+        />
+        {currentTab === 'panel' && <ControlPanel future={future} />}
+        {currentTab === 'income' && <Income future={future} />}
+        {currentTab === 'outcome' && <Outcome future={future} />}
         {currentTab === 'profile' && <Profile dispatch={dispatch} />}
         <NavigationBar
           onClick={(value) => setCurrentTab(value)}

@@ -1,4 +1,8 @@
-import { LoadingOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import { Spin } from 'antd';
 import React from 'react';
 import { useEffect } from 'react';
@@ -20,9 +24,20 @@ import {
   getLoadingExtraDebts,
   getLoadingFixedDebts,
 } from '../../containers/Outcome/redux/reducer';
-import { Container, LinkText } from './styles';
+import {
+  Container,
+  Left,
+  LinkText,
+  Profile,
+  Right,
+  SwitchMonth,
+} from './styles';
 
-export default function ProfileButton({ onClick }) {
+export default function ProfileButton({
+  onClickProfile,
+  onClickMonth,
+  future,
+}) {
   const loadingFixedReceipts = useSelector(getLoadingFixedReceipts);
   const loadingDebtors = useSelector(getLoadingDebtors);
   const loadingDebts = useSelector(getLoadingDebts);
@@ -66,31 +81,36 @@ export default function ProfileButton({ onClick }) {
     loadingCreditCards,
   ]);
 
+  const RenderSpin = () =>
+    loading && (
+      <Spin
+        indicator={
+          <LoadingOutlined
+            style={{ fontSize: '20px', color: 'white', margin: '0px 5px' }}
+            spin
+          />
+        }
+      />
+    );
+
   return (
     <Container>
-      {loading && (
-        <Spin
-          indicator={
-            <LoadingOutlined
-              style={{ fontSize: '20px', color: 'white' }}
-              spin
-            />
-          }
-        />
-      )}
-      <LinkText onClick={() => onClick('profile')}>
-        {loading ? 'Atualizando' : 'Perfil e Configurações'}
-      </LinkText>
-      {loading && (
-        <Spin
-          indicator={
-            <LoadingOutlined
-              style={{ fontSize: '20px', color: 'white' }}
-              spin
-            />
-          }
-        />
-      )}
+      <Profile>
+        <LinkText onClick={() => onClickProfile('profile')}>
+          <RenderSpin />
+          {loading ? 'Atualizando' : 'Perfil'}
+          <RenderSpin />
+        </LinkText>
+      </Profile>
+      <SwitchMonth future={future}>
+        <LinkText onClick={() => onClickMonth(!future)}>
+          <RenderSpin />
+          {!loading && <Left future={future} />}
+          {loading ? 'Atualizando' : future ? 'Mês atual' : 'Próximo mês'}
+          {!loading && <Right future={future} />}
+          <RenderSpin />
+        </LinkText>
+      </SwitchMonth>
     </Container>
   );
 }

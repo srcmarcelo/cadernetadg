@@ -38,7 +38,7 @@ import {
 } from '../../containers/Outcome/redux/reducer';
 import { Skeleton } from 'antd';
 
-export default function MainInfo({ dispatch }) {
+export default function MainInfo({ dispatch, future }) {
   const currentBalance = useSelector(getCurrentBalance);
   const extraReceipts = useSelector(getExtraReceipts);
   const fixedReceipts = useSelector(getFixedReceipts);
@@ -202,7 +202,7 @@ export default function MainInfo({ dispatch }) {
   };
 
   return (
-    <Container>
+    <Container future={future}>
       {syncing ? (
         <Skeleton active />
       ) : (
