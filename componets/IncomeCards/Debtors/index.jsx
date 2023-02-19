@@ -55,7 +55,7 @@ import {
   TitleInputContainer,
 } from './styles';
 
-export default function Debtors() {
+export default function Debtors({ future }) {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
@@ -68,7 +68,6 @@ export default function Debtors() {
   const debts = useSelector(getDebts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateDebtor = () => {
@@ -91,7 +90,6 @@ export default function Debtors() {
     newDebtors[index].name = values.name;
     dispatchEditDebtors(dispatch, newDebtors, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
@@ -113,9 +111,11 @@ export default function Debtors() {
       name: '',
       user_uuid: user.id,
       debtor_id: debtorId,
-      disabled: false,
+      disabled: future,
       installments: 1,
-      current_pay: 1,
+      current_pay: future ? 0 : 1,
+      future_pay: future ? 1 : 2,
+      future_disabled: !future,
     };
     const newDebts = [...debts, newDebt];
     dispatchEditDebts(dispatch, newDebts, supabase, newDebts.length - 1);
@@ -128,7 +128,15 @@ export default function Debtors() {
     const newDebts = _.cloneDeep(debts);
     newDebts[index].name = values.name;
     newDebts[index].installments = values.installments || 1;
-    newDebts[index].current_pay = values.current_pay || 1;
+
+    if (future) {
+      newDebts[index].future_pay = values.current_pay || 1;
+      newDebts[index].current_pay = (values.current_pay || 1) - 1;
+    } else {
+      newDebts[index].current_pay = values.current_pay || 1;
+      newDebts[index].future_pay = (values.current_pay || 1) + 1;
+    }
+
     const debtValue =
       typeof values.value === 'string'
         ? parseFloat(
@@ -138,26 +146,32 @@ export default function Debtors() {
     newDebts[index].value = debtValue;
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
   const handleDisableDebt = async (id) => {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
-    newDebts[index].disabled = !newDebts[index].disabled;
+
+    if (future) {
+      newDebts[index].future_disabled = !newDebts[index].future_disabled;
+    } else {
+      newDebts[index].disabled = !newDebts[index].disabled;
+    }
+
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
   };
 
   const handleIncreaseInstallment = async (id) => {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
+ 
     newDebts[index].current_pay = newDebts[index].current_pay + 1;
+    newDebts[index].future_pay = newDebts[index].future_pay + 1;
+
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
   };
 
   const handleDeleteDebt = async (id) => {
@@ -183,163 +197,171 @@ export default function Debtors() {
     });
   };
 
-  const RenderForm = ({ debt }) => (
-    <FormContainer
-      onFinish={(values) => handleEditDebt(values, debt.id)}
-      initialValues={{ ...debt }}
-      onFinishFailed={() => setErrorFinish(true)}
-    >
-      <ValueContainer editing={true}>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='name'
-          rules={[
-            {
-              required: true,
-              message: 'Digite um nome para identificacar o devedor.',
-            },
-          ]}
-        >
-          <TitleDebtInput
-            key={`debt_name_${debt.id}`}
-            id={`debt_name_${debt.id}`}
-            placeholder='Exemplo: Emprestado'
-          />
-        </Form.Item>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='value'
-          rules={[
-            {
-              required: true,
-              message: 'Digite o valor do débito.',
-            },
-          ]}
-        >
-          <Value
-            prefix='R$ '
-            key={`value_${debt.id}`}
-            decimalSeparator=','
-            thousandSeparator='.'
-            precision={2}
-          />
-        </Form.Item>
-      </ValueContainer>
-      <InstallmentsContainer form={'true'}>
-        <InstalmentsLabel>Parcela</InstalmentsLabel>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-          }}
-        >
+  const RenderForm = ({ debt }) => {
+    const initialValues = { ...debt };
+    if(future) initialValues.current_pay = debt.future_value;
+
+    return (
+      <FormContainer
+        onFinish={(values) => handleEditDebt(values, debt.id)}
+        initialValues={{ ...debt }}
+        onFinishFailed={() => setErrorFinish(true)}
+      >
+        <ValueContainer editing={true}>
           <Form.Item
-            style={{ width: '38%', display: 'flex' }}
-            name='current_pay'
+            style={{ margin: 0 }}
+            name='name'
             rules={[
               {
-                required: false,
-                message: 'Coloque a parcela atual.',
+                required: true,
+                message: 'Digite um nome para identificacar o devedor.',
               },
             ]}
           >
-            <InputNumber min={1} size='small' style={{ width: '100%' }} />
+            <TitleDebtInput
+              key={`debt_name_${debt.id}`}
+              id={`debt_name_${debt.id}`}
+              placeholder='Exemplo: Emprestado'
+            />
           </Form.Item>
+          <Form.Item
+            style={{ margin: 0 }}
+            name='value'
+            rules={[
+              {
+                required: true,
+                message: 'Digite o valor do débito.',
+              },
+            ]}
+          >
+            <Value
+              prefix='R$ '
+              key={`value_${debt.id}`}
+              decimalSeparator=','
+              thousandSeparator='.'
+              precision={2}
+            />
+          </Form.Item>
+        </ValueContainer>
+        <InstallmentsContainer form={'true'}>
+          <InstalmentsLabel>Parcela</InstalmentsLabel>
           <div
             style={{
-              width: '20%',
-              textAlign: 'center',
-              alignItems: 'center',
-              paddingTop: '7px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
             }}
           >
-            de
+            <Form.Item
+              style={{ width: '38%', display: 'flex' }}
+              name='current_pay'
+              rules={[
+                {
+                  required: false,
+                  message: 'Coloque a parcela atual.',
+                },
+              ]}
+            >
+              <InputNumber min={1} size='small' style={{ width: '100%' }} />
+            </Form.Item>
+            <div
+              style={{
+                width: '20%',
+                textAlign: 'center',
+                alignItems: 'center',
+                paddingTop: '7px',
+              }}
+            >
+              de
+            </div>
+            <Form.Item
+              style={{ width: '38%' }}
+              name='installments'
+              rules={[
+                {
+                  required: false,
+                  message: 'Coloque a quantidade de parcelas.',
+                },
+              ]}
+            >
+              <InputNumber min={1} size='small' style={{ width: '100%' }} />
+            </Form.Item>
           </div>
-          <Form.Item
-            style={{ width: '38%' }}
-            name='installments'
-            rules={[
-              {
-                required: false,
-                message: 'Coloque a quantidade de parcelas.',
-              },
-            ]}
+        </InstallmentsContainer>
+        <ButtonsContainer form={'true'}>
+          <ActionButton color='green' htmlType='submit'>
+            <CheckOutlined />
+          </ActionButton>
+          <ActionButton
+            color='red'
+            onClick={() =>
+              creating ? handleDeleteDebt(debt.id) : setCurrentIdEditing(null)
+            }
           >
-            <InputNumber min={1} size='small' style={{ width: '100%' }} />
-          </Form.Item>
-        </div>
-      </InstallmentsContainer>
-      <ButtonsContainer form={'true'}>
-        <ActionButton color='green' htmlType='submit'>
-          <CheckOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          onClick={() =>
-            creating ? handleDeleteDebt(debt.id) : setCurrentIdEditing(null)
-          }
-        >
-          {creating ? <DeleteOutlined /> : <CloseOutlined />}
-        </ActionButton>
-      </ButtonsContainer>
-    </FormContainer>
-  );
+            {creating ? <DeleteOutlined /> : <CloseOutlined />}
+          </ActionButton>
+        </ButtonsContainer>
+      </FormContainer>
+    );
+  };
 
-  const RenderDebtContent = ({ debt }) => (
-    <DebtContent>
-      <ValueContainer>
-        <TitleDebt disabled={debt.disabled}>
-          {debt.name.toUpperCase()}
-        </TitleDebt>
-        <RenderValue
-          value={debt.value}
-          debt={true}
-          color={debt.disabled ? 'grey' : null}
-        />
-      </ValueContainer>
-      <InstallmentsContainer>
-        <InstalmentsLabel color={debt.disabled ? 'grey' : 'black'}>
-          Parcela
-        </InstalmentsLabel>
-        <div
-          style={{
-            fontSize: '0.9rem',
-            color: debt.disabled ? 'grey' : 'black',
-          }}
-        >
-          {debt.current_pay} de {debt.installments}
-        </div>
-      </InstallmentsContainer>
-      <ButtonsContainer>
-        <ActionButton
-          color={debt.disabled ? '#368f42' : 'grey'}
-          disabled={currentIdEditing}
-          onClick={() => handleDisableDebt(debt.id)}
-        >
-          {debt.disabled ? <SelectOutlined /> : <StopOutlined />}
-        </ActionButton>
-        <ActionButton
-          color='orange'
-          disabled={currentIdEditing || debt.disabled}
-          onClick={() => setCurrentIdEditing(debt.id)}
-        >
-          <EditOutlined />
-        </ActionButton>
-        <ActionButton
-          color='#368f42'
-          disabled={currentIdEditing || debt.disabled}
-          onClick={() =>
-            debt.installments - debt.current_pay < 1
-              ? handleDeleteDebt(debt.id)
-              : handleIncreaseInstallment(debt.id)
-          }
-        >
-          <CarryOutOutlined />
-        </ActionButton>
-      </ButtonsContainer>
-    </DebtContent>
-  );
+  const RenderDebtContent = ({ debt }) => {
+    const currentPay = future ? debt.future_pay : debt.current_pay;
+    const disabled = future ? debt.future_disabled : debt.disabled;
+
+    return (
+      <DebtContent>
+        <ValueContainer>
+          <TitleDebt disabled={disabled}>{debt.name.toUpperCase()}</TitleDebt>
+          <RenderValue
+            value={debt.value}
+            debt={true}
+            color={disabled ? 'grey' : null}
+          />
+        </ValueContainer>
+        <InstallmentsContainer>
+          <InstalmentsLabel color={disabled ? 'grey' : 'black'}>
+            Parcela
+          </InstalmentsLabel>
+          <div
+            style={{
+              fontSize: '0.9rem',
+              color: disabled ? 'grey' : 'black',
+            }}
+          >
+            {currentPay} de {debt.installments}
+          </div>
+        </InstallmentsContainer>
+        <ButtonsContainer>
+          <ActionButton
+            color={disabled ? '#368f42' : 'grey'}
+            disabled={currentIdEditing}
+            onClick={() => handleDisableDebt(debt.id)}
+          >
+            {disabled ? <SelectOutlined /> : <StopOutlined />}
+          </ActionButton>
+          <ActionButton
+            color='orange'
+            disabled={currentIdEditing || disabled}
+            onClick={() => setCurrentIdEditing(debt.id)}
+          >
+            <EditOutlined />
+          </ActionButton>
+          <ActionButton
+            color='#368f42'
+            disabled={currentIdEditing || disabled}
+            onClick={() =>
+              debt.installments - currentPay < 1
+                ? handleDeleteDebt(debt.id)
+                : handleIncreaseInstallment(debt.id)
+            }
+          >
+            <CarryOutOutlined />
+          </ActionButton>
+        </ButtonsContainer>
+      </DebtContent>
+    );
+  };
 
   const RenderFormName = ({ debtor }) => (
     <FormContainer
@@ -487,7 +509,7 @@ export default function Debtors() {
         />
       ) : (
         <>
-          <Total array={debts} />
+          <Total array={debts} future={future} />
           {reversedDebtors.map((debtor) => (
             <RenderDebtor key={debtor.id} debtor={debtor} />
           ))}

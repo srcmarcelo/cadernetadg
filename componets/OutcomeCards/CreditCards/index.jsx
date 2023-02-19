@@ -39,7 +39,7 @@ import {
   InputLabel,
 } from '../FixedDebts/styles';
 
-export default function CreditCards() {
+export default function CreditCards({ future }) {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
@@ -51,7 +51,6 @@ export default function CreditCards() {
   const hasCards = !_.isEmpty(creditCards);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateCard = () => {
@@ -59,9 +58,10 @@ export default function CreditCards() {
     const id = `${user.id}_${number}`;
     const newCard = {
       id: id,
-      value: undefined,
+      value: 0,
       name: '',
       user_uuid: user.id,
+      future_value: 0,
     };
     const newCards = [...creditCards, newCard];
     dispatchEditCreditCards(dispatch, newCards, supabase, newCards.length - 1);
@@ -78,11 +78,16 @@ export default function CreditCards() {
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newCards[index].value = debtValue;
+
+    if (future) {
+      newCards[index].future_value = debtValue;
+    } else {
+      newCards[index].value = debtValue;
+    }
+
     newCards[index].name = values.name;
     dispatchEditCreditCards(dispatch, newCards, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
@@ -98,8 +103,17 @@ export default function CreditCards() {
   const handleResetCard = async (id) => {
     const index = creditCards.findIndex((item) => item.id === id);
     const newCards = _.cloneDeep(creditCards);
-    newCards[index].value = 0;
-    if (creditCards[index].value > 0)
+    let currentValue = 0;
+
+    if (future) {
+      newCards[index].future_value = 0;
+      currentValue = creditCards[index].futureValue;
+    } else {
+      newCards[index].value = 0;
+      currentValue = creditCards[index].value;
+    }
+
+    if (currentValue > 0)
       dispatchEditCreditCards(dispatch, newCards, supabase, index);
   };
 
@@ -117,108 +131,116 @@ export default function CreditCards() {
     });
   };
 
-  const RenderForm = ({ item }) => (
-    <FormContainer
-      onFinish={(values) => handleEditCard(values, item.id)}
-      initialValues={{ ...item }}
-      onFinishFailed={() => setErrorFinish(true)}
-    >
-      <ValueContainer editing={true}>
-        <InputContainer>
-          <InputLabel>Nome:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='name'
-            rules={[
-              {
-                required: true,
-                message: 'Digite um nome para identificacar o débito.',
-              },
-            ]}
-          >
-            <TitleInput
-              key={`credit_card_name_${item.id}`}
-              id={`credit_card_name_${item.id}`}
-              placeholder='Exemplo: Nubank'
-            />
-          </Form.Item>
-        </InputContainer>
-        <InputContainer>
-          <InputLabel>Valor:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='value'
-            rules={[
-              {
-                required: true,
-                message: 'Digite o valor do débito.',
-              },
-            ]}
-          >
-            <Value
-              prefix='R$ '
-              key={`value_${item.id}`}
-              decimalSeparator=','
-              thousandSeparator='.'
-              precision={2}
-            />
-          </Form.Item>
-        </InputContainer>
-      </ValueContainer>
-      <ButtonsContainer>
-        <ActionButton color='green' htmlType='submit'>
-          <CheckOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          onClick={() =>
-            creating ? handleDeleteCard(item.id) : setCurrentIdEditing(null)
-          }
-        >
-          {creating ? <DeleteOutlined /> : <CloseOutlined />}
-        </ActionButton>
-      </ButtonsContainer>
-    </FormContainer>
-  );
+  const RenderForm = ({ item }) => {
+    const initialValues = { ...item };
+    if(future) initialValues.value = item.future_value;
 
-  const RenderItemContent = ({ item }) => (
-    <ItemContent>
-      <ValueContainer>
-        <Title>{item.name.toUpperCase()}</Title>
-        <RenderValue
-          value={item.value}
-          fontSize='1.5rem'
-          color='#c83126'
-          textAlign='start'
-        />
-      </ValueContainer>
-      <ButtonsContainer>
-        <ActionButton
-          color='orange'
-          disabled={currentIdEditing}
-          onClick={() => setCurrentIdEditing(item.id)}
-        >
-          <EditOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          disabled={currentIdEditing}
-          onClick={() => handleConfirmDeleteModal(item.id)}
-        >
-          <DeleteOutlined />
-        </ActionButton>
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <ConfirmButton
-          disabled={currentIdEditing}
-          color={item.value == 0 ? 'grey' : '#368f42'}
-          onClick={() => handleResetCard(item.id)}
-        >
-          <CarryOutOutlined />
-        </ConfirmButton>
-      </ButtonsContainer>
-    </ItemContent>
-  );
+    return (
+      <FormContainer
+        onFinish={(values) => handleEditCard(values, item.id)}
+        initialValues={initialValues}
+      >
+        <ValueContainer editing={true}>
+          <InputContainer>
+            <InputLabel>Nome:</InputLabel>
+            <Form.Item
+              style={{ margin: 0, width: '100%' }}
+              name='name'
+              rules={[
+                {
+                  required: true,
+                  message: 'Digite um nome para identificacar o débito.',
+                },
+              ]}
+            >
+              <TitleInput
+                key={`credit_card_name_${item.id}`}
+                id={`credit_card_name_${item.id}`}
+                placeholder='Exemplo: Nubank'
+              />
+            </Form.Item>
+          </InputContainer>
+          <InputContainer>
+            <InputLabel>Valor:</InputLabel>
+            <Form.Item
+              style={{ margin: 0, width: '100%' }}
+              name='value'
+              rules={[
+                {
+                  required: true,
+                  message: 'Digite o valor do débito.',
+                },
+              ]}
+            >
+              <Value
+                prefix='R$ '
+                key={`value_${item.id}`}
+                decimalSeparator=','
+                thousandSeparator='.'
+                precision={2}
+              />
+            </Form.Item>
+          </InputContainer>
+        </ValueContainer>
+        <ButtonsContainer>
+          <ActionButton color='green' htmlType='submit'>
+            <CheckOutlined />
+          </ActionButton>
+          <ActionButton
+            color='red'
+            onClick={() =>
+              creating ? handleDeleteCard(item.id) : setCurrentIdEditing(null)
+            }
+          >
+            {creating ? <DeleteOutlined /> : <CloseOutlined />}
+          </ActionButton>
+        </ButtonsContainer>
+      </FormContainer>
+    );
+  };
+
+  const RenderItemContent = ({ item }) => {
+    const value = future ? item.future_value : item.value;
+
+    return (
+      <ItemContent>
+        <ValueContainer>
+          <Title>{item.name.toUpperCase()}</Title>
+          <RenderValue
+            value={value}
+            fontSize='1.5rem'
+            color='#c83126'
+            textAlign='start'
+          />
+        </ValueContainer>
+        <ButtonsContainer>
+          <ActionButton
+            color='orange'
+            disabled={currentIdEditing}
+            onClick={() => setCurrentIdEditing(item.id)}
+          >
+            <EditOutlined />
+          </ActionButton>
+          <ActionButton
+            color='red'
+            disabled={currentIdEditing}
+            onClick={() => handleConfirmDeleteModal(item.id)}
+          >
+            <DeleteOutlined />
+          </ActionButton>
+        </ButtonsContainer>
+        <ButtonsContainer>
+          <ConfirmButton
+            disabled={currentIdEditing}
+            color={value == 0 ? 'grey' : '#368f42'}
+            onClick={() => handleResetCard(item.id)}
+          >
+            <CarryOutOutlined />
+          </ConfirmButton>
+        </ButtonsContainer>
+      </ItemContent>
+    );
+  };
 
   const RenderItem = ({ item }) => {
     return (
@@ -247,7 +269,7 @@ export default function CreditCards() {
         />
       ) : (
         <>
-          <Total array={creditCards} color='#c83126' />
+          <Total array={creditCards} color='#c83126' future={future} />
           {reversedCreditCards.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}

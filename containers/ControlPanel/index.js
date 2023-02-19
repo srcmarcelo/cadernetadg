@@ -7,7 +7,7 @@ import SituationCard from '../../componets/CPCards/SituationCard';
 import { getSyncing } from '../Main/redux/reducer';
 import { Container, Content } from './styles';
 
-export default function ControlPanel() {
+export default function ControlPanel({ future }) {
   const syncing = useSelector(getSyncing);
 
   return (
@@ -16,7 +16,7 @@ export default function ControlPanel() {
         <Spin size='large' style={{marginTop: '50%'}} />
       ) : (
         <Content>
-          <BalanceCard />
+          <BalanceCard future={future} />
           <SituationCard />
           <AlertsCard />
         </Content>

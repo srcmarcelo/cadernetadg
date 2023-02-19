@@ -14,7 +14,7 @@ import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useCallback } from 'react';
 import { debounce } from 'lodash';
 
-export default function BalanceCard() {
+export default function BalanceCard({ future }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const dispatch = useDispatch();
@@ -53,7 +53,7 @@ export default function BalanceCard() {
   return (
     <Container>
       <ValueContainer>
-        <Title>Saldo Atual:</Title>
+        <Title>{future ? 'Saldo futuro:' : 'Saldo atual:'}</Title>
         <Value
           onChangeEvent={handleChangeCurrentBalance}
           prefix='R$ '

@@ -37,6 +37,7 @@ export default function ProfileButton({
   onClickProfile,
   onClickMonth,
   future,
+  currentTab,
 }) {
   const loadingFixedReceipts = useSelector(getLoadingFixedReceipts);
   const loadingDebtors = useSelector(getLoadingDebtors);
@@ -95,8 +96,11 @@ export default function ProfileButton({
 
   return (
     <Container>
-      <Profile>
-        <LinkText onClick={() => onClickProfile('profile')}>
+      <Profile selected={currentTab === 'profile'}>
+        <LinkText
+          onClick={() => onClickProfile('profile')}
+          selected={currentTab === 'profile'}
+        >
           <RenderSpin />
           {loading ? 'Atualizando' : 'Perfil'}
           <RenderSpin />

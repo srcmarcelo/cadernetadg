@@ -27,13 +27,14 @@ export default function Main() {
   }, []);
 
   return (
-    <Container>
+    <Container future={future}>
       <Content>
         <MainInfo dispatch={dispatch} future={future} />
         <ProfileButton
           onClickProfile={setCurrentTab}
           onClickMonth={setFuture}
           future={future}
+          currentTab={currentTab}
         />
         {currentTab === 'panel' && <ControlPanel future={future} />}
         {currentTab === 'income' && <Income future={future} />}

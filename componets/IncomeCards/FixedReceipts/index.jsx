@@ -45,7 +45,7 @@ import { getMaxId } from '../../../utils/getMaxId';
 import RenderValue from '../../RenderValue';
 import Total from '../../Total';
 
-export default function FixedReceipts() {
+export default function FixedReceipts({ future }) {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
@@ -57,7 +57,6 @@ export default function FixedReceipts() {
   const hasReceipts = !_.isEmpty(fixedReceipts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateReceipt = () => {
@@ -67,7 +66,7 @@ export default function FixedReceipts() {
       id: id,
       value: undefined,
       name: '',
-      received: false,
+      received: future,
       user_uuid: user.id,
     };
     const newReceipts = [...fixedReceipts, newReceipt];
@@ -94,7 +93,6 @@ export default function FixedReceipts() {
     newReceipts[index].name = values.name;
     dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
@@ -110,7 +108,13 @@ export default function FixedReceipts() {
   const handleConfirmReceipt = async (id) => {
     const index = fixedReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(fixedReceipts);
-    newReceipts[index].received = !newReceipts[index].received;
+
+    if (future) {
+      newReceipts[index].future_received = !newReceipts[index].future_received;
+    } else {
+      newReceipts[index].received = !newReceipts[index].received;
+    }
+
     dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
@@ -134,7 +138,6 @@ export default function FixedReceipts() {
     <FormContainer
       onFinish={(values) => handleEditReceipt(values, item.id)}
       initialValues={{ ...item }}
-      onFinishFailed={() => setErrorFinish(true)}
     >
       <ValueContainer editing={true}>
         <InputContainer>
@@ -194,48 +197,52 @@ export default function FixedReceipts() {
     </FormContainer>
   );
 
-  const RenderItemContent = ({ item }) => (
-    <ItemContent>
-      <ValueContainer>
-        <Title received={item.received}>{item.name.toUpperCase()}</Title>
-        <RenderValue
-          value={item.value}
-          fontSize='1.5rem'
-          textAlign='start'
-          color={item.received ? 'grey' : '#368f42'}
-        />
-      </ValueContainer>
-      <ButtonsContainer>
-        {!item.received && (
-          <>
-            <ActionButton
-              color='orange'
-              disabled={currentIdEditing}
-              onClick={() => setCurrentIdEditing(item.id)}
-            >
-              <EditOutlined />
-            </ActionButton>
-            <ActionButton
-              color='red'
-              disabled={currentIdEditing}
-              onClick={() => handleConfirmDeleteModal(item.id)}
-            >
-              <DeleteOutlined />
-            </ActionButton>
-          </>
-        )}
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <ConfirmButton
-          disabled={currentIdEditing}
-          color={item.received ? 'grey' : '#368f42'}
-          onClick={() => handleConfirmReceipt(item.id)}
-        >
-          {item.received ? <RollbackOutlined /> : <DollarOutlined />}
-        </ConfirmButton>
-      </ButtonsContainer>
-    </ItemContent>
-  );
+  const RenderItemContent = ({ item }) => {
+    const received = future ? item.future_received : item.received;
+
+    return (
+      <ItemContent>
+        <ValueContainer>
+          <Title received={received}>{item.name.toUpperCase()}</Title>
+          <RenderValue
+            value={item.value}
+            fontSize='1.5rem'
+            textAlign='start'
+            color={received ? 'grey' : '#368f42'}
+          />
+        </ValueContainer>
+        <ButtonsContainer>
+          {!received && (
+            <>
+              <ActionButton
+                color='orange'
+                disabled={currentIdEditing}
+                onClick={() => setCurrentIdEditing(item.id)}
+              >
+                <EditOutlined />
+              </ActionButton>
+              <ActionButton
+                color='red'
+                disabled={currentIdEditing}
+                onClick={() => handleConfirmDeleteModal(item.id)}
+              >
+                <DeleteOutlined />
+              </ActionButton>
+            </>
+          )}
+        </ButtonsContainer>
+        <ButtonsContainer>
+          <ConfirmButton
+            disabled={currentIdEditing}
+            color={received ? 'grey' : '#368f42'}
+            onClick={() => handleConfirmReceipt(item.id)}
+          >
+            {received ? <RollbackOutlined /> : <DollarOutlined />}
+          </ConfirmButton>
+        </ButtonsContainer>
+      </ItemContent>
+    );
+  };
 
   const RenderItem = ({ item }) => {
     return (
@@ -264,7 +271,7 @@ export default function FixedReceipts() {
         />
       ) : (
         <>
-          <Total array={fixedReceipts} />
+          <Total array={fixedReceipts} future={future} />
           {reversedFixedReceipts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}

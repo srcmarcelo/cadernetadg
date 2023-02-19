@@ -11,10 +11,6 @@ export const Container = styled.div`
   justify-content: center;
   align-items: center;
   margin-bottom: 1px;
-  border-width: 2px;
-  border-style: solid;
-  border-color: ${({future}) => future ? '#8176fb' : '#f0f0f0'};
-  transition: border-color 1s;
 `;
 
 export const BalancesContainer = styled.div`

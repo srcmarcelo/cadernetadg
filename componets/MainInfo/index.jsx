@@ -89,29 +89,71 @@ export default function MainInfo({ dispatch, future }) {
   useEffect(() => {
     let total = 0;
     const receipts = [...fixedReceipts, ...extraReceipts, ...debtorsDebts];
-    receipts.forEach(({ value, received, disabled }, index) => {
-      if (value && !received && !disabled) {
-        index === 0 ? (total = value) : (total += value);
+    receipts.forEach(
+      (
+        {
+          value,
+          received,
+          disabled,
+          future_value,
+          future_received,
+          future_disabled,
+          name,
+        },
+        index
+      ) => {
+        const hasFutureValue = future_value !== undefined;
+        const hasFutureReceived = future_received !== undefined;
+        const hasFutureDisabled = future_disabled !== undefined;
+
+        const currentValue = future && hasFutureValue ? future_value : value;
+        const currentReceived =
+          future && hasFutureReceived ? future_received : received;
+        const currentDisabled =
+          future && hasFutureDisabled ? future_disabled : disabled;
+
+        if (currentValue && !currentReceived && !currentDisabled) {
+          index === 0 ? (total = currentValue) : (total += currentValue);
+        }
       }
-    });
+    );
     dispatch(setWillReceive(total));
-  }, [fixedReceipts, extraReceipts, debtorsDebts]);
+  }, [fixedReceipts, extraReceipts, debtorsDebts, future]);
 
   useEffect(() => {
     let total = 0;
     const debts = [...fixedDebts, ...extraDebts, ...creditCards];
-    debts.forEach(({ value, payed, disabled }, index) => {
-      if (value && !payed && !disabled) {
-        index === 0 ? (total = value) : (total += value);
+    debts.forEach(
+      (
+        { value, payed, disabled, future_value, future_payed, future_disabled },
+        index
+      ) => {
+        const hasFutureValue = future_value !== undefined;
+        const hasFuturePayed = future_payed !== undefined;
+        const hasFutureDisabled = future_disabled !== undefined;
+
+        const currentValue = future && hasFutureValue ? future_value : value;
+        const currentPayed = future && hasFuturePayed ? future_payed : payed;
+        const currentDisabled =
+          future && hasFutureDisabled ? future_disabled : disabled;
+
+        if (currentValue && !currentPayed && !currentDisabled) {
+          index === 0 ? (total = value) : (total += value);
+        }
       }
-    });
+    );
     dispatch(setTotalDebts(total));
-  }, [fixedDebts, extraDebts, creditCards]);
+  }, [fixedDebts, extraDebts, creditCards, future]);
 
   useEffect(() => {
     let total = 0;
-    debtorsDebts.forEach(({ value, disabled }, index) => {
-      if (value && !disabled) {
+    debtorsDebts.forEach(({ value, disabled, future_disabled }, index) => {
+      const hasFutureDisabled = future_disabled !== undefined;
+
+      const currentDisabled =
+        future && hasFutureDisabled ? future_disabled : disabled;
+
+      if (value && !currentDisabled) {
         index === 0 ? (total = value) : (total += value);
       }
     });
@@ -166,7 +208,9 @@ export default function MainInfo({ dispatch, future }) {
 
   const RenderBalance = ({ label, value, color, weight }) => (
     <Balance>
-      <BalanceLabel weight={weight} color={color}>{label}</BalanceLabel>
+      <BalanceLabel weight={weight} color={color}>
+        {label}
+      </BalanceLabel>
       <RenderValue color={color} value={value} />
     </Balance>
   );
@@ -202,7 +246,7 @@ export default function MainInfo({ dispatch, future }) {
   };
 
   return (
-    <Container future={future}>
+    <Container>
       {syncing ? (
         <Skeleton active />
       ) : (

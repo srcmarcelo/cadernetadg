@@ -40,7 +40,7 @@ import {
   InputLabel,
 } from './styles';
 
-export default function FixedDebts() {
+export default function FixedDebts({ future }) {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
@@ -52,7 +52,6 @@ export default function FixedDebts() {
   const hasDebts = !_.isEmpty(fixedDebts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateDebt = () => {
@@ -64,6 +63,7 @@ export default function FixedDebts() {
       name: '',
       payed: false,
       user_uuid: user.id,
+      future_payed: false,
     };
     const newDebts = [...fixedDebts, newDebt];
     dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length - 1);
@@ -85,7 +85,6 @@ export default function FixedDebts() {
     newDebts[index].name = values.name;
     dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
@@ -101,7 +100,13 @@ export default function FixedDebts() {
   const handleConfirmDebt = async (id) => {
     const index = fixedDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(fixedDebts);
-    newDebts[index].payed = !newDebts[index].payed;
+
+    if (future) {
+      newDebts[index].future_payed = !newDebts[index].future_payed;
+    } else {
+      newDebts[index].payed = !newDebts[index].payed;
+    }
+
     dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
@@ -125,7 +130,6 @@ export default function FixedDebts() {
     <FormContainer
       onFinish={(values) => handleEditDebt(values, item.id)}
       initialValues={{ ...item }}
-      onFinishFailed={() => setErrorFinish(true)}
     >
       <ValueContainer editing={true}>
         <InputContainer>
@@ -185,48 +189,52 @@ export default function FixedDebts() {
     </FormContainer>
   );
 
-  const RenderItemContent = ({ item }) => (
-    <ItemContent>
-      <ValueContainer>
-        <Title payed={item.payed}>{item.name.toUpperCase()}</Title>
-        <RenderValue
-          value={item.value}
-          color={item.payed ? 'grey' : '#c83126'}
-          fontSize='1.5rem'
-          textAlign='start'
-        />
-      </ValueContainer>
-      <ButtonsContainer>
-        {!item.payed && (
-          <>
-            <ActionButton
-              color='orange'
-              disabled={currentIdEditing}
-              onClick={() => setCurrentIdEditing(item.id)}
-            >
-              <EditOutlined />
-            </ActionButton>
-            <ActionButton
-              color='red'
-              disabled={currentIdEditing}
-              onClick={() => handleConfirmDeleteModal(item.id)}
-            >
-              <DeleteOutlined />
-            </ActionButton>
-          </>
-        )}
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <ConfirmButton
-          disabled={currentIdEditing}
-          color={item.payed ? 'grey' : '#368f42'}
-          onClick={() => handleConfirmDebt(item.id)}
-        >
-          {item.payed ? <RollbackOutlined /> : <FileDoneOutlined />}
-        </ConfirmButton>
-      </ButtonsContainer>
-    </ItemContent>
-  );
+  const RenderItemContent = ({ item }) => {
+    const payed = future ? item.future_payed : item.payed;
+
+    return (
+      <ItemContent>
+        <ValueContainer>
+          <Title payed={payed}>{item.name.toUpperCase()}</Title>
+          <RenderValue
+            value={item.value}
+            color={payed ? 'grey' : '#c83126'}
+            fontSize='1.5rem'
+            textAlign='start'
+          />
+        </ValueContainer>
+        <ButtonsContainer>
+          {!payed && (
+            <>
+              <ActionButton
+                color='orange'
+                disabled={currentIdEditing}
+                onClick={() => setCurrentIdEditing(item.id)}
+              >
+                <EditOutlined />
+              </ActionButton>
+              <ActionButton
+                color='red'
+                disabled={currentIdEditing}
+                onClick={() => handleConfirmDeleteModal(item.id)}
+              >
+                <DeleteOutlined />
+              </ActionButton>
+            </>
+          )}
+        </ButtonsContainer>
+        <ButtonsContainer>
+          <ConfirmButton
+            disabled={currentIdEditing}
+            color={payed ? 'grey' : '#368f42'}
+            onClick={() => handleConfirmDebt(item.id)}
+          >
+            {payed ? <RollbackOutlined /> : <FileDoneOutlined />}
+          </ConfirmButton>
+        </ButtonsContainer>
+      </ItemContent>
+    );
+  };
 
   const RenderItem = ({ item }) => {
     return (
@@ -255,7 +263,7 @@ export default function FixedDebts() {
         />
       ) : (
         <>
-          <Total array={fixedDebts} color='#c83126' />
+          <Total array={fixedDebts} color='#c83126' future={future} />
           {reversedFixedDebts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}

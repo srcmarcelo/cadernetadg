@@ -4,13 +4,13 @@ import ExtraReceipts from '../../componets/IncomeCards/ExtraReceipts';
 import FixedReceipts from '../../componets/IncomeCards/FixedReceipts';
 import { Container, Content } from './styles';
 
-export default function Income(props) {
+export default function Income({future}) {
   return (
     <Container>
       <Content>
-        <FixedReceipts />
-        <Debtors />
-        <ExtraReceipts />
+        <FixedReceipts future={future} />
+        <Debtors future={future} />
+        <ExtraReceipts future={future} />
       </Content>
     </Container>
   );

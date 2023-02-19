@@ -40,31 +40,39 @@ import {
   InputLabel,
 } from '../FixedReceipts/styles';
 
-export default function ExtraReceipts() {
+export default function ExtraReceipts({ future }) {
   const dispatch = useDispatch();
 
   const supabase = useSupabaseClient();
   const user = useUser();
 
-  const extraReceipts = useSelector(getExtraReceipts);
+  const allExtraReceipts = useSelector(getExtraReceipts);
+  const extraReceipts = useSelector(getExtraReceipts).filter(
+    (item) => future === item.future
+  );
   const reversedExtraReceipts = _.reverse(_.cloneDeep(extraReceipts));
 
   const hasReceipts = !_.isEmpty(extraReceipts);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [errorFinish, setErrorFinish] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateReceipt = () => {
-    const number = hasReceipts ? getMaxId(extraReceipts) + 1 : 1;
+    const number = !_.isEmpty(allExtraReceipts)
+      ? getMaxId(allExtraReceipts) + 1
+      : 1;
     const id = `${user.id}_${number}`;
     const newReceipt = {
       id: id,
-      value: undefined,
+      value: 0,
+      future_value: 0,
       name: '',
       user_uuid: user.id,
+      disabled: future,
+      future_disabled: !future,
+      future: future,
     };
-    const newReceipts = [...extraReceipts, newReceipt];
+    const newReceipts = [...allExtraReceipts, newReceipt];
     dispatchEditExtraReceipts(
       dispatch,
       newReceipts,
@@ -76,142 +84,163 @@ export default function ExtraReceipts() {
   };
 
   const handleEditReceipt = async (values, id) => {
-    const index = extraReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(extraReceipts);
+    const index = allExtraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(allExtraReceipts);
     const receiptValue =
       typeof values.value === 'string'
         ? parseFloat(
             values.value.slice(3).replaceAll('.', '').replace(',', '.')
           )
         : values.value;
-    newReceipts[index].value = receiptValue;
+    if (future) {
+      newReceipts[index].future_value = receiptValue;
+    } else {
+      newReceipts[index].value = receiptValue;
+    }
     newReceipts[index].name = values.name;
     dispatchEditExtraReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
     setCreating(false);
   };
 
   const handleDisableReceipt = async (id) => {
-    const index = extraReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(extraReceipts);
-    newReceipts[index].disabled = !newReceipts[index].disabled;
+    const index = allExtraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(allExtraReceipts);
+
+    if (future) {
+      newReceipts[index].future_disabled = !newReceipts[index].future_disabled;
+    } else {
+      newReceipts[index].disabled = !newReceipts[index].disabled;
+    }
+
     await dispatchEditExtraReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
-    setErrorFinish(false);
   };
 
   const handleDeleteReceipt = async (id) => {
-    const index = extraReceipts.findIndex((item) => item.id === id);
-    const newReceipts = _.cloneDeep(extraReceipts);
+    const index = allExtraReceipts.findIndex((item) => item.id === id);
+    const newReceipts = _.cloneDeep(allExtraReceipts);
     newReceipts.splice(index, 1);
     dispatchDeleteExtraReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const RenderForm = ({ item }) => (
-    <FormContainer
-      onFinish={(values) => handleEditReceipt(values, item.id)}
-      initialValues={{ ...item }}
-      onFinishFailed={() => setErrorFinish(true)}
-    >
-      <ValueContainer editing={true}>
-        <InputContainer>
-          <InputLabel>Nome:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='name'
-            rules={[
-              {
-                required: true,
-                message: 'Digite um nome para identificacar o recebimento.',
-              },
-            ]}
-          >
-            <TitleInput
-              key={`extra_receipt_name_${item.id}`}
-              id={`extra_receipt_name_${item.id}`}
-              placeholder='Exemplo: Décimo terceiro'
-            />
-          </Form.Item>
-        </InputContainer>
-        <InputContainer>
-          <InputLabel>Valor:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='value'
-            rules={[
-              {
-                required: true,
-                message: 'Digite o valor do recebimento.',
-              },
-            ]}
-          >
-            <Value
-              prefix='R$ '
-              key={`value_${item.id}`}
-              decimalSeparator=','
-              thousandSeparator='.'
-              precision={2}
-            />
-          </Form.Item>
-        </InputContainer>
-      </ValueContainer>
-      <ButtonsContainer>
-        <ActionButton color='green' htmlType='submit'>
-          <CheckOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          onClick={() =>
-            creating ? handleDeleteReceipt(item.id) : setCurrentIdEditing(null)
-          }
-        >
-          {creating ? <DeleteOutlined /> : <CloseOutlined />}
-        </ActionButton>
-      </ButtonsContainer>
-    </FormContainer>
-  );
+  const RenderForm = ({ item }) => {
+    const initialValues = { ...item };
+    if(future) initialValues.value = item.future_value;
 
-  const RenderItemContent = ({ item }) => (
-    <ItemContent>
-      <ValueContainer>
-        <Title disabled={item.disabled}>{item.name.toUpperCase()}</Title>
-        <RenderValue
-          value={item.value}
-          fontSize='1.5rem'
-          textAlign='start'
-          color={item.disabled ? 'grey' : '#368f42'}
-        />
-      </ValueContainer>
-      <ButtonsContainer>
-        <ActionButton
-          color={item.disabled ? '#368f42' : 'grey'}
-          disabled={currentIdEditing}
-          onClick={() => handleDisableReceipt(item.id)}
-        >
-          {item.disabled ? <SelectOutlined /> : <StopOutlined />}
-        </ActionButton>
-        <ActionButton
-          color='orange'
-          disabled={currentIdEditing || item.disabled}
-          onClick={() => setCurrentIdEditing(item.id)}
-        >
-          <EditOutlined />
-        </ActionButton>
-      </ButtonsContainer>
-      <ButtonsContainer>
-        <ConfirmButton
-          color='#368f42'
-          disabled={currentIdEditing}
-          onClick={() => handleDeleteReceipt(item.id)}
-        >
-          <DollarOutlined />
-        </ConfirmButton>
-      </ButtonsContainer>
-    </ItemContent>
-  );
+    return (
+      <FormContainer
+        onFinish={(values) => handleEditReceipt(values, item.id)}
+        initialValues={initialValues}
+      >
+        <ValueContainer editing={true}>
+          <InputContainer>
+            <InputLabel>Nome:</InputLabel>
+            <Form.Item
+              style={{ margin: 0, width: '100%' }}
+              name='name'
+              rules={[
+                {
+                  required: true,
+                  message: 'Digite um nome para identificacar o recebimento.',
+                },
+              ]}
+            >
+              <TitleInput
+                key={`extra_receipt_name_${item.id}`}
+                id={`extra_receipt_name_${item.id}`}
+                placeholder='Exemplo: Décimo terceiro'
+              />
+            </Form.Item>
+          </InputContainer>
+          <InputContainer>
+            <InputLabel>Valor:</InputLabel>
+            <Form.Item
+              style={{ margin: 0, width: '100%' }}
+              name='value'
+              rules={[
+                {
+                  required: true,
+                  message: 'Digite o valor do recebimento.',
+                },
+              ]}
+            >
+              <Value
+                prefix='R$ '
+                key={`value_${item.id}`}
+                decimalSeparator=','
+                thousandSeparator='.'
+                precision={2}
+              />
+            </Form.Item>
+          </InputContainer>
+        </ValueContainer>
+        <ButtonsContainer>
+          <ActionButton color='green' htmlType='submit'>
+            <CheckOutlined />
+          </ActionButton>
+          <ActionButton
+            color='red'
+            onClick={() =>
+              creating
+                ? handleDeleteReceipt(item.id)
+                : setCurrentIdEditing(null)
+            }
+          >
+            {creating ? <DeleteOutlined /> : <CloseOutlined />}
+          </ActionButton>
+        </ButtonsContainer>
+      </FormContainer>
+    );
+  };
+
+  const RenderItemContent = ({ item }) => {
+    const disabled = future ? item.future_disabled : item.disabled;
+    const value = future ? item.future_value : item.value;
+
+    if (future !== item.future) return;
+
+    return (
+      <ItemContent>
+        <ValueContainer>
+          <Title disabled={disabled}>{item.name.toUpperCase()}</Title>
+          <RenderValue
+            value={value}
+            fontSize='1.5rem'
+            textAlign='start'
+            color={disabled ? 'grey' : '#368f42'}
+          />
+        </ValueContainer>
+        <ButtonsContainer>
+          <ActionButton
+            color={disabled ? '#368f42' : 'grey'}
+            disabled={currentIdEditing}
+            onClick={() => handleDisableReceipt(item.id)}
+          >
+            {disabled ? <SelectOutlined /> : <StopOutlined />}
+          </ActionButton>
+          <ActionButton
+            color='orange'
+            disabled={currentIdEditing || disabled}
+            onClick={() => setCurrentIdEditing(item.id)}
+          >
+            <EditOutlined />
+          </ActionButton>
+        </ButtonsContainer>
+        <ButtonsContainer>
+          <ConfirmButton
+            color='#368f42'
+            disabled={currentIdEditing}
+            onClick={() => handleDeleteReceipt(item.id)}
+          >
+            <DollarOutlined />
+          </ConfirmButton>
+        </ButtonsContainer>
+      </ItemContent>
+    );
+  };
 
   const RenderItem = ({ item }) => {
     return (
@@ -240,7 +269,7 @@ export default function ExtraReceipts() {
         />
       ) : (
         <>
-          <Total array={extraReceipts} />
+          <Total array={extraReceipts} future={future} />
           {reversedExtraReceipts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}

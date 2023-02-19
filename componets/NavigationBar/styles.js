@@ -10,6 +10,7 @@ export const Container = styled.div`
   background-color: ${({ color }) => color};
   justify-content: space-around;
   align-items: center;
+  transition: background-color 500ms;
 `;
 
 export const NavigationButton = styled(Button)`

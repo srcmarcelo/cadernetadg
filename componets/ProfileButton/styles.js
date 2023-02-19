@@ -14,17 +14,21 @@ export const Profile = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #8176fb;
+  background-color: ${({ selected }) => (selected ? '#f0f0f0' : '#8176fb')};
   width: 49%;
   min-height: 4vh;
   border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #8176fb;
+  transition: background-color 1s;
 `;
 
 export const SwitchMonth = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ future }) => (future ? '#8176fb' : '#232C68')};
+  background-color: ${({ future }) => (future ? '#232C68' : '#8176fb')};
   transition: background-color 1s;
   width: 49%;
   min-height: 4vh;
@@ -37,10 +41,10 @@ export const LinkText = styled.a`
   align-content: center;
   width: 100%;
   text-align: center;
-  color: white;
+  color: ${({ selected }) => (selected ? '#8176fb' : '#fff')};
 
   &:hover {
-    color: white;
+    color: ${({ selected }) => (selected ? '#8176fb' : '#fff')};
   }
 `;
 
