@@ -13,8 +13,9 @@ import { Container, ValueContainer, Title, Value } from './styles';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useCallback } from 'react';
 import { debounce } from 'lodash';
+import RenderValue from '../../RenderValue';
 
-export default function BalanceCard({ future }) {
+export default function BalanceCard({ future, pastValue }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const dispatch = useDispatch();
@@ -54,26 +55,44 @@ export default function BalanceCard({ future }) {
     <Container>
       <ValueContainer>
         <Title>{future ? 'Saldo futuro:' : 'Saldo atual:'}</Title>
-        <Value
-          onChangeEvent={handleChangeCurrentBalance}
-          prefix='R$ '
-          decimalSeparator=','
-          thousandSeparator='.'
-          precision={2}
-          value={currentBalance}
-        />
+        {future ? (
+          <RenderValue
+            value={pastValue > 0 ? pastValue : 0}
+            color='green'
+            fontSize='28px'
+            textAlign='flex-start'
+          />
+        ) : (
+          <Value
+            onChangeEvent={handleChangeCurrentBalance}
+            prefix='R$ '
+            decimalSeparator=','
+            thousandSeparator='.'
+            precision={2}
+            value={currentBalance}
+          />
+        )}
       </ValueContainer>
       <ValueContainer>
         <Title size={'16px'}>Guardado:</Title>
-        <Value
-          onChangeEvent={handleChangeKeptBalance}
-          prefix='R$ '
-          decimalSeparator=','
-          thousandSeparator='.'
-          precision={2}
-          size='18px'
-          value={keptBalance}
-        />
+        {future ? (
+          <RenderValue
+            value={pastValue > 0 ? keptBalance : keptBalance + pastValue}
+            color='green'
+            fontSize='18px'
+            textAlign='flex-start'
+          />
+        ) : (
+          <Value
+            onChangeEvent={handleChangeKeptBalance}
+            prefix='R$ '
+            decimalSeparator=','
+            thousandSeparator='.'
+            precision={2}
+            size='18px'
+            value={keptBalance}
+          />
+        )}
       </ValueContainer>
     </Container>
   );

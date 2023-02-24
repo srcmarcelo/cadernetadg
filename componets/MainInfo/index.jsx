@@ -38,8 +38,8 @@ import {
 } from '../../containers/Outcome/redux/reducer';
 import { Skeleton } from 'antd';
 
-export default function MainInfo({ dispatch, future }) {
-  const currentBalance = useSelector(getCurrentBalance);
+export default function MainInfo({ dispatch, future, setPastValue }) {
+  const actualBalance = useSelector(getCurrentBalance);
   const extraReceipts = useSelector(getExtraReceipts);
   const fixedReceipts = useSelector(getFixedReceipts);
   const fixedDebts = useSelector(getFixedDebts);
@@ -58,6 +58,8 @@ export default function MainInfo({ dispatch, future }) {
 
   const [debtorDependency, setDebtorDependency] = useState(false);
   const [loss, setLoss] = useState(false);
+
+  const [pastBalance, setPastBalance] = useState(0);
 
   const monthlyBalance = {
     profit: {
@@ -138,7 +140,7 @@ export default function MainInfo({ dispatch, future }) {
           future && hasFutureDisabled ? future_disabled : disabled;
 
         if (currentValue && !currentPayed && !currentDisabled) {
-          index === 0 ? (total = value) : (total += value);
+          index === 0 ? (total = currentValue) : (total += currentValue);
         }
       }
     );
@@ -161,6 +163,8 @@ export default function MainInfo({ dispatch, future }) {
   }, [debtorsDebts]);
 
   useEffect(() => {
+    const currentBalance = future ? pastBalance : actualBalance;
+
     if (willReceive - totalDebts < 0) {
       setMonthlySituation('deficit');
       handleSetLoss(true);
@@ -178,7 +182,17 @@ export default function MainInfo({ dispatch, future }) {
     willReceive - totalDebts + currentBalance < 0
       ? setGeneralSituation('negative')
       : setGeneralSituation('positive');
-  }, [totalDebts, willReceive, currentBalance]);
+  }, [totalDebts, willReceive, actualBalance, pastBalance]);
+
+  useEffect(() => {
+    const value =
+      (willReceive - totalDebts + actualBalance);
+
+    if (!future) {
+      setPastValue(value);
+      setPastBalance(value > 0 ? value : 0);
+    }
+  }, [future, willReceive, totalDebts, actualBalance, generalSituation]);
 
   const handleSetLoss = (value) => {
     setLoss(value);
@@ -254,18 +268,18 @@ export default function MainInfo({ dispatch, future }) {
           <BalancesContainer>
             <RenderBalance
               color='#368F42'
-              label='Quanto você tem agora:'
-              value={currentBalance}
+              label={future ? 'Quanto terá:' : 'Quanto você tem agora:'}
+              value={future ? pastBalance : actualBalance}
             />
             <RenderBalance
               color='#368F42'
-              label='Quanto ainda receberá:'
+              label={future ? 'Quanto receberá:' : 'Quanto ainda receberá:'}
               value={willReceive}
               weight='bold'
             />
             <RenderBalance
               color='#C83126'
-              label='Quanto ainda deve:'
+              label={future ? 'Quanto deverá:' : 'Quanto ainda deve:'}
               value={totalDebts}
               weight='bold'
             />
@@ -284,7 +298,7 @@ export default function MainInfo({ dispatch, future }) {
               label={generalBalance[generalSituation].label}
               color={generalBalance[generalSituation].color}
               value={
-                (willReceive - totalDebts + currentBalance) *
+                (willReceive - totalDebts + (future ? pastBalance : actualBalance)) *
                 (generalSituation === 'negative' ? -1 : 1)
               }
             />

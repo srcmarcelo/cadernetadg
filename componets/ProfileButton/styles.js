@@ -28,7 +28,7 @@ export const SwitchMonth = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ future }) => (future ? '#232C68' : '#8176fb')};
+  background-color: ${({ future }) => (future ? 'blue' : '#8176fb')};
   transition: background-color 1s;
   width: 49%;
   min-height: 4vh;

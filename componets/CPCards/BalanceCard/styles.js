@@ -27,7 +27,6 @@ export const Title = styled.h1`
 
 export const Value = styled(CurrencyInput)`
   font-size: ${(props) => props.size || '28px'};
-  height: ${(props) => (props.size ? '26px' : '36px')};
   color: green;
   background: #f0f0f0;
   border-radius: 10px;
