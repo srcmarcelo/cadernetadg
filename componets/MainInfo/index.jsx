@@ -127,9 +127,22 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
     const debts = [...fixedDebts, ...extraDebts, ...creditCards];
     debts.forEach(
       (
-        { value, payed, disabled, future_value, future_payed, future_disabled },
+        {
+          value,
+          payed,
+          disabled,
+          future_value,
+          future_payed,
+          future_disabled,
+          future_pay,
+          current_pay,
+          installments,
+        },
         index
       ) => {
+        const currentPay = future ? future_pay : current_pay;
+        const valid = installments ? currentPay <= installments : true;
+
         const hasFutureValue = future_value !== undefined;
         const hasFuturePayed = future_payed !== undefined;
         const hasFutureDisabled = future_disabled !== undefined;
@@ -139,7 +152,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
         const currentDisabled =
           future && hasFutureDisabled ? future_disabled : disabled;
 
-        if (currentValue && !currentPayed && !currentDisabled) {
+        if (currentValue && !currentPayed && !currentDisabled && valid) {
           index === 0 ? (total = currentValue) : (total += currentValue);
         }
       }
@@ -149,18 +162,31 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
 
   useEffect(() => {
     let total = 0;
-    debtorsDebts.forEach(({ value, disabled, future_disabled }, index) => {
-      const hasFutureDisabled = future_disabled !== undefined;
+    debtorsDebts.forEach(
+      (
+        {
+          value,
+          disabled,
+          future_disabled,
+          current_pay,
+          future_pay,
+          installments,
+        },
+        index
+      ) => {
+        const currentPay = future ? future_pay : current_pay;
+        const hasFutureDisabled = future_disabled !== undefined;
 
-      const currentDisabled =
-        future && hasFutureDisabled ? future_disabled : disabled;
+        const currentDisabled =
+          future && hasFutureDisabled ? future_disabled : disabled;
 
-      if (value && !currentDisabled) {
-        index === 0 ? (total = value) : (total += value);
+        if (value && !currentDisabled && currentPay <= installments) {
+          index === 0 ? (total = value) : (total += value);
+        }
       }
-    });
+    );
     dispatch(setTotalDebtorsDebts(total));
-  }, [debtorsDebts]);
+  }, [debtorsDebts, future]);
 
   useEffect(() => {
     const currentBalance = future ? pastBalance : actualBalance;
@@ -185,8 +211,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
   }, [totalDebts, willReceive, actualBalance, pastBalance]);
 
   useEffect(() => {
-    const value =
-      (willReceive - totalDebts + actualBalance);
+    const value = willReceive - totalDebts + actualBalance;
 
     if (!future) {
       setPastValue(value);
@@ -298,7 +323,9 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
               label={generalBalance[generalSituation].label}
               color={generalBalance[generalSituation].color}
               value={
-                (willReceive - totalDebts + (future ? pastBalance : actualBalance)) *
+                (willReceive -
+                  totalDebts +
+                  (future ? pastBalance : actualBalance)) *
                 (generalSituation === 'negative' ? -1 : 1)
               }
             />

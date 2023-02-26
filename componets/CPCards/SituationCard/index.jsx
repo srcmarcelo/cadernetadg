@@ -9,7 +9,7 @@ import {
 } from '../../../containers/Main/redux/reducer';
 import { Container, Description, Situation, Title } from './styles';
 
-export default function SituationCard() {
+export default function SituationCard({future}) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const willReceive = useSelector(getWillReceive);
@@ -36,7 +36,7 @@ export default function SituationCard() {
                 .replace('.', ',')}
             </strong>
           }{' '}
-          do seu saldo atual.
+          do seu saldo {future ? 'futuro' : 'atual'}.
         </div>
       ),
       color: '#368f42',
@@ -54,7 +54,7 @@ export default function SituationCard() {
                 .replace('.', ',')}
             </strong>
           }{' '}
-          do que tem guardado.
+          do que {future ? 'terá' : 'tem'} guardado.
         </div>
       ),
       color: 'orange',
