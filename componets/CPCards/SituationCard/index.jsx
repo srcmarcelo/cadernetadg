@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -9,11 +9,16 @@ import {
 } from '../../../containers/Main/redux/reducer';
 import { Container, Description, Situation, Title } from './styles';
 
-export default function SituationCard({future}) {
+export default function SituationCard({ future, pastValue }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const willReceive = useSelector(getWillReceive);
   const totalDebts = useSelector(getTotalDebts);
+
+  const actualBalance = useMemo(
+    () => (future ? pastValue : currentBalance),
+    [future, currentBalance, pastValue]
+  );
 
   const [paymentStatus, setPaymentStatus] = useState('balance');
 
@@ -49,7 +54,7 @@ export default function SituationCard({future}) {
           {
             <strong style={{ color: '#c83126' }}>
               R${' '}
-              {parseFloat(totalDebts - willReceive - currentBalance)
+              {parseFloat(totalDebts - willReceive - actualBalance)
                 .toFixed(2)
                 .replace('.', ',')}
             </strong>
@@ -74,18 +79,18 @@ export default function SituationCard({future}) {
   };
 
   useEffect(() => {
-    if (!willReceive && !totalDebts && !currentBalance) {
+    if (!willReceive && !totalDebts && !actualBalance) {
       setPaymentStatus('pending');
     } else if (willReceive >= totalDebts) {
       setPaymentStatus('receipts');
-    } else if (willReceive + currentBalance >= totalDebts) {
+    } else if (willReceive + actualBalance >= totalDebts) {
       setPaymentStatus('balance');
-    } else if (willReceive + currentBalance + keptBalance >= totalDebts) {
+    } else if (willReceive + actualBalance + keptBalance >= totalDebts) {
       setPaymentStatus('kept');
     } else {
       setPaymentStatus('noway');
     }
-  }, [currentBalance, willReceive, keptBalance, totalDebts]);
+  }, [actualBalance, willReceive, keptBalance, totalDebts]);
 
   return (
     <Container>

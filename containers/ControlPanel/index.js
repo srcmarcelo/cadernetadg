@@ -17,7 +17,7 @@ export default function ControlPanel({ future, pastValue }) {
       ) : (
         <Content>
           <BalanceCard future={future} pastValue={pastValue} />
-          <SituationCard future={future} />
+          <SituationCard future={future} pastValue={pastValue} />
           <AlertsCard />
         </Content>
       )}
