@@ -3,14 +3,16 @@ import {
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   FileDoneOutlined,
   PlusOutlined,
   SelectOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, InputNumber } from 'antd';
-import React, { useState } from 'react';
+import { Form, InputNumber, message, Modal } from 'antd';
+import { isEmpty } from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   dispatchDeleteExtraDebt,
@@ -49,7 +51,17 @@ export default function ExtraDebts({ future }) {
   const user = useUser();
 
   const extraDebts = useSelector(getExtraDebts);
-  const reversedExtraDebts = _.reverse(_.cloneDeep(extraDebts));
+
+  const filteredExtraDebts = useMemo(() => {
+    const newDebts = extraDebts.filter((debt) => {
+      const currentPay = future ? debt.future_pay : debt.current_pay;
+      return currentPay <= debt.installments;
+    });
+
+    return newDebts;
+  }, [extraDebts, future]);
+
+  const reversedExtraDebts = _.reverse(_.cloneDeep(filteredExtraDebts));
 
   const hasDebts = !_.isEmpty(extraDebts);
 
@@ -68,7 +80,7 @@ export default function ExtraDebts({ future }) {
       installments: 1,
       current_pay: future ? 0 : 1,
       future_pay: future ? 1 : 2,
-      future_disabled: !future,
+      future_disabled: false,
     };
     const newDebts = [...extraDebts, newDebt];
     dispatchEditExtraDebts(dispatch, newDebts, supabase, newDebts.length - 1);
@@ -116,7 +128,7 @@ export default function ExtraDebts({ future }) {
     setCurrentIdEditing(null);
   };
 
-  const handleIncreaseInstallment = async (id) => {
+  const handleIncreaseInstallment = async (id, pay, name) => {
     const index = extraDebts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(extraDebts);
 
@@ -125,6 +137,24 @@ export default function ExtraDebts({ future }) {
 
     await dispatchEditExtraDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
+
+    message.success(
+      `Parcela ${pay}/${newDebts[index].installments} de ${name.toUpperCase()} confirmada.`
+    );
+  };
+
+  const handleConfirmDeleteDebt = (id) => {
+    Modal.confirm({
+      title: 'Como esta foi a última parcela, o débito será deletado.',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
+      okText: 'OK',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await handleDeleteDebt(id);
+      },
+    });
   };
 
   const handleDeleteDebt = async (id) => {
@@ -296,8 +326,8 @@ export default function ExtraDebts({ future }) {
             disabled={currentIdEditing || disabled}
             onClick={() =>
               item.installments - currentPay < 1
-                ? handleDeleteDebt(item.id)
-                : handleIncreaseInstallment(item.id)
+                ? handleConfirmDeleteDebt(item.id)
+                : handleIncreaseInstallment(item.id, currentPay, item.name)
             }
           >
             <FileDoneOutlined />
@@ -327,14 +357,14 @@ export default function ExtraDebts({ future }) {
           <PlusOutlined />
         </AddButton>
       </Head>
-      {!hasDebts ? (
+      {isEmpty(filteredExtraDebts) ? (
         <Empty
           title='Nenhuma despesa extra cadastrada'
           message='Clique no botão de "+" para adicionar débito'
         />
       ) : (
         <>
-          <Total array={extraDebts} color='#c83126' future={future} />
+          <Total array={filteredExtraDebts} color='#c83126' future={future} />
           {reversedExtraDebts.map((item) => (
             <RenderItem key={item.id} item={item} />
           ))}

@@ -9,7 +9,7 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form } from 'antd';
+import { Form, message } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -117,13 +117,15 @@ export default function ExtraReceipts({ future }) {
     setCurrentIdEditing(null);
   };
 
-  const handleDeleteReceipt = async (id) => {
+  const handleDeleteReceipt = async (id, name) => {
     const index = allExtraReceipts.findIndex((item) => item.id === id);
     const newReceipts = _.cloneDeep(allExtraReceipts);
     newReceipts.splice(index, 1);
     dispatchDeleteExtraReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    name && message.success(`Pagamento de ${name.toUpperCase()} confirmado!`)
   };
 
   const RenderForm = ({ item }) => {
@@ -233,7 +235,7 @@ export default function ExtraReceipts({ future }) {
           <ConfirmButton
             color='#368f42'
             disabled={currentIdEditing}
-            onClick={() => handleDeleteReceipt(item.id)}
+            onClick={() => handleDeleteReceipt(item.id, item.name)}
           >
             <DollarOutlined />
           </ConfirmButton>

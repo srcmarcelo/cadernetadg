@@ -6,21 +6,18 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
-  RollbackOutlined,
   SelectOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, InputNumber, Modal } from 'antd';
-import React, { useState } from 'react';
-import CurrencyFormat from 'react-currency-format';
+import { Form, InputNumber, message, Modal } from 'antd';
+import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   dispatchDeleteDebt,
   dispatchDeleteDebtor,
   dispatchEditDebtors,
   dispatchEditDebts,
-  dispatchFetchDebts,
 } from '../../../containers/Income/redux';
 import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
 import { getMaxId } from '../../../utils/getMaxId';
@@ -66,6 +63,15 @@ export default function Debtors({ future }) {
   const hasDebtors = !_.isEmpty(debtors);
 
   const debts = useSelector(getDebts);
+
+  const filteredDebts = useMemo(() => {
+    const newDebts = debts.filter((debt) => {
+      const currentPay = future ? debt.future_pay : debt.current_pay;
+      return currentPay <= debt.installments;
+    });
+
+    return newDebts;
+  }, [debts, future])
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -115,7 +121,7 @@ export default function Debtors({ future }) {
       installments: 1,
       current_pay: future ? 0 : 1,
       future_pay: future ? 1 : 2,
-      future_disabled: !future,
+      future_disabled: false,
     };
     const newDebts = [...debts, newDebt];
     dispatchEditDebts(dispatch, newDebts, supabase, newDebts.length - 1);
@@ -163,15 +169,19 @@ export default function Debtors({ future }) {
     setCurrentIdEditing(null);
   };
 
-  const handleIncreaseInstallment = async (id) => {
+  const handleIncreaseInstallment = async (id, name, pay) => {
     const index = debts.findIndex((item) => item.id === id);
     const newDebts = _.cloneDeep(debts);
- 
+
     newDebts[index].current_pay = newDebts[index].current_pay + 1;
     newDebts[index].future_pay = newDebts[index].future_pay + 1;
 
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
+
+    message.success(
+      `Parcela ${pay}/${newDebts[index].installments} de ${name.toUpperCase()} confirmada.`
+    );
   };
 
   const handleDeleteDebt = async (id) => {
@@ -197,14 +207,28 @@ export default function Debtors({ future }) {
     });
   };
 
+  const handleConfirmDeleteDebt = (id) => {
+    Modal.confirm({
+      title: 'Como esta foi a última parcela, o débito será deletado.',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
+      okText: 'OK',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await handleDeleteDebt(id);
+      },
+    });
+  };
+
   const RenderForm = ({ debt }) => {
     const initialValues = { ...debt };
-    if(future) initialValues.current_pay = debt.future_value;
+    if (future) initialValues.current_pay = debt.future_pay;
 
     return (
       <FormContainer
         onFinish={(values) => handleEditDebt(values, debt.id)}
-        initialValues={{ ...debt }}
+        initialValues={initialValues}
         onFinishFailed={() => setErrorFinish(true)}
       >
         <ValueContainer editing={true}>
@@ -352,8 +376,8 @@ export default function Debtors({ future }) {
             disabled={currentIdEditing || disabled}
             onClick={() =>
               debt.installments - currentPay < 1
-                ? handleDeleteDebt(debt.id)
-                : handleIncreaseInstallment(debt.id)
+                ? handleConfirmDeleteDebt(debt.id)
+                : handleIncreaseInstallment(debt.id, debt.name, currentPay)
             }
           >
             <CarryOutOutlined />
@@ -416,7 +440,10 @@ export default function Debtors({ future }) {
   };
 
   const RenderDebtor = ({ debtor }) => {
-    const debtorDebts = debts.filter((debt) => debt.debtor_id === debtor.id);
+    const debtorDebts = debts.filter((debt) => {
+      const currentPay = future ? debt.future_pay : debt.current_pay;
+      return debt.debtor_id === debtor.id && currentPay <= debt.installments;
+    });
     const reversedDebtorsDebts = _.reverse(_.cloneDeep(debtorDebts));
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
@@ -509,7 +536,7 @@ export default function Debtors({ future }) {
         />
       ) : (
         <>
-          <Total array={debts} future={future} />
+          <Total array={filteredDebts} future={future} />
           {reversedDebtors.map((debtor) => (
             <RenderDebtor key={debtor.id} debtor={debtor} />
           ))}
