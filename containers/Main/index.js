@@ -13,6 +13,8 @@ import { syncData } from './redux';
 import { Container, Content } from './styles';
 import Profile from '../Profile';
 
+import ReactJoyride from 'react-joyride';
+
 export default function Main() {
   const dispatch = useDispatch();
 
@@ -27,9 +29,21 @@ export default function Main() {
     syncData(dispatch, supabase, user);
   }, []);
 
+  // const steps = [
+  //   {
+  //     target: '.my-first-step',
+  //     content: 'This is my awesome feature!',
+  //   },
+  //   {
+  //     target: '.my-other-step',
+  //     content: 'This another awesome feature!',
+  //   },
+  // ];
+
   return (
     <Container future={future}>
       <Content>
+        {/* <ReactJoyride steps={steps} run={true} /> */}
         <MainInfo
           dispatch={dispatch}
           future={future}
