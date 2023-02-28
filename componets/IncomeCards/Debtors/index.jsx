@@ -448,8 +448,10 @@ export default function Debtors({ future }) {
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
 
-    debtorDebts.forEach(({ value, disabled }, index) => {
-      if (value && !disabled) {
+    debtorDebts.forEach(({ value, disabled, future_disabled }, index) => {
+      const currentDisabled = future ? future_disabled : disabled;
+
+      if (value && !currentDisabled) {
         index === 0 ? (debtsValue = value) : (debtsValue += value);
       }
     });

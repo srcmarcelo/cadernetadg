@@ -100,10 +100,15 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
           future_value,
           future_received,
           future_disabled,
-          name,
+          current_pay,
+          future_pay,
+          installments,
         },
         index
       ) => {
+        const currentPay = future ? future_pay : current_pay;
+        const valid = installments ? currentPay <= installments : true;
+
         const hasFutureValue = future_value !== undefined;
         const hasFutureReceived = future_received !== undefined;
         const hasFutureDisabled = future_disabled !== undefined;
@@ -114,7 +119,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
         const currentDisabled =
           future && hasFutureDisabled ? future_disabled : disabled;
 
-        if (currentValue && !currentReceived && !currentDisabled) {
+        if (currentValue && !currentReceived && !currentDisabled && valid) {
           index === 0 ? (total = currentValue) : (total += currentValue);
         }
       }
