@@ -176,6 +176,12 @@ export default function Debtors({ future }) {
     newDebts[index].current_pay = newDebts[index].current_pay + 1;
     newDebts[index].future_pay = newDebts[index].future_pay + 1;
 
+    if (future) {
+      newDebts[index].future_disabled = true;
+    } else {
+      newDebts[index].disabled = true;
+    }
+
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
 
