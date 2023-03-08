@@ -303,8 +303,9 @@ export default function ExtraDebts({ future }) {
           </InstalmentsLabel>
           <div
             style={{
-              fontSize: '0.9rem',
+              fontSize: '0.8rem',
               color: disabled ? 'grey' : 'black',
+              textAlign: 'center',
             }}
           >
             {currentPay} de {item.installments}

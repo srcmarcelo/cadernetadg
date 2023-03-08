@@ -189,3 +189,12 @@ export const ConfirmButton = styled(Button)`
     color: white;
   }
 `;
+
+export const PopoverContentContainer = styled.div`
+  width: 100%;
+  text-align: center;
+  background-color: ${({color}) => color || 'grey'};
+  color: white;
+  padding: 5px 10px;
+  margin-bottom: 1px;
+`;
