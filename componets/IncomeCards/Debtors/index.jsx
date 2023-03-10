@@ -176,6 +176,12 @@ export default function Debtors({ future }) {
     newDebts[index].current_pay = newDebts[index].current_pay + 1;
     newDebts[index].future_pay = newDebts[index].future_pay + 1;
 
+    if (future) {
+      newDebts[index].future_disabled = true;
+    } else {
+      newDebts[index].disabled = true;
+    }
+
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
 
@@ -349,8 +355,9 @@ export default function Debtors({ future }) {
           </InstalmentsLabel>
           <div
             style={{
-              fontSize: '0.9rem',
+              fontSize: '0.8rem',
               color: disabled ? 'grey' : 'black',
+              textAlign: 'center',
             }}
           >
             {currentPay} de {debt.installments}
@@ -448,8 +455,10 @@ export default function Debtors({ future }) {
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
     let debtsValue = 0;
 
-    debtorDebts.forEach(({ value, disabled }, index) => {
-      if (value && !disabled) {
+    debtorDebts.forEach(({ value, disabled, future_disabled }, index) => {
+      const currentDisabled = future ? future_disabled : disabled;
+
+      if (value && !currentDisabled) {
         index === 0 ? (debtsValue = value) : (debtsValue += value);
       }
     });

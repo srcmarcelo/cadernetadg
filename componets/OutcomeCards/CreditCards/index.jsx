@@ -8,7 +8,7 @@ import {
   PlusOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal } from 'antd';
+import { Form, Modal, Popover } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -37,6 +37,7 @@ import {
   ConfirmButton,
   InputContainer,
   InputLabel,
+  PopoverContentContainer,
 } from '../FixedDebts/styles';
 
 export default function CreditCards({ future }) {
@@ -52,6 +53,7 @@ export default function CreditCards({ future }) {
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(null);
 
   const handleCreateCard = () => {
     const number = hasCards ? getMaxId(creditCards) + 1 : 1;
@@ -100,7 +102,7 @@ export default function CreditCards({ future }) {
     currentIdEditing && setCurrentIdEditing(null);
   };
 
-  const handleResetCard = async (id) => {
+  const handleResetCard = async (id, next) => {
     const index = creditCards.findIndex((item) => item.id === id);
     const newCards = _.cloneDeep(creditCards);
     let currentValue = 0;
@@ -109,11 +111,13 @@ export default function CreditCards({ future }) {
       newCards[index].future_value = 0;
       currentValue = creditCards[index].futureValue;
     } else {
-      newCards[index].value = newCards[index].future_value;
+      newCards[index].value = next ? newCards[index].future_value : 0;
       currentValue = creditCards[index].value;
     }
 
-    if (currentValue > 0)
+    setConfirmOpen(null);
+
+    if (currentValue > 0 || next)
       dispatchEditCreditCards(dispatch, newCards, supabase, index);
   };
 
@@ -133,7 +137,7 @@ export default function CreditCards({ future }) {
 
   const RenderForm = ({ item }) => {
     const initialValues = { ...item };
-    if(future) initialValues.value = item.future_value;
+    if (future) initialValues.value = item.future_value;
 
     return (
       <FormContainer
@@ -230,13 +234,35 @@ export default function CreditCards({ future }) {
           </ActionButton>
         </ButtonsContainer>
         <ButtonsContainer>
-          <ConfirmButton
-            disabled={currentIdEditing}
-            color={value == 0 ? 'grey' : '#368f42'}
-            onClick={() => handleResetCard(item.id)}
+          <Popover
+            content={
+              <div>
+                <PopoverContentContainer color='#368f42'>
+                  <a onClick={() => handleResetCard(item.id)}>Zerar</a>
+                </PopoverContentContainer>
+                {!future && (
+                  <PopoverContentContainer color='#8176fb'>
+                    <a onClick={() => handleResetCard(item.id, true)}>
+                      Próxima
+                    </a>
+                  </PopoverContentContainer>
+                )}
+              </div>
+            }
+            trigger='click'
+            open={confirmOpen === item.id}
+            onOpenChange={() =>
+              setConfirmOpen(confirmOpen === item.id ? null : item.id)
+            }
           >
-            <CarryOutOutlined />
-          </ConfirmButton>
+            <ConfirmButton
+              disabled={currentIdEditing}
+              color='#368f42'
+              // onClick={() => handleResetCard(item.id)}
+            >
+              <CarryOutOutlined />
+            </ConfirmButton>
+          </Popover>
         </ButtonsContainer>
       </ItemContent>
     );
