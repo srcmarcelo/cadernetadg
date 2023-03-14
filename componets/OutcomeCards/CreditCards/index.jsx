@@ -109,7 +109,7 @@ export default function CreditCards({ future }) {
 
     if (future) {
       newCards[index].future_value = 0;
-      currentValue = creditCards[index].futureValue;
+      currentValue = creditCards[index].future_value;
     } else {
       newCards[index].value = next ? newCards[index].future_value : 0;
       currentValue = creditCards[index].value;
