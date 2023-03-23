@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
-import dynamic from 'next/dynamic';
+import JoyRideNoSSR from 'react-joyride-next';
 
 import ProfileButton from '../../componets/ProfileButton';
 import MainInfo from '../../componets/MainInfo';
@@ -31,8 +31,8 @@ export default function Main() {
 
   const steps = [
     {
-      target: '.step-two',
-      content: 'Bem vindo ao Caderneta Digital!',
+      target: '.step-one',
+      content: 'Bem vindo ao Caderneta Digital! [teste]',
       disableBeacon: true,
     },
     {
@@ -133,11 +133,6 @@ export default function Main() {
     },
     11: () => setFuture(!future),
   };
-
-  const JoyRideNoSSR = dynamic(
-    () => import('react-joyride'),
-    { ssr: false }
-  )
 
   return (
     <Container className='step-one' future={future}>
