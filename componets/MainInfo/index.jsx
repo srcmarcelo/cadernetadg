@@ -290,7 +290,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
   };
 
   return (
-    <Container>
+    <Container className='step-two'>
       {syncing ? (
         <Skeleton active />
       ) : (

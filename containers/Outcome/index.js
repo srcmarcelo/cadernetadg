@@ -6,7 +6,7 @@ import { Container, Content } from './styles';
 
 export default function Outcome({ future }) {
   return (
-    <Container>
+    <Container className='outcome-screen'>
       <Content>
         <FixedDebts future={future} />
         <CreditCards future={future} />

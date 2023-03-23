@@ -23,27 +23,138 @@ export default function Main() {
 
   const [currentTab, setCurrentTab] = useState('panel');
   const [future, setFuture] = useState(false);
+  const [tour, setTour] = useState(false);
   const [pastValue, setPastValue] = useState(0);
 
   useEffect(() => {
     syncData(dispatch, supabase, user);
   }, []);
 
-  // const steps = [
-  //   {
-  //     target: '.my-first-step',
-  //     content: 'This is my awesome feature!',
-  //   },
-  //   {
-  //     target: '.my-other-step',
-  //     content: 'This another awesome feature!',
-  //   },
-  // ];
+  const steps = [
+    {
+      target: '.step-one',
+      content: 'Bem vindo ao Caderneta Digital!',
+      disableBeacon: true,
+    },
+    {
+      target: '.step-two',
+      content: (
+        <p>
+          Aqui ficará o resumo do seu{' '}
+          <strong style={{ color: '#232C68' }}>saldo atual</strong>, seus{' '}
+          <strong style={{ color: '#368f42' }}>recebimentos</strong> e suas{' '}
+          <strong style={{ color: '#C83126' }}>dívidas</strong>.
+        </p>
+      ),
+      disableBeacon: true,
+    },
+    {
+      target: '.navigation-bar',
+      content: 'Aqui é onde você pode navegar entre as telas principais.',
+      disableBeacon: true,
+    },
+    {
+      target: '.panel-screen',
+      content:
+        'Esta é a tela do painel de controle, onde poderá modificar o saldo atual e saldo guardado, além de ver as análises e alertas.',
+      disableBeacon: true,
+    },
+    {
+      target: '.income-button',
+      content: (
+        <p>
+          Clicando aqui você navega para navegar para a tela de{' '}
+          <strong style={{ color: '#368f42' }}>ganhos</strong>.
+        </p>
+      ),
+      disableBeacon: true,
+      placement: 'top',
+    },
+    {
+      target: '.income-screen',
+      content:
+        'Nessa tela você pode registrar, por exemplo, seu salário nos seus recebimentos fixos, coisas que pessoas estão te devendo e recebimentos extras.',
+      disableBeacon: true,
+    },
+    {
+      target: '.outcome-button',
+      content: (
+        <p>
+          Clicando aqui você navega para a tela de{' '}
+          <strong style={{ color: '#C83126' }}>dívidas</strong>.
+        </p>
+      ),
+      disableBeacon: true,
+      placement: 'top',
+    },
+    {
+      target: '.outcome-screen',
+      content:
+        'Nessa tela você pode registrar, por exemplo, suas despesas fixas, as faturas dos seus cartões e despesas eventuais do mês.',
+      disableBeacon: true,
+    },
+    {
+      target: '.profile-button',
+      content: 'Ao clicar neste botão, você acessas as informações do perfil.',
+      disableBeacon: true,
+    },
+    {
+      target: '.profile-screen',
+      content:
+        'Aqui você pode mudar o seu nome, sair da conta ou apagar os seus dados.',
+      disableBeacon: true,
+    },
+    {
+      target: '.swith-month-button',
+      content: (
+        <p>
+          Neste botão você pode trocar entre o <strong>mês atual</strong> e o{' '}
+          <strong>próximo mês</strong> para ter uma noção de como estarão as
+          coisas no futuro.
+        </p>
+      ),
+      disableBeacon: true,
+    },
+    {
+      target: '.step-one',
+      content: 'Ao trocar de mês, tudo irá considerar essa mudança!',
+      disableBeacon: true,
+      placement: 'center',
+    },
+  ];
+
+  const callbacks = {
+    2: () => setCurrentTab('panel'),
+    4: () => setCurrentTab('income'),
+    6: () => setCurrentTab('outcome'),
+    8: () => setCurrentTab('profile'),
+    10: () => {
+      setFuture(!future);
+      setCurrentTab('panel');
+    },
+    11: () => setFuture(!future),
+  };
 
   return (
-    <Container future={future}>
+    <Container className='step-one' future={future}>
+      <ReactJoyride
+        steps={steps}
+        run={tour}
+        continuous={true}
+        showSkipButton={true}
+        locale={{
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Próximo',
+          open: 'Abrir legenda',
+          skip: 'Pular guia',
+        }}
+        callback={({ index }) => {
+          if (callbacks[index]) callbacks[index]();
+        }}
+      />
       <Content>
-        {/* <ReactJoyride steps={steps} run={true} /> */}
         <MainInfo
           dispatch={dispatch}
           future={future}
@@ -52,6 +163,7 @@ export default function Main() {
         <ProfileButton
           onClickProfile={setCurrentTab}
           onClickMonth={setFuture}
+          activeTour={() => setTour(!tour)}
           future={future}
           currentTab={currentTab}
         />

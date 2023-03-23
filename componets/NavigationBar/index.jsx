@@ -20,13 +20,14 @@ export default function NavigationBar({ onClick, currentTab }) {
       color={colors[label]}
       onClick={() => onClick(label)}
       selected={currentTab === label}
+      className={`${label}-button`}
     >
       {names[label]}
     </NavigationButton>
   );
 
   return (
-    <Container color={colors[currentTab]}>
+    <Container color={colors[currentTab]} className='navigation-bar'>
       <RenderButton label='income' />
       <RenderButton label='panel' />
       <RenderButton label='outcome' />

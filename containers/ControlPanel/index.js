@@ -11,7 +11,7 @@ export default function ControlPanel({ future, pastValue }) {
   const syncing = useSelector(getSyncing);
 
   return (
-    <Container>
+    <Container className='panel-screen'>
       {syncing ? (
         <Spin size='large' style={{marginTop: '50%'}} />
       ) : (

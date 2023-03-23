@@ -79,7 +79,7 @@ export default function Profile({ dispatch }) {
 
   return (
     <Container>
-      <Content>
+      <Content className='profile-screen'>
         <NameContainer>
           {editing ? (
             <RenderFormName

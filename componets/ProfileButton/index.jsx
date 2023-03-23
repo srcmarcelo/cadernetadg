@@ -2,6 +2,7 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   LoadingOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Spin } from 'antd';
 import React from 'react';
@@ -26,6 +27,7 @@ import {
 } from '../../containers/Outcome/redux/reducer';
 import {
   Container,
+  Help,
   Left,
   LinkText,
   Profile,
@@ -36,6 +38,7 @@ import {
 export default function ProfileButton({
   onClickProfile,
   onClickMonth,
+  activeTour,
   future,
   currentTab,
 }) {
@@ -86,33 +89,33 @@ export default function ProfileButton({
     loading && (
       <Spin
         indicator={
-          <LoadingOutlined
-            style={{ fontSize: '20px', color: 'white', margin: '0px 5px' }}
-            spin
-          />
+          <LoadingOutlined style={{ fontSize: '20px', color: 'white' }} spin />
         }
       />
     );
 
   return (
     <Container>
-      <Profile selected={currentTab === 'profile'}>
+      <Profile selected={currentTab === 'profile'} className='profile-button'>
         <LinkText
           onClick={() => onClickProfile('profile')}
           selected={currentTab === 'profile'}
         >
-          <RenderSpin />
-          {loading ? 'Atualizando' : 'Perfil'}
-          <RenderSpin />
+          Perfil
         </LinkText>
       </Profile>
-      <SwitchMonth future={future}>
+      <Help onClick={activeTour}>
+        {loading ? (
+          <RenderSpin />
+        ) : (
+          <QuestionCircleOutlined style={{ fontSize: '1.2rem' }} />
+        )}
+      </Help>
+      <SwitchMonth future={future} className='swith-month-button'>
         <LinkText onClick={() => onClickMonth(!future)}>
-          <RenderSpin />
-          {!loading && <Left future={future} />}
-          {loading ? 'Atualizando' : future ? 'Mês atual' : 'Próximo mês'}
-          {!loading && <Right future={future} />}
-          <RenderSpin />
+          <Left future={future} />
+          {future ? 'Mês atual' : 'Próximo mês'}
+          <Right future={future} />
         </LinkText>
       </SwitchMonth>
     </Container>
