@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
+import dynamic from 'next/dynamic';
 
 import ProfileButton from '../../componets/ProfileButton';
 import MainInfo from '../../componets/MainInfo';
@@ -12,8 +13,6 @@ import Outcome from '../Outcome';
 import { syncData } from './redux';
 import { Container, Content } from './styles';
 import Profile from '../Profile';
-
-import ReactJoyride from 'react-joyride';
 
 export default function Main() {
   const dispatch = useDispatch();
@@ -135,9 +134,14 @@ export default function Main() {
     11: () => setFuture(!future),
   };
 
+  const JoyRideNoSSR = dynamic(
+    () => import('react-joyride'),
+    { ssr: false }
+  )
+
   return (
     <Container className='step-one' future={future}>
-      <ReactJoyride
+      <JoyRideNoSSR
         steps={steps}
         run={tour}
         continuous={true}
