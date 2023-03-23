@@ -104,11 +104,13 @@ export default function ProfileButton({
           Perfil
         </LinkText>
       </Profile>
-      <Help onClick={activeTour}>
+      <Help>
         {loading ? (
           <RenderSpin />
         ) : (
-          <QuestionCircleOutlined style={{ fontSize: '1.2rem' }} />
+          <LinkText onClick={activeTour}>
+            <QuestionCircleOutlined style={{ fontSize: '1.2rem' }} />
+          </LinkText>
         )}
       </Help>
       <SwitchMonth future={future} className='swith-month-button'>
