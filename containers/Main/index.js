@@ -31,7 +31,7 @@ export default function Main() {
 
   const steps = [
     {
-      target: '.step-one',
+      target: '.step-two',
       content: 'Bem vindo ao Caderneta Digital!',
       disableBeacon: true,
     },
