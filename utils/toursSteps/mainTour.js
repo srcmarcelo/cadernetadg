@@ -3,6 +3,7 @@ export const mainTourSteps = [
       target: '.app',
       content: 'Bem vindo ao Caderneta Digital!',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.main-info',
@@ -15,17 +16,20 @@ export const mainTourSteps = [
         </p>
       ),
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.navigation-bar',
       content: 'Aqui é onde você pode navegar entre as telas principais.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.panel-screen',
       content:
         'Esta é a tela do painel de controle, onde poderá modificar o saldo atual e saldo guardado, além de ver as análises e alertas.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.income-button',
@@ -36,6 +40,7 @@ export const mainTourSteps = [
         </p>
       ),
       disableBeacon: true,
+      disableScrolling: true,
       placement: 'top',
     },
     {
@@ -43,6 +48,7 @@ export const mainTourSteps = [
       content:
         'Nessa tela você pode registrar, por exemplo, seu salário nos seus recebimentos fixos, coisas que pessoas estão te devendo e recebimentos extras.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.outcome-button',
@@ -53,6 +59,7 @@ export const mainTourSteps = [
         </p>
       ),
       disableBeacon: true,
+      disableScrolling: true,
       placement: 'top',
     },
     {
@@ -60,17 +67,20 @@ export const mainTourSteps = [
       content:
         'Nessa tela você pode registrar, por exemplo, suas despesas fixas, as faturas dos seus cartões e despesas eventuais do mês.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.profile-button',
       content: 'Ao clicar neste botão, você acessas as informações do perfil.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.profile-screen',
       content:
         'Aqui você pode mudar o seu nome, sair da conta ou apagar os seus dados.',
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.swith-month-button',
@@ -82,11 +92,13 @@ export const mainTourSteps = [
         </p>
       ),
       disableBeacon: true,
+      disableScrolling: true,
     },
     {
       target: '.app',
       content: 'Ao trocar de mês, tudo irá considerar essa mudança!',
       disableBeacon: true,
+      disableScrolling: true,
       placement: 'center',
     },
   ];
