@@ -60,6 +60,7 @@ export default function Main() {
         callback={({ index, action }) => {
           if(action === 'reset') setTour(false);
           if (callbacks[index]) callbacks[index]();
+          window.scrollTo(0, 0);
         }}
       />
       <Content>
