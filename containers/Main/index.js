@@ -49,6 +49,7 @@ export default function Main() {
         run={tour}
         continuous={true}
         showSkipButton={true}
+        disableScrolling={true}
         locale={{
           back: 'Voltar',
           close: 'Fechar',
@@ -60,7 +61,6 @@ export default function Main() {
         callback={({ index, action }) => {
           if(action === 'reset') setTour(false);
           if (callbacks[index]) callbacks[index]();
-          window.scrollTo(0, 0);
         }}
       />
       <Content>
