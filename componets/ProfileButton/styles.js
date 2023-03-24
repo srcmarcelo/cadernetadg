@@ -15,7 +15,7 @@ export const Profile = styled.div`
   align-items: center;
   justify-content: center;
   background-color: ${({ selected }) => (selected ? '#f0f0f0' : '#8176fb')};
-  width: 49%;
+  width: 43%;
   min-height: 4vh;
   border-radius: 10px;
   border-width: 1px;
@@ -24,13 +24,24 @@ export const Profile = styled.div`
   transition: background-color 1s;
 `;
 
+export const Help = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #8176fb;
+  color: #fff;
+  width: 12%;
+  min-height: 4vh;
+  border-radius: 10px;
+`;
+
 export const SwitchMonth = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: ${({ future }) => (future ? 'blue' : '#8176fb')};
   transition: background-color 1s;
-  width: 49%;
+  width: 43%;
   min-height: 4vh;
   border-radius: 10px;
 `;

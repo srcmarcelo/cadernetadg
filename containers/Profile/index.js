@@ -78,7 +78,7 @@ export default function Profile({ dispatch }) {
   );
 
   return (
-    <Container>
+    <Container className='profile-screen'>
       <Content>
         <NameContainer>
           {editing ? (
