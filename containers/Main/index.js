@@ -49,6 +49,7 @@ export default function Main() {
         run={tour}
         continuous={true}
         showSkipButton={true}
+        disableScrolling={true}
         locale={{
           back: 'Voltar',
           close: 'Fechar',
