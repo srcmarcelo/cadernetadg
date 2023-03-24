@@ -31,7 +31,7 @@ export const mainTourSteps = [
       target: '.income-button',
       content: (
         <p>
-          Clicando aqui você navega para navegar para a tela de{' '}
+          Clicando aqui você navega para a tela de{' '}
           <strong style={{ color: '#368f42' }}>ganhos</strong>.
         </p>
       ),
@@ -41,7 +41,7 @@ export const mainTourSteps = [
     {
       target: '.income-screen',
       content:
-        'Nessa tela você pode registrar, por exemplo, seu salário nos seus recebimentos fixos, coisas que pessoas estão te devendo e recebimentos extras.',
+        'Nessa tela você pode registrar seus recebimentos fixos (ex: salário), coisas que pessoas estão te devendo e recebimentos extras.',
       disableBeacon: true,
     },
     {
