@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
-import JoyRideNoSSR from 'react-joyride-next';
+import JoyRide from 'react-joyride';
 
 import ProfileButton from '../../componets/ProfileButton';
 import MainInfo from '../../componets/MainInfo';
@@ -13,6 +13,7 @@ import Outcome from '../Outcome';
 import { syncData } from './redux';
 import { Container, Content } from './styles';
 import Profile from '../Profile';
+import { mainTourSteps } from '../../utils/toursSteps/mainTour';
 
 export default function Main() {
   const dispatch = useDispatch();
@@ -29,99 +30,6 @@ export default function Main() {
     syncData(dispatch, supabase, user);
   }, []);
 
-  const steps = [
-    {
-      target: '.step-one',
-      content: 'Bem vindo ao Caderneta Digital! [teste]',
-      disableBeacon: true,
-    },
-    {
-      target: '.step-two',
-      content: (
-        <p>
-          Aqui ficará o resumo do seu{' '}
-          <strong style={{ color: '#232C68' }}>saldo atual</strong>, seus{' '}
-          <strong style={{ color: '#368f42' }}>recebimentos</strong> e suas{' '}
-          <strong style={{ color: '#C83126' }}>dívidas</strong>.
-        </p>
-      ),
-      disableBeacon: true,
-    },
-    {
-      target: '.navigation-bar',
-      content: 'Aqui é onde você pode navegar entre as telas principais.',
-      disableBeacon: true,
-    },
-    {
-      target: '.panel-screen',
-      content:
-        'Esta é a tela do painel de controle, onde poderá modificar o saldo atual e saldo guardado, além de ver as análises e alertas.',
-      disableBeacon: true,
-    },
-    {
-      target: '.income-button',
-      content: (
-        <p>
-          Clicando aqui você navega para navegar para a tela de{' '}
-          <strong style={{ color: '#368f42' }}>ganhos</strong>.
-        </p>
-      ),
-      disableBeacon: true,
-      placement: 'top',
-    },
-    {
-      target: '.income-screen',
-      content:
-        'Nessa tela você pode registrar, por exemplo, seu salário nos seus recebimentos fixos, coisas que pessoas estão te devendo e recebimentos extras.',
-      disableBeacon: true,
-    },
-    {
-      target: '.outcome-button',
-      content: (
-        <p>
-          Clicando aqui você navega para a tela de{' '}
-          <strong style={{ color: '#C83126' }}>dívidas</strong>.
-        </p>
-      ),
-      disableBeacon: true,
-      placement: 'top',
-    },
-    {
-      target: '.outcome-screen',
-      content:
-        'Nessa tela você pode registrar, por exemplo, suas despesas fixas, as faturas dos seus cartões e despesas eventuais do mês.',
-      disableBeacon: true,
-    },
-    {
-      target: '.profile-button',
-      content: 'Ao clicar neste botão, você acessas as informações do perfil.',
-      disableBeacon: true,
-    },
-    {
-      target: '.profile-screen',
-      content:
-        'Aqui você pode mudar o seu nome, sair da conta ou apagar os seus dados.',
-      disableBeacon: true,
-    },
-    {
-      target: '.swith-month-button',
-      content: (
-        <p>
-          Neste botão você pode trocar entre o <strong>mês atual</strong> e o{' '}
-          <strong>próximo mês</strong> para ter uma noção de como estarão as
-          coisas no futuro.
-        </p>
-      ),
-      disableBeacon: true,
-    },
-    {
-      target: '.step-one',
-      content: 'Ao trocar de mês, tudo irá considerar essa mudança!',
-      disableBeacon: true,
-      placement: 'center',
-    },
-  ];
-
   const callbacks = {
     2: () => setCurrentTab('panel'),
     4: () => setCurrentTab('income'),
@@ -135,9 +43,9 @@ export default function Main() {
   };
 
   return (
-    <Container className='step-one' future={future}>
-      <JoyRideNoSSR
-        steps={steps}
+    <Container className='app' future={future}>
+      <JoyRide
+        steps={mainTourSteps}
         run={tour}
         continuous={true}
         showSkipButton={true}
@@ -149,7 +57,8 @@ export default function Main() {
           open: 'Abrir legenda',
           skip: 'Pular guia',
         }}
-        callback={({ index }) => {
+        callback={({ index, action }) => {
+          if(action === 'reset') setTour(false);
           if (callbacks[index]) callbacks[index]();
         }}
       />

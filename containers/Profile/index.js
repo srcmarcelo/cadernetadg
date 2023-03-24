@@ -78,8 +78,8 @@ export default function Profile({ dispatch }) {
   );
 
   return (
-    <Container>
-      <Content className='profile-screen'>
+    <Container className='profile-screen'>
+      <Content>
         <NameContainer>
           {editing ? (
             <RenderFormName

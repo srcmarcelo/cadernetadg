@@ -27,7 +27,7 @@ export default function NavigationBar({ onClick, currentTab }) {
   );
 
   return (
-    <Container color={colors[currentTab]} className='navigation-bar'>
+    <Container className='navigation-bar' color={colors[currentTab]}>
       <RenderButton label='income' />
       <RenderButton label='panel' />
       <RenderButton label='outcome' />

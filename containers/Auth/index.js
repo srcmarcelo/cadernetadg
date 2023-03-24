@@ -499,17 +499,35 @@ export default function Auth() {
     );
 
   return (
-    <Container>
+    <Container
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        paddingTop: '10px',
+      }}
+    >
       <Image
         src='/logo.png'
         width={125}
         height={74}
         alt='Logo do Caderneta Digital'
       />
-      <h1 style={{ marginTop: '10px', marginBottom: 0, color: '#232C68' }}>
+      <h1
+        style={{
+          marginTop: '10px',
+          marginBottom: 0,
+          color: '#232C68',
+          textAlign: 'center',
+        }}
+      >
         Caderneta Digital
       </h1>
-      <p style={{ marginBottom: '20px', color: '#232C68' }}>
+      <p
+        style={{ marginBottom: '20px', color: '#232C68', textAlign: 'center' }}
+      >
         Controle seu dinheiro!
       </p>
       {['signup', 'signin'].includes(mode) && <RenderGoogleButton />}

@@ -30,7 +30,7 @@ export const Help = styled.div`
   justify-content: center;
   background-color: #8176fb;
   color: #fff;
-  width: 11%;
+  width: 12%;
   min-height: 4vh;
   border-radius: 10px;
 `;
