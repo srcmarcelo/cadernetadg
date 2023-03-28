@@ -1,3 +1,4 @@
+import { Spin } from 'antd';
 import React, { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -42,7 +43,7 @@ export default function SituationCard({ future, pastValue, setTour }) {
   const loadingExtraDebts = useSelector(getLoadingExtraDebts);
   const loadingCreditCards = useSelector(getLoadingCreditCards);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadings = [
@@ -138,29 +139,32 @@ export default function SituationCard({ future, pastValue, setTour }) {
   useEffect(() => {
     if (!willReceive && !totalDebts && !actualBalance) {
       setPaymentStatus('pending');
-      !loading && setTour(true);
     } else if (willReceive >= totalDebts) {
       setPaymentStatus('receipts');
-      setTour(false);
     } else if (willReceive + actualBalance >= totalDebts) {
       setPaymentStatus('balance');
-      setTour(false);
     } else if (willReceive + actualBalance + keptBalance >= totalDebts) {
       setPaymentStatus('kept');
-      setTour(false);
     } else {
       setPaymentStatus('noway');
-      setTour(false);
     }
-  }, [actualBalance, willReceive, keptBalance, totalDebts, setTour]);
+
+    if (!loading) setTour(!willReceive && !totalDebts && !actualBalance);
+  }, [actualBalance, willReceive, keptBalance, totalDebts, setTour, loading]);
 
   return (
     <Container>
-      <Title color={situations[paymentStatus].color}>SITUAÇÃO</Title>
-      <Description>{situations[paymentStatus].description}</Description>
-      <Situation color={situations[paymentStatus].color}>
-        {situations[paymentStatus].title}
-      </Situation>
+      {loading ? (
+        <Spin size='large' style={{ marginTop: '50%' }} />
+      ) : (
+        <>
+          <Title color={situations[paymentStatus].color}>SITUAÇÃO</Title>
+          <Description>{situations[paymentStatus].description}</Description>
+          <Situation color={situations[paymentStatus].color}>
+            {situations[paymentStatus].title}
+          </Situation>
+        </>
+      )}
     </Container>
   );
 }
