@@ -2,18 +2,75 @@ import React, { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  getLoadingDebtors,
+  getLoadingDebts,
+  getLoadingExtraReceipts,
+  getLoadingFixedReceipts,
+} from '../../../containers/Income/redux/reducer';
+import {
   getCurrentBalance,
   getKeptBalance,
+  getLoadingCurrentBalance,
+  getLoadingKeptBalance,
+  getLoadingUserInfo,
   getTotalDebts,
   getWillReceive,
 } from '../../../containers/Main/redux/reducer';
+import {
+  getLoadingCreditCards,
+  getLoadingExtraDebts,
+  getLoadingFixedDebts,
+} from '../../../containers/Outcome/redux/reducer';
 import { Container, Description, Situation, Title } from './styles';
 
-export default function SituationCard({ future, pastValue }) {
+export default function SituationCard({ future, pastValue, setTour }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const willReceive = useSelector(getWillReceive);
   const totalDebts = useSelector(getTotalDebts);
+
+  const loadingFixedReceipts = useSelector(getLoadingFixedReceipts);
+  const loadingDebtors = useSelector(getLoadingDebtors);
+  const loadingDebts = useSelector(getLoadingDebts);
+  const loadingExtraReceipts = useSelector(getLoadingExtraReceipts);
+
+  const loadingCurrentBalance = useSelector(getLoadingCurrentBalance);
+  const loadingKeptBalance = useSelector(getLoadingKeptBalance);
+  const loadingUserInfo = useSelector(getLoadingUserInfo);
+
+  const loadingFixedDebts = useSelector(getLoadingFixedDebts);
+  const loadingExtraDebts = useSelector(getLoadingExtraDebts);
+  const loadingCreditCards = useSelector(getLoadingCreditCards);
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadings = [
+      loadingFixedReceipts,
+      loadingDebtors,
+      loadingDebts,
+      loadingExtraReceipts,
+      loadingCurrentBalance,
+      loadingKeptBalance,
+      loadingUserInfo,
+      loadingFixedDebts,
+      loadingExtraDebts,
+      loadingCreditCards,
+    ];
+
+    setLoading(loadings.includes(true));
+  }, [
+    loadingFixedReceipts,
+    loadingDebtors,
+    loadingDebts,
+    loadingExtraReceipts,
+    loadingCurrentBalance,
+    loadingKeptBalance,
+    loadingUserInfo,
+    loadingFixedDebts,
+    loadingExtraDebts,
+    loadingCreditCards,
+  ]);
 
   const actualBalance = useMemo(
     () => (future ? pastValue : currentBalance),
@@ -81,16 +138,21 @@ export default function SituationCard({ future, pastValue }) {
   useEffect(() => {
     if (!willReceive && !totalDebts && !actualBalance) {
       setPaymentStatus('pending');
+      !loading && setTour(true);
     } else if (willReceive >= totalDebts) {
       setPaymentStatus('receipts');
+      setTour(false);
     } else if (willReceive + actualBalance >= totalDebts) {
       setPaymentStatus('balance');
+      setTour(false);
     } else if (willReceive + actualBalance + keptBalance >= totalDebts) {
       setPaymentStatus('kept');
+      setTour(false);
     } else {
       setPaymentStatus('noway');
+      setTour(false);
     }
-  }, [actualBalance, willReceive, keptBalance, totalDebts]);
+  }, [actualBalance, willReceive, keptBalance, totalDebts, setTour]);
 
   return (
     <Container>
