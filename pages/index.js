@@ -14,6 +14,7 @@ const Home = () => {
     <div className={styles.container}>
       <Head>
         <title>Caderneta Digital</title>
+        <meta name="google-site-verification" content="7fJr2bqqdt9bMxzgx26aMJ7LUGpLLc0FG-0b4tpin_Y" />
         <meta name='description' content='Controle seu dinheiro!' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
