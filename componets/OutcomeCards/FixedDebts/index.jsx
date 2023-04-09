@@ -38,7 +38,10 @@ import {
   ConfirmButton,
   InputContainer,
   InputLabel,
+  Buttons,
 } from './styles';
+import CardTourButton from '../../CardTourButton';
+import AddItem from '../../AddItem';
 
 export default function FixedDebts({ future }) {
   const dispatch = useDispatch();
@@ -251,15 +254,20 @@ export default function FixedDebts({ future }) {
   return (
     <Container>
       <Head>
-        <Label>Despesas Fixas</Label>
-        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Label>Despesas fixas</Label>
+        <Buttons>
+          <CardTourButton />
+          <AddItem
+            onClick={handleCreateDebt}
+            disabled={currentIdEditing || !hasDebts}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {!hasDebts ? (
         <Empty
           title='Nenhuma despesa fixa cadastrada'
-          message='Clique no botão de "+" para adicionar débito'
+          onClick={handleCreateDebt}
         />
       ) : (
         <>

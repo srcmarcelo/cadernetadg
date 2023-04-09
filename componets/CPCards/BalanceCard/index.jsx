@@ -9,11 +9,12 @@ import {
   getCurrentBalance,
   getKeptBalance,
 } from '../../../containers/Main/redux/reducer';
-import { Container, ValueContainer, Title, Value } from './styles';
+import { Container, ValueContainer, Title, Value, Header } from './styles';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useCallback } from 'react';
 import { debounce } from 'lodash';
 import RenderValue from '../../RenderValue';
+import CardTourButton from '../../CardTourButton';
 
 export default function BalanceCard({ future, pastValue }) {
   const currentBalance = useSelector(getCurrentBalance);
@@ -54,7 +55,10 @@ export default function BalanceCard({ future, pastValue }) {
   return (
     <Container>
       <ValueContainer>
-        <Title>{future ? 'Saldo futuro:' : 'Saldo atual:'}</Title>
+        <Header>
+          <Title>{future ? 'Saldo futuro:' : 'Saldo atual:'}</Title>
+          <CardTourButton />
+        </Header>
         {future ? (
           <RenderValue
             value={pastValue > 0 ? pastValue : 0}

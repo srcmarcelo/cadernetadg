@@ -9,7 +9,6 @@ import {
   Container,
   Head,
   Label,
-  AddButton,
   ItemContainer,
   ValueContainer,
   Title,
@@ -23,6 +22,7 @@ import {
   ConfirmButton,
   InputContainer,
   InputLabel,
+  Buttons,
 } from './styles';
 
 import { getFixedReceipts } from '../../../containers/Income/redux/reducer';
@@ -38,12 +38,16 @@ import {
   DollarOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
+  PlusCircleOutlined,
   PlusOutlined,
   RollbackOutlined,
 } from '@ant-design/icons';
 import { getMaxId } from '../../../utils/getMaxId';
 import RenderValue from '../../RenderValue';
 import Total from '../../Total';
+import CardTourButton from '../../CardTourButton';
+import AddButton from '../../AddItem';
+import AddItem from '../../AddItem';
 
 export default function FixedReceipts({ future }) {
   const dispatch = useDispatch();
@@ -259,15 +263,20 @@ export default function FixedReceipts({ future }) {
   return (
     <Container>
       <Head>
-        <Label>Recebimentos Fixos</Label>
-        <AddButton onClick={handleCreateReceipt} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Label>Fixos</Label>
+        <Buttons>
+          <CardTourButton />
+          <AddItem
+            onClick={handleCreateReceipt}
+            disabled={currentIdEditing || !hasReceipts}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {!hasReceipts ? (
         <Empty
           title='Nenhum recebimento fixo cadastrado'
-          message='Clique no botão de "+" para adicionar recebimento'
+          onClick={handleCreateReceipt}
         />
       ) : (
         <>

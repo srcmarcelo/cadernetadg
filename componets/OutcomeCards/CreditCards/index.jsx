@@ -38,7 +38,10 @@ import {
   InputContainer,
   InputLabel,
   PopoverContentContainer,
+  Buttons,
 } from '../FixedDebts/styles';
+import CardTourButton from '../../CardTourButton';
+import AddItem from '../../AddItem';
 
 export default function CreditCards({ future }) {
   const dispatch = useDispatch();
@@ -284,14 +287,19 @@ export default function CreditCards({ future }) {
     <Container>
       <Head>
         <Label>Cartões de crédito</Label>
-        <AddButton onClick={handleCreateCard} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Buttons>
+          <CardTourButton />
+          <AddItem
+            onClick={handleCreateCard}
+            disabled={currentIdEditing || !hasCards}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {!hasCards ? (
         <Empty
           title='Nenhum cartão de crédito cadastrado'
-          message='Clique no botão de "+" para adicionar fatura'
+          onClick={handleCreateCard}
         />
       ) : (
         <>

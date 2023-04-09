@@ -77,7 +77,7 @@ export default function Main() {
           currentTab={currentTab}
         />
         {currentTab === 'panel' && (
-          <ControlPanel future={future} pastValue={pastValue} />
+          <ControlPanel future={future} pastValue={pastValue} setTour={setTour} />
         )}
         {currentTab === 'income' && <Income future={future} />}
         {currentTab === 'outcome' && <Outcome future={future} />}

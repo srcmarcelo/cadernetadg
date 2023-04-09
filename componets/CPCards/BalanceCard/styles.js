@@ -19,6 +19,12 @@ export const ValueContainer = styled.div`
   justify-content: center;
 `;
 
+export const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
 export const Title = styled.h1`
   font-size: ${(props) => props.size || '20px'};
   color: black;

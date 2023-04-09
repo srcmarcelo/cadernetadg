@@ -50,7 +50,10 @@ import {
   InstallmentsContainer,
   InstalmentsLabel,
   TitleInputContainer,
+  Buttons,
 } from './styles';
+import CardTourButton from '../../CardTourButton';
+import AddItem from '../../AddItem';
 
 export default function Debtors({ future }) {
   const dispatch = useDispatch();
@@ -71,7 +74,7 @@ export default function Debtors({ future }) {
     });
 
     return newDebts;
-  }, [debts, future])
+  }, [debts, future]);
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -186,7 +189,9 @@ export default function Debtors({ future }) {
     setCurrentIdEditing(null);
 
     message.success(
-      `Parcela ${pay}/${newDebts[index].installments} de ${name.toUpperCase()} confirmada.`
+      `Parcela ${pay}/${
+        newDebts[index].installments
+      } de ${name.toUpperCase()} confirmada.`
     );
   };
 
@@ -483,7 +488,7 @@ export default function Debtors({ future }) {
               <DebtorValueContainer>
                 <RenderValue value={debtsValue} />
               </DebtorValueContainer>
-              <DebtorButtonsContainer>
+              <DebtorButtonsContainer justifyEnd={currentIdEditing || !hasDebtorDebts}>
                 <ActionButton
                   color='red'
                   disabled={currentIdEditing}
@@ -493,15 +498,15 @@ export default function Debtors({ future }) {
                 >
                   <DeleteOutlined />
                 </ActionButton>
-                <ActionButton
-                  color='blue'
-                  disabled={currentIdEditing}
+                <AddItem
+                  style={{ backgroundColor: '#8176fb' }}
+                  disabled={currentIdEditing || !hasDebtorDebts}
                   onClick={() =>
                     handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)
                   }
                 >
                   <PlusOutlined />
-                </ActionButton>
+                </AddItem>
               </DebtorButtonsContainer>
             </>
           )}
@@ -515,13 +520,15 @@ export default function Debtors({ future }) {
             <div>
               <h4 style={{ textAlign: 'center', fontWeight: 'normal' }}>
                 Digite o {<strong>nome</strong>} da pessoa que te deve algo este
-                mês
+                mês e clique no check
               </h4>
             </div>
           ) : (
             <Empty
               title='Nenhum débito cadastrado'
-              message='Clique no botão de "+" para adicionar dívida'
+              onClick={() =>
+                handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)
+              }
               sizeAdjust={4}
             />
           )}
@@ -533,16 +540,18 @@ export default function Debtors({ future }) {
   return (
     <Container>
       <Head>
-        <Label>Seus Devedores</Label>
-        <AddButton onClick={handleCreateDebtor} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Label>Devedores</Label>
+        <Buttons>
+          <CardTourButton />
+          <AddItem
+            onClick={handleCreateDebtor}
+            disabled={currentIdEditing || !hasDebtors}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {!hasDebtors ? (
-        <Empty
-          title='Nenhum devedor cadastrado'
-          message='Clique no botão de "+" para adicionar devedor'
-        />
+        <Empty title='Nenhum devedor cadastrado' onClick={handleCreateDebtor} />
       ) : (
         <>
           <Total array={filteredDebts} future={future} />

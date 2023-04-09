@@ -38,7 +38,10 @@ import {
   ConfirmButton,
   InputContainer,
   InputLabel,
+  Buttons,
 } from '../FixedReceipts/styles';
+import CardTourButton from '../../CardTourButton';
+import AddItem from '../../AddItem';
 
 export default function ExtraReceipts({ future }) {
   const dispatch = useDispatch();
@@ -259,15 +262,20 @@ export default function ExtraReceipts({ future }) {
   return (
     <Container>
       <Head>
-        <Label>Recebimentos Extras</Label>
-        <AddButton onClick={handleCreateReceipt} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Label>Extras</Label>
+        <Buttons>
+          <CardTourButton />
+          <AddItem
+            onClick={handleCreateReceipt}
+            disabled={currentIdEditing || !hasReceipts}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {!hasReceipts ? (
         <Empty
           title='Nenhum saldo extra cadastrado'
-          message='Clique no botão de "+" para adicionar recebimento'
+          onClick={handleCreateReceipt}
         />
       ) : (
         <>

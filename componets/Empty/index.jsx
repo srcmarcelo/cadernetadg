@@ -1,11 +1,11 @@
 import React from 'react';
-import {Container, Title, Message} from './styles';
+import {Container, Title, Message, InitiateButton} from './styles';
 
-export default function Empty({title, message, sizeAdjust}) {
+export default function Empty({title, onClick, sizeAdjust}) {
   return (
     <Container>
       {title && <Title sizeAdjust={sizeAdjust}>{title}</Title>}
-      {message && <Message sizeAdjust={sizeAdjust}>{message}</Message>}
+      <InitiateButton onClick={onClick}>Adicionar</InitiateButton>
     </Container>
   );
 }
