@@ -447,12 +447,16 @@ export default function Debtors({ future }) {
   };
 
   const RenderDebtor = ({ debtor }) => {
-    const debtorDebts = debts.filter((debt) => {
+    const allDebtorDebts = debts.filter((debt) => {
+      return debt.debtor_id === debtor.id;
+    });
+    const debtorDebts = allDebtorDebts.filter((debt) => {
       const currentPay = future ? debt.future_pay : debt.current_pay;
-      return debt.debtor_id === debtor.id && currentPay <= debt.installments;
+      return currentPay <= debt.installments;
     });
     const reversedDebtorsDebts = _.reverse(_.cloneDeep(debtorDebts));
     const hasDebtorDebts = !_.isEmpty(debtorDebts);
+    const hasAnyDebtorDebts = !_.isEmpty(allDebtorDebts);
     let debtsValue = 0;
 
     debtorDebts.forEach(({ value, disabled, future_disabled }, index) => {
@@ -488,7 +492,7 @@ export default function Debtors({ future }) {
                   color='red'
                   disabled={currentIdEditing}
                   onClick={() =>
-                    handleConfirmDeleteModal(debtor.id, debtorDebts)
+                    handleConfirmDeleteModal(debtor.id, allDebtorDebts)
                   }
                 >
                   <DeleteOutlined />
@@ -497,7 +501,7 @@ export default function Debtors({ future }) {
                   color='blue'
                   disabled={currentIdEditing}
                   onClick={() =>
-                    handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)
+                    handleCreateDebt(debtor.id, hasAnyDebtorDebts, allDebtorDebts)
                   }
                 >
                   <PlusOutlined />
