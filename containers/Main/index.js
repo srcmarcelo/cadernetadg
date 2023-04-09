@@ -18,12 +18,6 @@ import { mainTourSteps } from '../../utils/toursSteps/mainTour';
 export default function Main() {
   const dispatch = useDispatch();
 
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log('The website is running in standalone mode');
-  } else {
-    console.log('The website is not running in standalone mode');
-  }
-
   const supabase = useSupabaseClient();
   const user = useUser();
 
@@ -34,6 +28,11 @@ export default function Main() {
 
   useEffect(() => {
     syncData(dispatch, supabase, user);
+    if (window.navigator.standalone === true) {
+      setCurrentTab('income');
+    } else {
+      setCurrentTab('outcome');
+    }  
   }, []);
 
   const callbacks = {
