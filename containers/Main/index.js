@@ -28,11 +28,28 @@ export default function Main() {
 
   useEffect(() => {
     syncData(dispatch, supabase, user);
-    if (window.navigator.standalone === true) {
-      setCurrentTab('income');
-    } else {
-      setCurrentTab('outcome');
-    }  
+    let deferredPrompt;
+
+    function showAddToHomeScreen() {
+      setCurrentTab('profile');
+      deferredPrompt.prompt();
+    
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          setCurrentTab('income');
+        } else {
+          setCurrentTab('outcome');
+        }
+    
+        deferredPrompt = null;
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      deferredPrompt = event;
+
+      showAddToHomeScreen();
+    });
   }, []);
 
   const callbacks = {
@@ -64,7 +81,7 @@ export default function Main() {
           skip: 'Pular guia',
         }}
         callback={({ index, action }) => {
-          if(action === 'reset') setTour(false);
+          if (action === 'reset') setTour(false);
           if (callbacks[index]) callbacks[index]();
         }}
       />
@@ -82,7 +99,11 @@ export default function Main() {
           currentTab={currentTab}
         />
         {currentTab === 'panel' && (
-          <ControlPanel future={future} pastValue={pastValue} setTour={setTour} />
+          <ControlPanel
+            future={future}
+            pastValue={pastValue}
+            setTour={setTour}
+          />
         )}
         {currentTab === 'income' && <Income future={future} />}
         {currentTab === 'outcome' && <Outcome future={future} />}
