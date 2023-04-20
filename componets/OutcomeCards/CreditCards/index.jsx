@@ -288,7 +288,7 @@ export default function CreditCards({ future }) {
       <Head>
         <Label>Cartões de crédito</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateCard}
             disabled={currentIdEditing || !hasCards}

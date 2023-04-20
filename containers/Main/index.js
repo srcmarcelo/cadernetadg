@@ -28,28 +28,6 @@ export default function Main() {
 
   useEffect(() => {
     syncData(dispatch, supabase, user);
-    let deferredPrompt;
-
-    function showAddToHomeScreen() {
-      setCurrentTab('profile');
-      deferredPrompt.prompt();
-    
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          setCurrentTab('income');
-        } else {
-          setCurrentTab('outcome');
-        }
-    
-        deferredPrompt = null;
-      });
-    }
-
-    window.addEventListener('beforeinstallprompt', (event) => {
-      deferredPrompt = event;
-
-      showAddToHomeScreen();
-    });
   }, []);
 
   const callbacks = {

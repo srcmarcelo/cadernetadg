@@ -264,7 +264,7 @@ export default function ExtraReceipts({ future }) {
       <Head>
         <Label>Extras</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateReceipt}
             disabled={currentIdEditing || !hasReceipts}

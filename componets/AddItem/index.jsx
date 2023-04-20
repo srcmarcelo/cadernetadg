@@ -4,7 +4,13 @@ import { PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 export default function AddItem({ onClick, disabled, style }) {
   return (
-    <AddButton onClick={onClick} hide={disabled} style={{ ...style }}>
+    <AddButton
+      onClick={() => {
+        !disabled && onClick();
+      }}
+      hide={disabled}
+      style={{ ...style }}
+    >
       <PlusOutlined />
     </AddButton>
   );

@@ -161,7 +161,7 @@ export default function SituationCard({ future, pastValue, setTour }) {
   return (
     <Container>
       {loading ? (
-        <Spin size='large' style={{ marginTop: '50%' }} />
+        <Spin size='large' style={{ marginTop: '15%', marginBottom: '15%' }} />
       ) : (
         <>
           <Title color={situations[paymentStatus].color}>SITUAÇÃO</Title>

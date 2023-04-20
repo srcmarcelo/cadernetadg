@@ -256,7 +256,7 @@ export default function FixedDebts({ future }) {
       <Head>
         <Label>Despesas fixas</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateDebt}
             disabled={currentIdEditing || !hasDebts}

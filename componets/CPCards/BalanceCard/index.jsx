@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   dispatchSetCurrentBalance,
@@ -15,6 +15,11 @@ import { useCallback } from 'react';
 import { debounce } from 'lodash';
 import RenderValue from '../../RenderValue';
 import CardTourButton from '../../CardTourButton';
+import ReactJoyride from 'react-joyride';
+import {
+  balanceCardTourSteps,
+  futureBalanceCardTourSteps,
+} from '../../../utils/toursSteps/balanceCardTour';
 
 export default function BalanceCard({ future, pastValue }) {
   const currentBalance = useSelector(getCurrentBalance);
@@ -23,6 +28,8 @@ export default function BalanceCard({ future, pastValue }) {
 
   const supabase = useSupabaseClient();
   const user = useUser();
+
+  const [tour, setTour] = useState(false);
 
   const debouncedSaveCurrent = useCallback(
     debounce(
@@ -53,11 +60,29 @@ export default function BalanceCard({ future, pastValue }) {
   };
 
   return (
-    <Container>
+    <Container className='balanceCard'>
+      <ReactJoyride
+        steps={future ? futureBalanceCardTourSteps : balanceCardTourSteps}
+        run={tour}
+        continuous={true}
+        showSkipButton={true}
+        disableScrolling={true}
+        locale={{
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Próximo',
+          open: 'Abrir legenda',
+          skip: 'Pular guia',
+        }}
+        callback={({ index, action }) => {
+          if (action === 'reset') setTour(false);
+        }}
+      />
       <ValueContainer>
         <Header>
           <Title>{future ? 'Saldo futuro:' : 'Saldo atual:'}</Title>
-          <CardTourButton />
+          <CardTourButton onClick={() => setTour(true)} />
         </Header>
         {future ? (
           <RenderValue
@@ -65,6 +90,7 @@ export default function BalanceCard({ future, pastValue }) {
             color='green'
             fontSize='28px'
             textAlign='flex-start'
+            className='futureCurrentBalance'
           />
         ) : (
           <Value
@@ -74,6 +100,7 @@ export default function BalanceCard({ future, pastValue }) {
             thousandSeparator='.'
             precision={2}
             value={currentBalance}
+            className='currentBalanceInput'
           />
         )}
       </ValueContainer>
@@ -81,10 +108,17 @@ export default function BalanceCard({ future, pastValue }) {
         <Title size={'16px'}>Guardado:</Title>
         {future ? (
           <RenderValue
-            value={pastValue > 0 ? keptBalance : keptBalance + pastValue}
+            value={
+              pastValue > 0
+                ? keptBalance
+                : keptBalance + pastValue > 0
+                ? keptBalance + pastValue
+                : 0
+            }
             color='green'
             fontSize='18px'
             textAlign='flex-start'
+            className='futureKeptBalance'
           />
         ) : (
           <Value
@@ -95,6 +129,7 @@ export default function BalanceCard({ future, pastValue }) {
             precision={2}
             size='18px'
             value={keptBalance}
+            className='keptBalanceInput'
           />
         )}
       </ValueContainer>

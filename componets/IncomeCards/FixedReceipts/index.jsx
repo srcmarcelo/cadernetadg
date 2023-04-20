@@ -265,7 +265,7 @@ export default function FixedReceipts({ future }) {
       <Head>
         <Label>Fixos</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateReceipt}
             disabled={currentIdEditing || !hasReceipts}

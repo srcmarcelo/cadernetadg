@@ -364,7 +364,7 @@ export default function ExtraDebts({ future }) {
       <Head>
         <Label>Outras despesas</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateDebt}
             disabled={currentIdEditing || !hasDebts}

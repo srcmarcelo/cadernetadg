@@ -250,8 +250,8 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
     />
   );
 
-  const RenderBalance = ({ label, value, color, weight }) => (
-    <Balance>
+  const RenderBalance = ({ label, value, color, weight, className }) => (
+    <Balance className={className}>
       <BalanceLabel weight={weight} color={color}>
         {label}
       </BalanceLabel>
@@ -259,8 +259,8 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
     </Balance>
   );
 
-  const RenderBalanceCard = ({ label, value, color }) => (
-    <CardContainer>
+  const RenderBalanceCard = ({ label, value, color, className }) => (
+    <CardContainer className={className}>
       <SituationTitle color={color} width={screen.width}>
         {label}
       </SituationTitle>
@@ -300,6 +300,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
               color='#368F42'
               label={future ? 'Quanto terá:' : 'Quanto você tem agora:'}
               value={future ? pastBalance : actualBalance}
+              className="currentBalanceInfo"
             />
             <RenderBalance
               color='#368F42'
@@ -322,6 +323,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
                 (willReceive - totalDebts) *
                 (monthlySituation === 'deficit' ? -1 : 1)
               }
+              className="monthlyBalance"
             />
             <RenderWarning debtorDependency={debtorDependency} loss={loss} />
             <RenderBalanceCard
@@ -333,6 +335,7 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
                   (future ? pastBalance : actualBalance)) *
                 (generalSituation === 'negative' ? -1 : 1)
               }
+              className="generalBalance"
             />
           </WarningContainer>
         </>

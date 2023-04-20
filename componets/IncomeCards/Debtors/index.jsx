@@ -542,7 +542,7 @@ export default function Debtors({ future }) {
       <Head>
         <Label>Devedores</Label>
         <Buttons>
-          <CardTourButton />
+          {/* <CardTourButton /> */}
           <AddItem
             onClick={handleCreateDebtor}
             disabled={currentIdEditing || !hasDebtors}
