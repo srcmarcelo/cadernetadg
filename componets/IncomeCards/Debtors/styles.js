@@ -6,7 +6,7 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   background: #fff;
-  padding: 5px 15px 5px 15px;
+  padding: 5px 15px 15px 15px;
   width: 100%;
   border-radius: 10px;
   margin-bottom: 20px;
@@ -25,6 +25,12 @@ export const Label = styled.h1`
   font-size: 22px;
   color: black;
   margin: 0;
+`;
+
+export const Buttons = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 export const AddButton = styled(Button)`
@@ -253,7 +259,7 @@ export const DebtorContainer = styled.div`
 export const DebtorHeader = styled.div`
   display: flex;
   width: 100%;
-  justify-content: center;
+  justify-content: space-between;
 `;
 
 export const DebtorNameContainer = styled.div`
@@ -295,7 +301,8 @@ export const DebtorValueContainer = styled.div`
 
 export const DebtorButtonsContainer = styled.div`
   display: flex;
-  width: 30%;
+  width: ${({justifyEnd}) => justifyEnd ? 'auto' : '30%'};
+  transition: width 1s;
   justify-content: space-around;
   align-items: center;
 `;

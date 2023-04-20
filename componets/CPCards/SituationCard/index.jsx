@@ -130,8 +130,14 @@ export default function SituationCard({ future, pastValue, setTour }) {
     },
     pending: {
       title: 'Pendente',
-      description:
-        'Adicione seus recebimentos e débitos do mês nas telas de ganhos e dívidas para começar a usar a Caderneta!',
+      description: (
+        <p style={{ margin: 0 }}>
+          Adicione seus recebimentos e débitos do mês nas telas de{' '}
+          <strong style={{ color: '#368f42' }}>ganhos</strong> e{' '}
+          <strong style={{ color: '#c83126' }}>dívidas</strong> para começar a
+          usar a Caderneta!
+        </p>
+      ),
       color: '#232C68',
     },
   };
@@ -155,7 +161,7 @@ export default function SituationCard({ future, pastValue, setTour }) {
   return (
     <Container>
       {loading ? (
-        <Spin size='large' style={{ marginTop: '50%' }} />
+        <Spin size='large' style={{ marginTop: '15%', marginBottom: '15%' }} />
       ) : (
         <>
           <Title color={situations[paymentStatus].color}>SITUAÇÃO</Title>

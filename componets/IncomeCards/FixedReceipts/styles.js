@@ -27,6 +27,12 @@ export const Label = styled.h1`
   margin: 0;
 `;
 
+export const Buttons = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export const AddButton = styled(Button)`
   background-color: blue;
   color: white;

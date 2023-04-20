@@ -59,7 +59,7 @@ export default function Main() {
           skip: 'Pular guia',
         }}
         callback={({ index, action }) => {
-          if(action === 'reset') setTour(false);
+          if (action === 'reset') setTour(false);
           if (callbacks[index]) callbacks[index]();
         }}
       />
@@ -77,7 +77,11 @@ export default function Main() {
           currentTab={currentTab}
         />
         {currentTab === 'panel' && (
-          <ControlPanel future={future} pastValue={pastValue} setTour={setTour} />
+          <ControlPanel
+            future={future}
+            pastValue={pastValue}
+            setTour={setTour}
+          />
         )}
         {currentTab === 'income' && <Income future={future} />}
         {currentTab === 'outcome' && <Outcome future={future} />}

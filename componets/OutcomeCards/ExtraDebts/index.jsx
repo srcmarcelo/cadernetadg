@@ -42,7 +42,10 @@ import {
   TitleInput,
   ItemContent,
   ConfirmButton,
+  Buttons,
 } from '../FixedDebts/styles';
+import CardTourButton from '../../CardTourButton';
+import AddItem from '../../AddItem';
 
 export default function ExtraDebts({ future }) {
   const dispatch = useDispatch();
@@ -359,15 +362,20 @@ export default function ExtraDebts({ future }) {
   return (
     <Container>
       <Head>
-        <Label>Outras Despesas</Label>
-        <AddButton onClick={handleCreateDebt} disabled={currentIdEditing}>
-          <PlusOutlined />
-        </AddButton>
+        <Label>Outras despesas</Label>
+        <Buttons>
+          {/* <CardTourButton /> */}
+          <AddItem
+            onClick={handleCreateDebt}
+            disabled={currentIdEditing || !hasDebts}
+            style={{ marginLeft: '10px' }}
+          />
+        </Buttons>
       </Head>
       {isEmpty(filteredExtraDebts) ? (
         <Empty
           title='Nenhuma despesa extra cadastrada'
-          message='Clique no botão de "+" para adicionar débito'
+          onClick={handleCreateDebt}
         />
       ) : (
         <>
