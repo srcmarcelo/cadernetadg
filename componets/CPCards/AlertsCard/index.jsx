@@ -47,7 +47,7 @@ export default function AlertsCard() {
 
   const warningLabels = {
     debtorDependency: {
-      title: 'Dependência de devedores [teste]',
+      title: 'Dependência de devedores',
       description:
         'Isso significa que está dependendo de um ou mais devedores para conseguir quitar suas dívidas.',
       label: 'Quanto ainda receberá',

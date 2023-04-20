@@ -65,7 +65,7 @@ export const futureBalanceCardTourSteps = [
     target: '.futureKeptBalance',
     title: 'Saldo guardado (futuro)',
     content:
-      'Este é o saldo que terá guardado. Ele já aparecerá alterado caso precisa usar ele no mês atual',
+      'Este é o saldo que terá guardado. Ele já aparecerá alterado caso precise usar ele no mês atual',
     disableBeacon: true,
   },
 ];
