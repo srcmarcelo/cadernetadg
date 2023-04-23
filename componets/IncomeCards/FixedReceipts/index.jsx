@@ -307,9 +307,6 @@ export default function FixedReceipts({ future }) {
           skip: 'Pular guia',
         }}
         callback={({ index, action }) => {
-          console.log('index, action:', index, action);
-          console.log('fakeReceipt:', fakeReceipt);
-          console.log('!fakeReceipt:', !fakeReceipt)
           if (action === 'reset') {
             handleDeleteReceipt(fakeReceipt);
             setTour(false);
