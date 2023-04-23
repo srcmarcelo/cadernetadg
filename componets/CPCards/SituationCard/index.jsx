@@ -24,7 +24,7 @@ import {
 } from '../../../containers/Outcome/redux/reducer';
 import { Container, Description, Situation, Title } from './styles';
 
-export default function SituationCard({ future, pastValue, setTour }) {
+export default function SituationCard({ future, pastValue }) {
   const currentBalance = useSelector(getCurrentBalance);
   const keptBalance = useSelector(getKeptBalance);
   const willReceive = useSelector(getWillReceive);
@@ -154,9 +154,7 @@ export default function SituationCard({ future, pastValue, setTour }) {
     } else {
       setPaymentStatus('noway');
     }
-
-    if (!loading) setTour(!willReceive && !totalDebts && !actualBalance);
-  }, [actualBalance, willReceive, keptBalance, totalDebts, setTour, loading]);
+  }, [actualBalance, willReceive, keptBalance, totalDebts, loading]);
 
   return (
     <Container>

@@ -80,7 +80,6 @@ export default function Main() {
           <ControlPanel
             future={future}
             pastValue={pastValue}
-            setTour={setTour}
           />
         )}
         {currentTab === 'income' && <Income future={future} />}

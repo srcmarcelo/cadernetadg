@@ -7,7 +7,7 @@ import SituationCard from '../../componets/CPCards/SituationCard';
 import { getSyncing } from '../Main/redux/reducer';
 import { Container, Content } from './styles';
 
-export default function ControlPanel({ future, pastValue, setTour }) {
+export default function ControlPanel({ future, pastValue }) {
   const syncing = useSelector(getSyncing);
 
   return (
@@ -17,7 +17,7 @@ export default function ControlPanel({ future, pastValue, setTour }) {
       ) : (
         <Content>
           <BalanceCard future={future} pastValue={pastValue} />
-          <SituationCard future={future} pastValue={pastValue} setTour={setTour} />
+          <SituationCard future={future} pastValue={pastValue} />
           <AlertsCard />
         </Content>
       )}
