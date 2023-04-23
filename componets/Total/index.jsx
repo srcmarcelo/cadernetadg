@@ -2,7 +2,7 @@ import React from 'react';
 import RenderValue from '../RenderValue';
 import { TotalContainer, TotalLabel } from './styles';
 
-export default function Total({ array, color, future }) {
+export default function Total({ array, color, future, className }) {
   let total = 0;
   array.forEach((item, index) => {
     const hasFutureValue = item.future_value !== undefined;
@@ -26,7 +26,7 @@ export default function Total({ array, color, future }) {
   });
 
   return (
-    <TotalContainer color={color}>
+    <TotalContainer color={color} className={className}>
       <TotalLabel>Valor total:</TotalLabel>
       <div>
         <RenderValue value={total} color='#fff' fontSize='1.3rem' />

@@ -307,12 +307,14 @@ export default function MainInfo({ dispatch, future, setPastValue }) {
               label={future ? 'Quanto receberá:' : 'Quanto ainda receberá:'}
               value={willReceive}
               weight='bold'
+              className="willReceiveInfo"
             />
             <RenderBalance
               color='#C83126'
               label={future ? 'Quanto deverá:' : 'Quanto ainda deve:'}
               value={totalDebts}
               weight='bold'
+              className="totalDebtsInfo"
             />
           </BalancesContainer>
           <WarningContainer>

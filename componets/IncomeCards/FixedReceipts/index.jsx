@@ -48,6 +48,8 @@ import Total from '../../Total';
 import CardTourButton from '../../CardTourButton';
 import AddButton from '../../AddItem';
 import AddItem from '../../AddItem';
+import ReactJoyride from 'react-joyride';
+import { fixedReceiptsTourSteps } from '../../../utils/toursSteps/fixedReceiptsTour';
 
 export default function FixedReceipts({ future }) {
   const dispatch = useDispatch();
@@ -62,10 +64,13 @@ export default function FixedReceipts({ future }) {
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [tour, setTour] = useState(false);
+  const [fakeReceipt, setFakeReceipt] = useState(null);
 
-  const handleCreateReceipt = () => {
+  const handleCreateReceipt = (fake) => {
     const number = hasReceipts ? getMaxId(fixedReceipts) + 1 : 1;
     const id = `${user.id}_${number}`;
+    if (fake) setFakeReceipt(id);
     const newReceipt = {
       id: id,
       value: undefined,
@@ -138,7 +143,27 @@ export default function FixedReceipts({ future }) {
     });
   };
 
-  const RenderForm = ({ item }) => (
+  const callbacks = {
+    1: () => {
+      handleCreateReceipt(true);
+    },
+    3: () => {
+      document.getElementsByClassName('receipt_label_0')[0].value = 'Salário';
+    },
+    4: () => {
+      document.getElementsByClassName('receipt_value_0')[0].value =
+        'R$ 2.000,00';
+    },
+    5: () => {
+      const fakeValues = {
+        name: 'Salário',
+        value: 'R$ 2.000,00',
+      };
+      handleEditReceipt(fakeValues, fakeReceipt);
+    },
+  };
+
+  const RenderForm = ({ item, index }) => (
     <FormContainer
       onFinish={(values) => handleEditReceipt(values, item.id)}
       initialValues={{ ...item }}
@@ -160,6 +185,7 @@ export default function FixedReceipts({ future }) {
               key={`fixed_receipt_name_${item.id}`}
               id={`fixed_receipt_name_${item.id}`}
               placeholder='Exemplo: Salário'
+              className={`receipt_label_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -181,6 +207,7 @@ export default function FixedReceipts({ future }) {
               decimalSeparator=','
               thousandSeparator='.'
               precision={2}
+              className={`receipt_value_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -201,7 +228,7 @@ export default function FixedReceipts({ future }) {
     </FormContainer>
   );
 
-  const RenderItemContent = ({ item }) => {
+  const RenderItemContent = ({ item, index }) => {
     const received = future ? item.future_received : item.received;
 
     return (
@@ -222,6 +249,7 @@ export default function FixedReceipts({ future }) {
                 color='orange'
                 disabled={currentIdEditing}
                 onClick={() => setCurrentIdEditing(item.id)}
+                className={`fixed_receipt_edit_button_${index}`}
               >
                 <EditOutlined />
               </ActionButton>
@@ -229,6 +257,7 @@ export default function FixedReceipts({ future }) {
                 color='red'
                 disabled={currentIdEditing}
                 onClick={() => handleConfirmDeleteModal(item.id)}
+                className={`fixed_receipt_delete_button_${index}`}
               >
                 <DeleteOutlined />
               </ActionButton>
@@ -240,6 +269,7 @@ export default function FixedReceipts({ future }) {
             disabled={currentIdEditing}
             color={received ? 'grey' : '#368f42'}
             onClick={() => handleConfirmReceipt(item.id)}
+            className={`fixed_receipt_confirm_button_${index}`}
           >
             {received ? <RollbackOutlined /> : <DollarOutlined />}
           </ConfirmButton>
@@ -248,24 +278,51 @@ export default function FixedReceipts({ future }) {
     );
   };
 
-  const RenderItem = ({ item }) => {
+  const RenderItem = ({ item, index }) => {
     return (
       <ItemContainer>
         {item.id === currentIdEditing ? (
-          <RenderForm item={item} />
+          <RenderForm item={item} index={index} />
         ) : (
-          <RenderItemContent item={item} />
+          <RenderItemContent item={item} index={index} />
         )}
       </ItemContainer>
     );
   };
 
   return (
-    <Container>
+    <Container className='fixedReceiptsCard'>
+      <ReactJoyride
+        steps={fixedReceiptsTourSteps}
+        run={tour}
+        continuous={true}
+        showSkipButton={true}
+        disableScrolling={true}
+        locale={{
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Próximo',
+          open: 'Abrir legenda',
+          skip: 'Pular guia',
+        }}
+        callback={({ index, action }) => {
+          console.log('index, action:', index, action);
+          console.log('fakeReceipt:', fakeReceipt);
+          console.log('!fakeReceipt:', !fakeReceipt)
+          if (action === 'reset') {
+            handleDeleteReceipt(fakeReceipt);
+            setTour(false);
+            setFakeReceipt(null);
+          }
+          if (index === 1 && !fakeReceipt) callbacks[index]();
+          else if (callbacks[index] && index !== 1) callbacks[index]();
+        }}
+      />
       <Head>
         <Label>Fixos</Label>
         <Buttons>
-          {/* <CardTourButton /> */}
+          <CardTourButton onClick={() => setTour(true)} />
           <AddItem
             onClick={handleCreateReceipt}
             disabled={currentIdEditing || !hasReceipts}
@@ -280,9 +337,13 @@ export default function FixedReceipts({ future }) {
         />
       ) : (
         <>
-          <Total array={fixedReceipts} future={future} />
-          {reversedFixedReceipts.map((item) => (
-            <RenderItem key={item.id} item={item} />
+          <Total
+            array={fixedReceipts}
+            future={future}
+            className='fixedReceiptsTotal'
+          />
+          {reversedFixedReceipts.map((item, index) => (
+            <RenderItem key={item.id} item={item} index={index} />
           ))}
         </>
       )}
