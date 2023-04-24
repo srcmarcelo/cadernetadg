@@ -42,6 +42,8 @@ import {
 } from './styles';
 import CardTourButton from '../../CardTourButton';
 import AddItem from '../../AddItem';
+import ReactJoyride from 'react-joyride';
+import { fixedDebtsTourSteps } from '../../../utils/toursSteps/fixedDebtsTour';
 
 export default function FixedDebts({ future }) {
   const dispatch = useDispatch();
@@ -56,10 +58,13 @@ export default function FixedDebts({ future }) {
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [tour, setTour] = useState(false);
+  const [fakeDebt, setFakeDebt] = useState(null);
 
-  const handleCreateDebt = () => {
+  const handleCreateDebt = (fake) => {
     const number = hasDebts ? getMaxId(fixedDebts) + 1 : 1;
     const id = `${user.id}_${number}`;
+    if (fake === true) setFakeDebt(id);
     const newDebt = {
       id: id,
       value: undefined,
@@ -129,7 +134,26 @@ export default function FixedDebts({ future }) {
     });
   };
 
-  const RenderForm = ({ item }) => (
+  const callbacks = {
+    1: () => {
+      handleCreateDebt(true);
+    },
+    3: () => {
+      document.getElementsByClassName('debt_label_0')[0].value = 'Aluguel';
+    },
+    4: () => {
+      document.getElementsByClassName('debt_value_0')[0].value = 'R$ 500,00';
+    },
+    5: () => {
+      const fakeValues = {
+        name: 'Aluguel',
+        value: 'R$ 500,00',
+      };
+      handleEditDebt(fakeValues, fakeDebt);
+    },
+  };
+
+  const RenderForm = ({ item, index }) => (
     <FormContainer
       onFinish={(values) => handleEditDebt(values, item.id)}
       initialValues={{ ...item }}
@@ -151,6 +175,7 @@ export default function FixedDebts({ future }) {
               key={`fixed_debt_name_${item.id}`}
               id={`fixed_debt_name_${item.id}`}
               placeholder='Exemplo: Aluguel'
+              className={`debt_label_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -172,6 +197,7 @@ export default function FixedDebts({ future }) {
               decimalSeparator=','
               thousandSeparator='.'
               precision={2}
+              className={`debt_value_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -192,7 +218,7 @@ export default function FixedDebts({ future }) {
     </FormContainer>
   );
 
-  const RenderItemContent = ({ item }) => {
+  const RenderItemContent = ({ item, index }) => {
     const payed = future ? item.future_payed : item.payed;
 
     return (
@@ -213,6 +239,7 @@ export default function FixedDebts({ future }) {
                 color='orange'
                 disabled={currentIdEditing}
                 onClick={() => setCurrentIdEditing(item.id)}
+                className={`fixed_debt_edit_button_${index}`}
               >
                 <EditOutlined />
               </ActionButton>
@@ -220,6 +247,7 @@ export default function FixedDebts({ future }) {
                 color='red'
                 disabled={currentIdEditing}
                 onClick={() => handleConfirmDeleteModal(item.id)}
+                className={`fixed_debt_delete_button_${index}`}
               >
                 <DeleteOutlined />
               </ActionButton>
@@ -231,6 +259,7 @@ export default function FixedDebts({ future }) {
             disabled={currentIdEditing}
             color={payed ? 'grey' : '#368f42'}
             onClick={() => handleConfirmDebt(item.id)}
+            className={`fixed_debt_confirm_button_${index}`}
           >
             {payed ? <RollbackOutlined /> : <FileDoneOutlined />}
           </ConfirmButton>
@@ -239,24 +268,52 @@ export default function FixedDebts({ future }) {
     );
   };
 
-  const RenderItem = ({ item }) => {
+  const RenderItem = ({ item, index }) => {
     return (
       <ItemContainer>
         {item.id === currentIdEditing ? (
-          <RenderForm item={item} />
+          <RenderForm item={item} index={index} />
         ) : (
-          <RenderItemContent item={item} />
+          <RenderItemContent item={item} index={index} />
         )}
       </ItemContainer>
     );
   };
 
   return (
-    <Container>
+    <Container className='fixedDebtsCard'>
+      <ReactJoyride
+        steps={fixedDebtsTourSteps}
+        run={tour}
+        continuous={true}
+        showSkipButton={true}
+        disableScrolling={true}
+        locale={{
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Próximo',
+          open: 'Abrir legenda',
+          skip: 'Pular guia',
+        }}
+        callback={({ index, action }) => {
+          console.log('index:', index);
+          console.log('action:', action);
+          console.log('fakeDebt:', fakeDebt);
+          console.log('!fakeDebt:', !fakeDebt);
+          if (action === 'reset') {
+            handleDeleteDebt(fakeDebt);
+            setTour(false);
+            setFakeDebt(null);
+          }
+          if (index === 1 && !fakeDebt) callbacks[index]();
+          else if (callbacks[index] && index !== 1) callbacks[index]();
+        }}
+      />
       <Head>
         <Label>Despesas fixas</Label>
         <Buttons>
-          {/* <CardTourButton /> */}
+          <CardTourButton onClick={() => setTour(true)} />
           <AddItem
             onClick={handleCreateDebt}
             disabled={currentIdEditing || !hasDebts}
@@ -271,9 +328,14 @@ export default function FixedDebts({ future }) {
         />
       ) : (
         <>
-          <Total array={fixedDebts} color='#c83126' future={future} />
-          {reversedFixedDebts.map((item) => (
-            <RenderItem key={item.id} item={item} />
+          <Total
+            array={fixedDebts}
+            color='#c83126'
+            future={future}
+            className='fixedDebtsTotal'
+          />
+          {reversedFixedDebts.map((item, index) => (
+            <RenderItem key={item.id} item={item} index={index} />
           ))}
         </>
       )}

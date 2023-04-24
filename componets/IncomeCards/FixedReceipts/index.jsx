@@ -68,7 +68,7 @@ export default function FixedReceipts({ future }) {
   const handleCreateReceipt = (fake) => {
     const number = hasReceipts ? getMaxId(fixedReceipts) + 1 : 1;
     const id = `${user.id}_${number}`;
-    if (fake) setFakeReceipt(id);
+    if (fake === true) setFakeReceipt(id);
     const newReceipt = {
       id: id,
       value: undefined,
