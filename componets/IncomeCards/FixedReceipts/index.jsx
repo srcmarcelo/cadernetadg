@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import _ from 'lodash';
 import { Form, Modal } from 'antd';
-import CurrencyFormat from 'react-currency-format';
 import { useDispatch, useSelector } from 'react-redux';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 
@@ -46,7 +45,6 @@ import { getMaxId } from '../../../utils/getMaxId';
 import RenderValue from '../../RenderValue';
 import Total from '../../Total';
 import CardTourButton from '../../CardTourButton';
-import AddButton from '../../AddItem';
 import AddItem from '../../AddItem';
 import ReactJoyride from 'react-joyride';
 import { fixedReceiptsTourSteps } from '../../../utils/toursSteps/fixedReceiptsTour';

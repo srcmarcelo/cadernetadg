@@ -38,6 +38,7 @@ export const fixedReceiptsTourSteps = [
     content:
       'O recebimento ficará dessa forma, e você poderá edita, deletar ou colocar como "pago".',
     disableBeacon: true,
+    hideBackButton: true,
   },
   {
     target: '.fixed_receipt_edit_button_0',
