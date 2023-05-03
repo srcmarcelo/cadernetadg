@@ -1,4 +1,5 @@
 import {
+  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
@@ -7,9 +8,11 @@ import {
   FileDoneOutlined,
   PlusOutlined,
   RollbackOutlined,
+  SelectOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal } from 'antd';
+import { Form, Modal, message } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -77,6 +80,8 @@ export default function FixedDebts({ future }) {
     dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Nova despesa criada com sucesso.');
   };
 
   const handleEditDebt = async (values, id) => {
@@ -94,19 +99,29 @@ export default function FixedDebts({ future }) {
     dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(
+      `Despesa ${values.name.toUpperCase()} editada com sucesso.`
+    );
   };
 
   const handleDeleteDebt = async (id) => {
     const index = fixedDebts.findIndex((item) => item.id === id);
+    const name = fixedDebts[index].name;
+
     const newDebts = _.cloneDeep(fixedDebts);
     newDebts.splice(index, 1);
     dispatchDeleteFixedDebt(dispatch, newDebts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    message.success(`Despesa ${name.toUpperCase()} deletada com sucesso.`);
   };
 
-  const handleConfirmDebt = async (id) => {
+  const handleConfirmDebt = async (id, pay) => {
     const index = fixedDebts.findIndex((item) => item.id === id);
+    const name = fixedDebts[index].name;
+
     const newDebts = _.cloneDeep(fixedDebts);
 
     if (future) {
@@ -118,6 +133,8 @@ export default function FixedDebts({ future }) {
     dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    pay && message.success(`Despesa ${name.toUpperCase()} paga com sucesso.`);
   };
 
   const handleConfirmDeleteModal = (id) => {
@@ -139,10 +156,10 @@ export default function FixedDebts({ future }) {
       handleCreateDebt(true);
     },
     3: () => {
-      document.getElementsByClassName('debt_label_0')[0].value = 'Aluguel';
+      document.getElementsByClassName('fixed_debt_label_0')[0].value = 'Aluguel';
     },
     4: () => {
-      document.getElementsByClassName('debt_value_0')[0].value = 'R$ 500,00';
+      document.getElementsByClassName('fixed_debt_value_0')[0].value = 'R$ 500,00';
     },
     5: () => {
       const fakeValues = {
@@ -152,6 +169,23 @@ export default function FixedDebts({ future }) {
       handleEditDebt(fakeValues, fakeDebt);
     },
   };
+
+  const RenderActionButton = ({
+    color,
+    onClick,
+    icon,
+    disabled,
+    className,
+  }) => (
+    <ActionButton
+      color={color}
+      disabled={currentIdEditing || disabled}
+      onClick={onClick}
+      className={className}
+    >
+      {icon}
+    </ActionButton>
+  );
 
   const RenderForm = ({ item, index }) => (
     <FormContainer
@@ -175,7 +209,7 @@ export default function FixedDebts({ future }) {
               key={`fixed_debt_name_${item.id}`}
               id={`fixed_debt_name_${item.id}`}
               placeholder='Exemplo: Aluguel'
-              className={`debt_label_${index}`}
+              className={`fixed_debt_label_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -197,7 +231,7 @@ export default function FixedDebts({ future }) {
               decimalSeparator=','
               thousandSeparator='.'
               precision={2}
-              className={`debt_value_${index}`}
+              className={`fixed_debt_value_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -233,36 +267,34 @@ export default function FixedDebts({ future }) {
           />
         </ValueContainer>
         <ButtonsContainer>
-          {!payed && (
-            <>
-              <ActionButton
-                color='orange'
-                disabled={currentIdEditing}
-                onClick={() => setCurrentIdEditing(item.id)}
-                className={`fixed_debt_edit_button_${index}`}
-              >
-                <EditOutlined />
-              </ActionButton>
-              <ActionButton
-                color='red'
-                disabled={currentIdEditing}
-                onClick={() => handleConfirmDeleteModal(item.id)}
-                className={`fixed_debt_delete_button_${index}`}
-              >
-                <DeleteOutlined />
-              </ActionButton>
-            </>
-          )}
+          <RenderActionButton
+            color='orange'
+            onClick={() => setCurrentIdEditing(item.id)}
+            disabled={payed}
+            icon={<EditOutlined />}
+            className={`fixed_debt_edit_button_${index}`}
+          />
+          <RenderActionButton
+            color='red'
+            onClick={() => handleConfirmDeleteModal(item.id)}
+            icon={<DeleteOutlined />}
+            className={`fixed_debt_delete_button_${index}`}
+          />
         </ButtonsContainer>
         <ButtonsContainer>
-          <ConfirmButton
-            disabled={currentIdEditing}
-            color={payed ? 'grey' : '#368f42'}
+          <RenderActionButton
+            color={payed ? '#368f42' : 'grey'}
             onClick={() => handleConfirmDebt(item.id)}
+            icon={payed ? <SelectOutlined /> : <StopOutlined />}
+            className={`fixed_debt_disable_button_${index}`}
+          />
+          <RenderActionButton
+            color='#368f42'
+            onClick={() => handleConfirmDebt(item.id, true)}
+            disabled={payed}
+            icon={<CarryOutOutlined />}
             className={`fixed_debt_confirm_button_${index}`}
-          >
-            {payed ? <RollbackOutlined /> : <FileDoneOutlined />}
-          </ConfirmButton>
+          />
         </ButtonsContainer>
       </ItemContent>
     );
@@ -297,17 +329,14 @@ export default function FixedDebts({ future }) {
           skip: 'Pular guia',
         }}
         callback={({ index, action }) => {
-          console.log('index:', index);
-          console.log('action:', action);
-          console.log('fakeDebt:', fakeDebt);
-          console.log('!fakeDebt:', !fakeDebt);
           if (action === 'reset') {
             handleDeleteDebt(fakeDebt);
             setTour(false);
             setFakeDebt(null);
           }
           if (index === 1 && !fakeDebt) callbacks[index]();
-          else if (callbacks[index] && index !== 1) callbacks[index]();
+          else if (callbacks[index] && index !== 1 && action === 'update')
+            callbacks[index]();
         }}
       />
       <Head>

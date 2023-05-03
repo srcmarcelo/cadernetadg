@@ -1,15 +1,17 @@
 import {
+  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   DollarOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   PlusOutlined,
   SelectOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, message } from 'antd';
+import { Form, Modal, message } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -42,6 +44,8 @@ import {
 } from '../FixedReceipts/styles';
 import CardTourButton from '../../CardTourButton';
 import AddItem from '../../AddItem';
+import ReactJoyride from 'react-joyride';
+import { extraReceiptsTourSteps } from '../../../utils/toursSteps/extraReceiptsTour';
 
 export default function ExtraReceipts({ future }) {
   const dispatch = useDispatch();
@@ -59,12 +63,15 @@ export default function ExtraReceipts({ future }) {
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [tour, setTour] = useState(false);
+  const [fakeReceipt, setFakeReceipt] = useState(null);
 
-  const handleCreateReceipt = () => {
+  const handleCreateReceipt = (fake) => {
     const number = !_.isEmpty(allExtraReceipts)
       ? getMaxId(allExtraReceipts) + 1
       : 1;
     const id = `${user.id}_${number}`;
+    if (fake === true) setFakeReceipt(id);
     const newReceipt = {
       id: id,
       value: 0,
@@ -84,6 +91,8 @@ export default function ExtraReceipts({ future }) {
     );
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Novo recebimento criado com sucesso.');
   };
 
   const handleEditReceipt = async (values, id) => {
@@ -104,6 +113,10 @@ export default function ExtraReceipts({ future }) {
     dispatchEditExtraReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(
+      `Recebimento ${values.name.toUpperCase()} editado com sucesso.`
+    );
   };
 
   const handleDisableReceipt = async (id) => {
@@ -120,20 +133,78 @@ export default function ExtraReceipts({ future }) {
     setCurrentIdEditing(null);
   };
 
-  const handleDeleteReceipt = async (id, name) => {
+  const handleConfirmDeleteReceipt = (id, pay) => {
+    Modal.confirm({
+      title: 'O recebimento será deletado.',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
+      okText: 'OK',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await handleDeleteReceipt(id, pay);
+      },
+    });
+  };
+
+  const handleDeleteReceipt = async (id, pay) => {
     const index = allExtraReceipts.findIndex((item) => item.id === id);
+    const name = allExtraReceipts[index].name;
+
     const newReceipts = _.cloneDeep(allExtraReceipts);
     newReceipts.splice(index, 1);
     dispatchDeleteExtraReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
 
-    name && message.success(`Pagamento de ${name.toUpperCase()} confirmado!`)
+    message.success(
+      pay
+        ? `Pagamento de ${name.toUpperCase()} confirmado com sucesso.`
+        : `Recebimento ${name.toUpperCase()} deletado com sucesso.`
+    );
   };
 
-  const RenderForm = ({ item }) => {
+  const callbacks = {
+    1: () => {
+      handleCreateReceipt(true);
+    },
+    3: () => {
+      document.getElementsByClassName('extra_receipt_label_0')[0].value =
+        'Décimo Terceiro';
+    },
+    4: () => {
+      document.getElementsByClassName('extra_receipt_value_0')[0].value =
+        'R$ 400,00';
+    },
+    5: () => {
+      const fakeValues = {
+        name: 'Décimo Terceiro',
+        value: 'R$ 400,00',
+      };
+      handleEditReceipt(fakeValues, fakeReceipt);
+    },
+  };
+
+  const RenderActionButton = ({
+    color,
+    onClick,
+    icon,
+    disabled,
+    className,
+  }) => (
+    <ActionButton
+      color={color}
+      disabled={currentIdEditing || disabled}
+      onClick={onClick}
+      className={className}
+    >
+      {icon}
+    </ActionButton>
+  );
+
+  const RenderForm = ({ item, index }) => {
     const initialValues = { ...item };
-    if(future) initialValues.value = item.future_value;
+    if (future) initialValues.value = item.future_value;
 
     return (
       <FormContainer
@@ -157,6 +228,7 @@ export default function ExtraReceipts({ future }) {
                 key={`extra_receipt_name_${item.id}`}
                 id={`extra_receipt_name_${item.id}`}
                 placeholder='Exemplo: Décimo terceiro'
+                className={`extra_receipt_label_${index}`}
               />
             </Form.Item>
           </InputContainer>
@@ -178,6 +250,7 @@ export default function ExtraReceipts({ future }) {
                 decimalSeparator=','
                 thousandSeparator='.'
                 precision={2}
+                className={`extra_receipt_value_${index}`}
               />
             </Form.Item>
           </InputContainer>
@@ -201,7 +274,7 @@ export default function ExtraReceipts({ future }) {
     );
   };
 
-  const RenderItemContent = ({ item }) => {
+  const RenderItemContent = ({ item, index }) => {
     const disabled = future ? item.future_disabled : item.disabled;
     const value = future ? item.future_value : item.value;
 
@@ -219,52 +292,82 @@ export default function ExtraReceipts({ future }) {
           />
         </ValueContainer>
         <ButtonsContainer>
-          <ActionButton
-            color={disabled ? '#368f42' : 'grey'}
-            disabled={currentIdEditing}
-            onClick={() => handleDisableReceipt(item.id)}
-          >
-            {disabled ? <SelectOutlined /> : <StopOutlined />}
-          </ActionButton>
-          <ActionButton
+          <RenderActionButton
             color='orange'
-            disabled={currentIdEditing || disabled}
             onClick={() => setCurrentIdEditing(item.id)}
-          >
-            <EditOutlined />
-          </ActionButton>
+            disabled={disabled}
+            icon={<EditOutlined />}
+            className={`extra_receipt_edit_button_${index}`}
+          />
+          <RenderActionButton
+            color='red'
+            onClick={() => handleConfirmDeleteReceipt(item.id)}
+            icon={<DeleteOutlined />}
+            className={`extra_receipt_delete_button_${index}`}
+          />
         </ButtonsContainer>
         <ButtonsContainer>
-          <ConfirmButton
+          <RenderActionButton
+            color={disabled ? '#368f42' : 'grey'}
+            onClick={() => handleDisableReceipt(item.id)}
+            icon={disabled ? <SelectOutlined /> : <StopOutlined />}
+            className={`extra_receipt_disable_button_${index}`}
+          />
+          <RenderActionButton
             color='#368f42'
-            disabled={currentIdEditing}
-            onClick={() => handleDeleteReceipt(item.id, item.name)}
-          >
-            <DollarOutlined />
-          </ConfirmButton>
+            onClick={() => handleConfirmDeleteReceipt(item.id, true)}
+            disabled={disabled}
+            icon={<CarryOutOutlined />}
+            className={`extra_receipt_confirm_button_${index}`}
+          />
         </ButtonsContainer>
       </ItemContent>
     );
   };
 
-  const RenderItem = ({ item }) => {
+  const RenderItem = ({ item, index }) => {
     return (
       <ItemContainer>
         {item.id === currentIdEditing ? (
-          <RenderForm item={item} />
+          <RenderForm item={item} index={index} />
         ) : (
-          <RenderItemContent item={item} />
+          <RenderItemContent item={item} index={index} />
         )}
       </ItemContainer>
     );
   };
 
   return (
-    <Container>
+    <Container className='extraReceiptsCard'>
+      <ReactJoyride
+        steps={extraReceiptsTourSteps}
+        run={tour}
+        continuous={true}
+        showSkipButton={true}
+        disableScrolling={true}
+        locale={{
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Próximo',
+          open: 'Abrir legenda',
+          skip: 'Pular guia',
+        }}
+        callback={({ index, action }) => {
+          if (action === 'reset') {
+            handleDeleteReceipt(fakeReceipt);
+            setTour(false);
+            setFakeReceipt(null);
+          }
+          if (index === 1 && !fakeReceipt) callbacks[index]();
+          else if (callbacks[index] && index !== 1 && action === 'update')
+            callbacks[index]();
+        }}
+      />
       <Head>
         <Label>Extras</Label>
         <Buttons>
-          {/* <CardTourButton /> */}
+          <CardTourButton onClick={() => setTour(true)} />
           <AddItem
             onClick={handleCreateReceipt}
             disabled={currentIdEditing || !hasReceipts}
@@ -279,9 +382,13 @@ export default function ExtraReceipts({ future }) {
         />
       ) : (
         <>
-          <Total array={extraReceipts} future={future} />
-          {reversedExtraReceipts.map((item) => (
-            <RenderItem key={item.id} item={item} />
+          <Total
+            array={extraReceipts}
+            future={future}
+            className='extraReceiptsTotal'
+          />
+          {reversedExtraReceipts.map((item, index) => (
+            <RenderItem key={item.id} item={item} index={index} />
           ))}
         </>
       )}

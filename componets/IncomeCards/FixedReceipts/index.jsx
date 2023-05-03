@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import _ from 'lodash';
-import { Form, Modal } from 'antd';
+import { Form, Modal, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 
@@ -31,6 +31,7 @@ import {
   dispatchEditFixedReceipts,
 } from '../../../containers/Income/redux';
 import {
+  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
@@ -40,6 +41,8 @@ import {
   PlusCircleOutlined,
   PlusOutlined,
   RollbackOutlined,
+  SelectOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { getMaxId } from '../../../utils/getMaxId';
 import RenderValue from '../../RenderValue';
@@ -85,6 +88,8 @@ export default function FixedReceipts({ future }) {
     );
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Novo recebimento criado com sucesso.');
   };
 
   const handleEditReceipt = async (values, id) => {
@@ -101,19 +106,29 @@ export default function FixedReceipts({ future }) {
     dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(
+      `Recebimento ${values.name.toUpperCase()} editado com sucesso.`
+    );
   };
 
   const handleDeleteReceipt = async (id) => {
     const index = fixedReceipts.findIndex((item) => item.id === id);
+    const name = fixedReceipts[index].name;
+
     const newReceipts = _.cloneDeep(fixedReceipts);
     newReceipts.splice(index, 1);
     dispatchDeleteFixedReceipt(dispatch, newReceipts, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    message.success(`Recebimento ${name.toUpperCase()} deletado com sucesso.`);
   };
 
-  const handleConfirmReceipt = async (id) => {
+  const handleConfirmReceipt = async (id, pay) => {
     const index = fixedReceipts.findIndex((item) => item.id === id);
+    const name = fixedReceipts[index].name;
+
     const newReceipts = _.cloneDeep(fixedReceipts);
 
     if (future) {
@@ -125,6 +140,11 @@ export default function FixedReceipts({ future }) {
     dispatchEditFixedReceipts(dispatch, newReceipts, supabase, index);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    pay &&
+      message.success(
+        `Pagamento de ${name.toUpperCase()} confirmado com sucesso.`
+      );
   };
 
   const handleConfirmDeleteModal = (id) => {
@@ -146,10 +166,10 @@ export default function FixedReceipts({ future }) {
       handleCreateReceipt(true);
     },
     3: () => {
-      document.getElementsByClassName('receipt_label_0')[0].value = 'Salário';
+      document.getElementsByClassName('fixed_receipt_label_0')[0].value = 'Salário';
     },
     4: () => {
-      document.getElementsByClassName('receipt_value_0')[0].value =
+      document.getElementsByClassName('fixed_receipt_value_0')[0].value =
         'R$ 2.000,00';
     },
     5: () => {
@@ -160,6 +180,23 @@ export default function FixedReceipts({ future }) {
       handleEditReceipt(fakeValues, fakeReceipt);
     },
   };
+
+  const RenderActionButton = ({
+    color,
+    onClick,
+    icon,
+    disabled,
+    className,
+  }) => (
+    <ActionButton
+      color={color}
+      disabled={currentIdEditing || disabled}
+      onClick={onClick}
+      className={className}
+    >
+      {icon}
+    </ActionButton>
+  );
 
   const RenderForm = ({ item, index }) => (
     <FormContainer
@@ -183,7 +220,7 @@ export default function FixedReceipts({ future }) {
               key={`fixed_receipt_name_${item.id}`}
               id={`fixed_receipt_name_${item.id}`}
               placeholder='Exemplo: Salário'
-              className={`receipt_label_${index}`}
+              className={`fixed_receipt_label_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -205,7 +242,7 @@ export default function FixedReceipts({ future }) {
               decimalSeparator=','
               thousandSeparator='.'
               precision={2}
-              className={`receipt_value_${index}`}
+              className={`fixed_receipt_value_${index}`}
             />
           </Form.Item>
         </InputContainer>
@@ -241,36 +278,34 @@ export default function FixedReceipts({ future }) {
           />
         </ValueContainer>
         <ButtonsContainer>
-          {!received && (
-            <>
-              <ActionButton
-                color='orange'
-                disabled={currentIdEditing}
-                onClick={() => setCurrentIdEditing(item.id)}
-                className={`fixed_receipt_edit_button_${index}`}
-              >
-                <EditOutlined />
-              </ActionButton>
-              <ActionButton
-                color='red'
-                disabled={currentIdEditing}
-                onClick={() => handleConfirmDeleteModal(item.id)}
-                className={`fixed_receipt_delete_button_${index}`}
-              >
-                <DeleteOutlined />
-              </ActionButton>
-            </>
-          )}
+          <RenderActionButton
+            color='orange'
+            onClick={() => setCurrentIdEditing(item.id)}
+            disabled={received}
+            icon={<EditOutlined />}
+            className={`fixed_receipt_edit_button_${index}`}
+          />
+          <RenderActionButton
+            color='red'
+            onClick={() => handleConfirmDeleteModal(item.id)}
+            icon={<DeleteOutlined />}
+            className={`fixed_receipt_delete_button_${index}`}
+          />
         </ButtonsContainer>
         <ButtonsContainer>
-          <ConfirmButton
-            disabled={currentIdEditing}
-            color={received ? 'grey' : '#368f42'}
+          <RenderActionButton
+            color={received ? '#368f42' : 'grey'}
             onClick={() => handleConfirmReceipt(item.id)}
+            icon={received ? <SelectOutlined /> : <StopOutlined />}
+            className={`fixed_receipt_disable_button_${index}`}
+          />
+          <RenderActionButton
+            color='#368f42'
+            onClick={() => handleConfirmReceipt(item.id, true)}
+            disabled={received}
+            icon={<CarryOutOutlined />}
             className={`fixed_receipt_confirm_button_${index}`}
-          >
-            {received ? <RollbackOutlined /> : <DollarOutlined />}
-          </ConfirmButton>
+          />
         </ButtonsContainer>
       </ItemContent>
     );
@@ -311,7 +346,8 @@ export default function FixedReceipts({ future }) {
             setFakeReceipt(null);
           }
           if (index === 1 && !fakeReceipt) callbacks[index]();
-          else if (callbacks[index] && index !== 1) callbacks[index]();
+          else if (callbacks[index] && index !== 1 && action === 'update')
+            callbacks[index]();
         }}
       />
       <Head>

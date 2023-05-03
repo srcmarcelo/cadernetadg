@@ -91,6 +91,8 @@ export default function Debtors({ future }) {
     dispatchEditDebtors(dispatch, newDebtors, supabase, newDebtors.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Novo devedor criado com sucesso.');
   };
 
   const handleEditDebtor = async (values, id) => {
@@ -100,15 +102,21 @@ export default function Debtors({ future }) {
     dispatchEditDebtors(dispatch, newDebtors, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(`Devedor ${values.name.toUpperCase()} editado com sucesso.`);
   };
 
   const handleDeleteDebtor = async (id) => {
     const index = debtors.findIndex((item) => item.id === id);
+    const name = debtors[index].name;
+
     const newDebtors = _.cloneDeep(debtors);
     newDebtors.splice(index, 1);
     dispatchDeleteDebtor(dispatch, newDebtors, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    message.success(`Devedor ${name.toUpperCase()} deletado com sucesso.`);
   };
 
   const handleCreateDebt = (debtorId, hasDebts, debtorDebts) => {
@@ -130,6 +138,8 @@ export default function Debtors({ future }) {
     dispatchEditDebts(dispatch, newDebts, supabase, newDebts.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Novo débito criado com sucesso.');
   };
 
   const handleEditDebt = async (values, id) => {
@@ -156,6 +166,8 @@ export default function Debtors({ future }) {
     await dispatchEditDebts(dispatch, newDebts, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(`Débito ${values.name.toUpperCase()} editado com sucesso.`);
   };
 
   const handleDisableDebt = async (id) => {
@@ -191,14 +203,19 @@ export default function Debtors({ future }) {
     message.success(
       `Parcela ${pay}/${
         newDebts[index].installments
-      } de ${name.toUpperCase()} confirmada.`
+      } de ${name.toUpperCase()} confirmada com sucesso.`
     );
   };
 
   const handleDeleteDebt = async (id) => {
+    const index = debts.findIndex((item) => item.id === id);
+    const name = debts[index].name;
+  
     await dispatchDeleteDebt(dispatch, user, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    message.success(`Débito ${name.toUpperCase()} deletado com sucesso.`);
   };
 
   const handleConfirmDeleteModal = (id, debtorDebts) => {

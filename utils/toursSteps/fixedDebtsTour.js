@@ -16,17 +16,17 @@ export const fixedDebtsTourSteps = [
   {
     target: '.fixedDebtsTotal',
     title: 'Valor Total',
-    content: 'Aqui ficará a soma de todas as despesas cadastrados.',
+    content: 'Aqui ficará a soma de todas as despesas cadastradas.',
     disableBeacon: true,
   },
   {
-    target: '.debt_label_0',
+    target: '.fixed_debt_label_0',
     title: 'Nome da despesa',
     content: 'Aqui você coloca o nome da despesa. Ex: aluguel',
     disableBeacon: true,
   },
   {
-    target: '.debt_value_0',
+    target: '.fixed_debt_value_0',
     title: 'Valor da despesa',
     content:
       'Aqui você coloca o valor da despesa e clica no botão verde para confirmar.',
@@ -36,7 +36,7 @@ export const fixedDebtsTourSteps = [
     target: '.fixedDebtsCard',
     title: 'Despesa salva',
     content:
-      'A despesa ficará dessa forma, e você poderá edita, deletar ou colocar como "paga".',
+      'A despesa ficará dessa forma, e você poderá edita, deletar, suspender ou colocar como "paga".',
     disableBeacon: true,
     hideBackButton: true,
   },
@@ -53,10 +53,17 @@ export const fixedDebtsTourSteps = [
     disableBeacon: true,
   },
   {
+    target: '.fixed_debt_disable_button_0',
+    title: 'Botão de desabilitar',
+    content:
+    'Clicando neste botão você controla se a dívida vai ser levada em conta ou não no mês.',
+    disableBeacon: true,
+  },
+  {
     target: '.fixed_debt_confirm_button_0',
     title: 'Botão de confirmar',
     content:
-      'Quando você pagar a dívida, ou simplesmente não quer considera-la este mês, você pode clicar aqui para colocar como "paga".',
+      'Clicando neste botão você registra a dívida como "paga".',
     disableBeacon: true,
   },
   {

@@ -6,9 +6,11 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
+  SelectOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal, Popover } from 'antd';
+import { Form, Modal, Popover, message } from 'antd';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -56,7 +58,6 @@ export default function CreditCards({ future }) {
 
   const [currentIdEditing, setCurrentIdEditing] = useState(null);
   const [creating, setCreating] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(null);
 
   const handleCreateCard = () => {
     const number = hasCards ? getMaxId(creditCards) + 1 : 1;
@@ -72,6 +73,8 @@ export default function CreditCards({ future }) {
     dispatchEditCreditCards(dispatch, newCards, supabase, newCards.length - 1);
     setCreating(true);
     setCurrentIdEditing(id);
+
+    message.success('Novo cartão criado com sucesso.');
   };
 
   const handleEditCard = async (values, id) => {
@@ -94,19 +97,41 @@ export default function CreditCards({ future }) {
     dispatchEditCreditCards(dispatch, newCards, supabase, index);
     setCurrentIdEditing(null);
     setCreating(false);
+
+    message.success(`Cartão ${values.name.toUpperCase()} editado com sucesso.`);
+  };
+
+  const handleDisableCard = async (id) => {
+    const index = creditCards.findIndex((item) => item.id === id);
+    const newCards = _.cloneDeep(creditCards);
+
+    if (future) {
+      newCards[index].future_disabled = !newCards[index].future_disabled;
+    } else {
+      newCards[index].disabled = !newCards[index].disabled;
+    }
+
+    await dispatchEditCreditCards(dispatch, newCards, supabase, index);
+    setCurrentIdEditing(null);
   };
 
   const handleDeleteCard = async (id) => {
     const index = creditCards.findIndex((item) => item.id === id);
+    const name = creditCards[index].name;
+
     const newCards = _.cloneDeep(creditCards);
     newCards.splice(index, 1);
     dispatchDeleteCreditCard(dispatch, newCards, supabase, id);
     creating && setCreating(false);
     currentIdEditing && setCurrentIdEditing(null);
+
+    message.success(`Cartão ${name.toUpperCase()} deletado com sucesso.`);
   };
 
-  const handleResetCard = async (id, next) => {
+  const handleResetCard = async (id) => {
     const index = creditCards.findIndex((item) => item.id === id);
+    const name = creditCards[index].name;
+
     const newCards = _.cloneDeep(creditCards);
     let currentValue = 0;
 
@@ -114,14 +139,15 @@ export default function CreditCards({ future }) {
       newCards[index].future_value = 0;
       currentValue = creditCards[index].future_value;
     } else {
-      newCards[index].value = next ? newCards[index].future_value : 0;
+      newCards[index].value = newCards[index].future_value;
+      newCards[index].disabled = true;
       currentValue = creditCards[index].value;
     }
 
-    setConfirmOpen(null);
-
-    if (currentValue > 0 || next)
-      dispatchEditCreditCards(dispatch, newCards, supabase, index);
+    dispatchEditCreditCards(dispatch, newCards, supabase, index);
+    message.success(
+      `Pagamento do cartão ${name.toUpperCase()} confirmado com sucesso.`
+    );
   };
 
   const handleConfirmDeleteModal = (id) => {
@@ -137,6 +163,23 @@ export default function CreditCards({ future }) {
       },
     });
   };
+
+  const RenderActionButton = ({
+    color,
+    onClick,
+    icon,
+    disabled,
+    className,
+  }) => (
+    <ActionButton
+      color={color}
+      disabled={currentIdEditing || disabled}
+      onClick={onClick}
+      className={className}
+    >
+      {icon}
+    </ActionButton>
+  );
 
   const RenderForm = ({ item }) => {
     const initialValues = { ...item };
@@ -206,78 +249,62 @@ export default function CreditCards({ future }) {
     );
   };
 
-  const RenderItemContent = ({ item }) => {
+  const RenderItemContent = ({ item, index }) => {
     const value = future ? item.future_value : item.value;
+    const disabled = future ? item.future_disabled : item.disabled;
 
     return (
       <ItemContent>
         <ValueContainer>
-          <Title>{item.name.toUpperCase()}</Title>
+          <Title disabled={disabled}>{item.name.toUpperCase()}</Title>
           <RenderValue
             value={value}
             fontSize='1.5rem'
-            color='#c83126'
+            color={disabled ? 'grey' : '#c83126'}
             textAlign='start'
           />
         </ValueContainer>
         <ButtonsContainer>
-          <ActionButton
+          <RenderActionButton
             color='orange'
-            disabled={currentIdEditing}
             onClick={() => setCurrentIdEditing(item.id)}
-          >
-            <EditOutlined />
-          </ActionButton>
-          <ActionButton
+            disabled={disabled}
+            icon={<EditOutlined />}
+            className={`credit_card_edit_button_${index}`}
+          />
+          <RenderActionButton
             color='red'
-            disabled={currentIdEditing}
             onClick={() => handleConfirmDeleteModal(item.id)}
-          >
-            <DeleteOutlined />
-          </ActionButton>
+            icon={<DeleteOutlined />}
+            className={`credit_card_delete_button_${index}`}
+          />
         </ButtonsContainer>
         <ButtonsContainer>
-          <Popover
-            content={
-              <div>
-                <PopoverContentContainer color='#368f42'>
-                  <a onClick={() => handleResetCard(item.id)}>Zerar</a>
-                </PopoverContentContainer>
-                {!future && (
-                  <PopoverContentContainer color='#8176fb'>
-                    <a onClick={() => handleResetCard(item.id, true)}>
-                      Próxima
-                    </a>
-                  </PopoverContentContainer>
-                )}
-              </div>
-            }
-            trigger='click'
-            open={confirmOpen === item.id}
-            onOpenChange={() =>
-              setConfirmOpen(confirmOpen === item.id ? null : item.id)
-            }
-          >
-            <ConfirmButton
-              disabled={currentIdEditing}
-              color='#368f42'
-              // onClick={() => handleResetCard(item.id)}
-            >
-              <CarryOutOutlined />
-            </ConfirmButton>
-          </Popover>
+          <RenderActionButton
+            color={disabled ? '#368f42' : 'grey'}
+            onClick={() => handleDisableCard(item.id)}
+            icon={disabled ? <SelectOutlined /> : <StopOutlined />}
+            className={`credit_card_disable_button_${index}`}
+          />
+          <RenderActionButton
+            color='#368f42'
+            onClick={() => handleResetCard(item.id)}
+            disabled={disabled}
+            icon={<CarryOutOutlined />}
+            className={`credit_card_confirm_button_${index}`}
+          />
         </ButtonsContainer>
       </ItemContent>
     );
   };
 
-  const RenderItem = ({ item }) => {
+  const RenderItem = ({ item, index }) => {
     return (
       <ItemContainer>
         {item.id === currentIdEditing ? (
           <RenderForm item={item} />
         ) : (
-          <RenderItemContent item={item} />
+          <RenderItemContent item={item} index={index} />
         )}
       </ItemContainer>
     );
@@ -304,8 +331,8 @@ export default function CreditCards({ future }) {
       ) : (
         <>
           <Total array={creditCards} color='#c83126' future={future} />
-          {reversedCreditCards.map((item) => (
-            <RenderItem key={item.id} item={item} />
+          {reversedCreditCards.map((item, index) => (
+            <RenderItem key={item.id} item={item} index={index} />
           ))}
         </>
       )}

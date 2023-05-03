@@ -68,7 +68,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: ${({ editing, installments }) => (editing ? '80%' : installments ? '40%' : '60%')};
+  width: ${({ editing, installments }) => (editing ? '80%' : installments ? '50%' : '70%')};
 `;
 
 export const InputContainer = styled.div`
@@ -105,7 +105,7 @@ export const TitleInput = styled(Input)`
 export const Title = styled.div`
   font-size: ${({size}) => size || '1.2rem'};
   color: ${({ disabled, payed }) => (disabled || payed ? '#fff' : 'black')};
-  padding: 0px 5px;
+  padding-left: 5px;
   border-top: none;
   border-left: none;
   border-right: none;
@@ -143,7 +143,7 @@ export const DisplayValue = styled.div`
 
 export const ButtonsContainer = styled.div`
   display: flex;
-  width: 20%;
+  width: 15%;
   justify-content: space-around;
   align-items: center;
   flex-wrap: wrap;
