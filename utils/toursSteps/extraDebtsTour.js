@@ -1,13 +1,13 @@
 export const extraDebtsTourSteps = [
   {
     target: '.extraDebtsCard',
-    title: 'Despesas Extras',
-    content: 'Neste espaço você poderá registrar as despesas extras do mês!',
+    title: 'Outras Despesas',
+    content: 'Neste espaço você poderá registrar os outros tipos de despesas do mês!',
     disableBeacon: true,
   },
   {
     target: '.extraDebtsCard',
-    title: 'Despesas Fixas',
+    title: 'Outras Despesas',
     content:
       'Ao clicar em "Adicionar" ou no "+", você adiciona uma despesa e entra no modo edição.',
     disableBeacon: true,

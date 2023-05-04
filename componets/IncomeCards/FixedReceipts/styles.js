@@ -68,7 +68,7 @@ export const ValueContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: ${({ editing }) => (editing ? '80%' : '60%')};
+  width: ${({ editing }) => (editing ? '80%' : '64%')};
 `;
 
 export const InputContainer = styled.div`
@@ -133,7 +133,7 @@ export const Value = styled(CurrencyInput)`
 
 export const ButtonsContainer = styled.div`
   display: flex;
-  width: 20%;
+  width: 18%;
   justify-content: space-around;
   align-items: center;
   flex-wrap: wrap;
