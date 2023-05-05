@@ -90,7 +90,7 @@ export const extraDebtsTourSteps = [
     target: '.totalDebtsInfo',
     title: 'O valor entra aqui!',
     content:
-      'Os valores ativos das despesas fixas entrarão no cálculo do que ainda deve no mês.',
+      'Os valores ativos das despesas extras entrarão no cálculo do que ainda deve no mês.',
     disableBeacon: true,
   },
 ];

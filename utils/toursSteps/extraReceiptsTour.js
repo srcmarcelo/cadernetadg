@@ -69,7 +69,7 @@ export const extraReceiptsTourSteps = [
     target: '.willReceiveInfo',
     title: 'O valor entra aqui!',
     content:
-      'Os valores ativos dos recebimentos fixos entrarão no cálculo do que ainda vai receber no mês.',
+      'Os valores ativos dos recebimentos extras entrarão no cálculo do que ainda vai receber no mês.',
     disableBeacon: true,
   },
 ];
