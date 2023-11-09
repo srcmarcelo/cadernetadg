@@ -7,7 +7,7 @@ export const Container = styled.div`
   align-items: center;
   background-color: #8176fb;
   width: 100%;
-  height: 58vh;
+  height: 62vh;
   border-radius: 10px;
   padding: 10px 0px;
 `;

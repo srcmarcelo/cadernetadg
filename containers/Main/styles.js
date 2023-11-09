@@ -7,7 +7,7 @@ export const Container = styled.div`
   align-items: center;
   background-color: ${({future}) => future ? '#bfbdbd' : 'white'};
   width: 100%;
-  height: 93vh;
+  height: 100%;
   border-radius: 10px;
   transition: background-color 1s;
 `;
