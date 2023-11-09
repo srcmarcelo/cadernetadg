@@ -82,7 +82,7 @@ const Home = () => {
       {showPromotionBar && (
         <div
           style={{
-            backgroundColor: '#4CAF50',
+            backgroundColor: '#232C68',
             color: '#fff',
             textAlign: 'center',
             padding: '10px',
@@ -98,13 +98,13 @@ const Home = () => {
           }}
         >
           <div style={{ display: 'inline-block', marginRight: '20px' }}>
-            🚀 Instale o Caderneta Digital!
+            Instale o aplicativo!
           </div>
           <button
             onClick={handleInstallClick}
             style={{
               backgroundColor: '#fff',
-              color: '#4CAF50',
+              color: '#232C68',
               border: 'none',
               padding: '10px 20px',
               fontSize: '16px',
@@ -116,7 +116,7 @@ const Home = () => {
           <button
             onClick={closePromotionBar}
             style={{
-              backgroundColor: '#4CAF50',
+              backgroundColor: '#232C68',
               color: '#fff',
               border: 'none',
               padding: '10px 20px',
