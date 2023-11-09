@@ -76,6 +76,10 @@ export default function Main() {
           future={future}
           currentTab={currentTab}
         />
+          <NavigationBar
+            onClick={(value) => setCurrentTab(value)}
+            currentTab={currentTab}
+          />
         {currentTab === 'panel' && (
           <ControlPanel
             future={future}
@@ -85,10 +89,6 @@ export default function Main() {
         {currentTab === 'income' && <Income future={future} />}
         {currentTab === 'outcome' && <Outcome future={future} />}
         {currentTab === 'profile' && <Profile dispatch={dispatch} />}
-        <NavigationBar
-          onClick={(value) => setCurrentTab(value)}
-          currentTab={currentTab}
-        />
       </Content>
     </Container>
   );

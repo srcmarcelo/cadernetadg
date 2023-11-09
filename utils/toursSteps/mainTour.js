@@ -42,7 +42,7 @@ export const mainTourSteps = [
       </p>
     ),
     disableBeacon: true,
-    placement: 'top',
+    placement: 'bottom',
   },
   {
     target: '.income-screen',
@@ -61,7 +61,7 @@ export const mainTourSteps = [
       </p>
     ),
     disableBeacon: true,
-    placement: 'top',
+    placement: 'bottom',
   },
   {
     target: '.outcome-screen',
