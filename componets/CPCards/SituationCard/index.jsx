@@ -124,8 +124,23 @@ export default function SituationCard({ future, pastValue }) {
     },
     noway: {
       title: 'Inviável',
-      description:
-        'Com os débitos e saldos atuais, não conseguirá quitar as dívidas do mês.',
+      description: (
+        <div>
+          Com os débitos e saldos atuais, não conseguirá quitar as dívidas do
+          mês. Faltará{' '}
+          {
+            <strong style={{ color: '#c83126' }}>
+              R${' '}
+              {parseFloat(
+                totalDebts - willReceive - actualBalance - keptBalance
+              )
+                .toFixed(2)
+                .replace('.', ',')}
+            </strong>
+          }{', '}
+          mesmo usando todo o saldo guardado.
+        </div>
+      ),
       color: '#c83126',
     },
     pending: {

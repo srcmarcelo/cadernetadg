@@ -177,6 +177,11 @@ export default function Debtors({ future }) {
     if (future) {
       newDebts[index].future_disabled = !newDebts[index].future_disabled;
     } else {
+      if(newDebts[index].disabled) {
+        newDebts[index].future_pay = newDebts[index].current_pay + 1;
+      } else {
+        newDebts[index].future_pay = newDebts[index].current_pay;
+      }
       newDebts[index].disabled = !newDebts[index].disabled;
     }
 
@@ -189,7 +194,6 @@ export default function Debtors({ future }) {
     const newDebts = _.cloneDeep(debts);
 
     newDebts[index].current_pay = newDebts[index].current_pay + 1;
-    newDebts[index].future_pay = newDebts[index].future_pay + 1;
 
     if (future) {
       newDebts[index].future_disabled = true;
