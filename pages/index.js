@@ -15,26 +15,23 @@ const Home = () => {
   const [showPromotionBar, setShowPromotionBar] = useState(false);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event) => {
-      // Prevent the default prompt
-      event.preventDefault();
-
-      // Store the event for later use
-      setDeferredPrompt(event);
-
-      // Show the promotion bar with a delay for the fade-in animation
-      setTimeout(() => setShowPromotionBar(true), 100);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Cleanup event listener
-    return () => {
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleBeforeInstallPrompt
-      );
-    };
+    if ('onbeforeinstallprompt' in window) {
+      const handleBeforeInstallPrompt = (event) => {
+        event.preventDefault();
+        setDeferredPrompt(event);
+        setTimeout(() => setShowPromotionBar(true), 100);
+      };
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      return () => {
+        window.removeEventListener(
+          'beforeinstallprompt',
+          handleBeforeInstallPrompt
+        );
+      };
+    } else {
+      // Fallback for iOS devices
+      setShowPromotionBar(false);
+    }
   }, []);
 
   const closePromotionBar = () => {
