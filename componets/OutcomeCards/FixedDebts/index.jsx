@@ -9,7 +9,7 @@ import {
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Modal, Tag, Tooltip, message } from 'antd';
+import { Button, Input, Modal, Tag, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import { getSelectedMonth } from '../../../containers/Main/redux/reducer';
@@ -26,6 +26,7 @@ import { formatMonthYear } from '../../../utils/monthUtils';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   HeaderActions,
   IconActionBtn,
@@ -72,7 +73,6 @@ function FixedDebtEditor({ initialName = '', initialValue = 0, onSave, onCancel,
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: Aluguel, Energia, Internet'
-              autoFocus
             />
           </div>
           <div>
@@ -80,21 +80,25 @@ function FixedDebtEditor({ initialName = '', initialValue = 0, onSave, onCancel,
             <CurrencyInput value={value} onChange={setValue} compact />
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             danger
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
           >
             Salvar
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -265,8 +269,14 @@ export default function FixedDebts() {
                         >
                           {item.name}
                         </ItemName>
-                        {item.effectivePaid && <Tag color='success'>Pago</Tag>}
-                        {item.effectiveDisabled && <Tag>Ignorado no mês</Tag>}
+                        {item.effectivePaid && (
+                          <Tag color='success' style={{ margin: 0 }}>
+                            Pago
+                          </Tag>
+                        )}
+                        {item.effectiveDisabled && (
+                          <Tag style={{ margin: 0 }}>Ignorado no mês</Tag>
+                        )}
                       </ItemTitleRow>
                       <ItemAmount
                         $color={
@@ -280,62 +290,49 @@ export default function FixedDebts() {
                     </ItemInfo>
 
                     <ItemActions>
-                      <Tooltip
-                        title={
-                          item.effectivePaid
-                            ? 'Desmarcar pagamento neste mês'
-                            : 'Marcar como paga neste mês'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        $bg={item.effectivePaid ? '#F8FAFC' : '#F0FDF4'}
+                        $border={item.effectivePaid ? '#CBD5E1' : '#86EFAC'}
+                        $color={item.effectivePaid ? '#475569' : '#15803D'}
+                        onClick={() => handleTogglePaid(item)}
+                        disabled={item.effectiveDisabled}
+                        style={{ flex: 1 }}
                       >
-                        <IconActionBtn
-                          type='button'
-                          $bg='#F0FDF4'
-                          $border='#86EFAC'
-                          $color='#15803D'
-                          onClick={() => handleTogglePaid(item)}
-                          disabled={item.effectiveDisabled}
-                        >
-                          {item.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
-                        </IconActionBtn>
-                      </Tooltip>
+                        {item.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
+                        <span style={{ fontSize: '0.8rem' }}>
+                          {item.effectivePaid ? 'Reabrir' : 'Pagar'}
+                        </span>
+                      </IconActionBtn>
 
-                      <Tooltip
-                        title={
-                          item.effectiveDisabled
-                            ? 'Reativar neste mês'
-                            : 'Ignorar apenas neste mês'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        onClick={() => handleToggleDisabled(item)}
+                        aria-label='Ignorar no mês'
                       >
-                        <IconActionBtn
-                          type='button'
-                          onClick={() => handleToggleDisabled(item)}
-                        >
-                          <StopOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                        <StopOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Editar'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#D97706'
-                          onClick={() => {
-                            setAdding(false);
-                            setEditingId(item.id);
-                          }}
-                        >
-                          <EditOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#D97706'
+                        onClick={() => {
+                          setAdding(false);
+                          setEditingId(item.id);
+                        }}
+                        aria-label='Editar'
+                      >
+                        <EditOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Excluir'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#DC2626'
-                          onClick={() => confirmDelete(item)}
-                        >
-                          <DeleteOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#DC2626'
+                        onClick={() => confirmDelete(item)}
+                        aria-label='Excluir'
+                      >
+                        <DeleteOutlined />
+                      </IconActionBtn>
                     </ItemActions>
                   </ListItemCard>
                 )

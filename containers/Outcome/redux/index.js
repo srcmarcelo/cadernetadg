@@ -471,6 +471,7 @@ export const batchImportCardPurchases = async ({
   items = [],
   invoiceMonth,
   manualAdjustment = 0,
+  computedMonthTotal = null,
   dueDay = null,
   closingDay = null,
 }) => {
@@ -533,32 +534,25 @@ export const batchImportCardPurchases = async ({
       await safeUpdateRow(supabase, 'credit_cards', cardId, user.id, cardScalarPatch);
     }
 
-    if (manualAdjustment !== 0) {
-      await updateCreditCardMonthInvoice({
-        dispatch,
-        supabase,
-        user,
-        id: cardId,
-        selectedMonth: invoiceMonth,
-        monthPatch: {
-          manual_adjustment: roundMoney(manualAdjustment),
-          override_total: false,
-        },
-      });
-    } else {
-      // Clear any manual override so sum of detailed items drives the invoice total
-      await updateCreditCardMonthInvoice({
-        dispatch,
-        supabase,
-        user,
-        id: cardId,
-        selectedMonth: invoiceMonth,
-        monthPatch: {
-          manual_adjustment: 0,
-          override_total: false,
-        },
-      });
-    }
+    const totalForLegacy =
+      computedMonthTotal !== null
+        ? roundMoney(computedMonthTotal)
+        : roundMoney(
+            rows.reduce((acc, r) => acc + r.value, 0) + roundMoney(manualAdjustment || 0)
+          );
+
+    await updateCreditCardMonthInvoice({
+      dispatch,
+      supabase,
+      user,
+      id: cardId,
+      selectedMonth: invoiceMonth,
+      monthPatch: {
+        manual_total: totalForLegacy,
+        manual_adjustment: roundMoney(manualAdjustment || 0),
+        override_total: false,
+      },
+    });
 
     await syncData(dispatch, supabase, user, { silent: true });
     return rows;

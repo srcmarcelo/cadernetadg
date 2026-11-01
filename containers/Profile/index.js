@@ -128,15 +128,19 @@ export default function Profile({ dispatch }) {
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             placeholder='Seu nome'
-            autoFocus
           />
           <Button
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
           />
-          <Button icon={<CloseOutlined />} onClick={() => setEditing(false)} />
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setEditing(false)}
+          />
         </form>
       ) : (
         <NameRow>

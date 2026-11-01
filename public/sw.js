@@ -1,7 +1,7 @@
 // Caderneta Digital v2.0 - Lightweight PWA Service Worker
 // Never caches API or Supabase calls so multi-device data is always fresh.
 
-const CACHE_NAME = 'cadernetadg-static-v2';
+const CACHE_NAME = 'cadernetadg-static-v3';
 const PRECACHE_ASSETS = ['/manifest.json', '/favicon.ico', '/icon-192x192.png'];
 
 self.addEventListener('install', (event) => {

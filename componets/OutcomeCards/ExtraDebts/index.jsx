@@ -9,7 +9,7 @@ import {
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { Button, Input, InputNumber, Modal, Tag, Tooltip, message } from 'antd';
+import { Button, Input, InputNumber, Modal, Tag, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import { getSelectedMonth } from '../../../containers/Main/redux/reducer';
@@ -26,6 +26,7 @@ import { formatMonthYear } from '../../../utils/monthUtils';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   HeaderActions,
   IconActionBtn,
@@ -87,7 +88,6 @@ function ExtraDebtEditor({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: IPVA, Empréstimo, Conserto'
-              autoFocus
             />
           </div>
           <div>
@@ -119,21 +119,25 @@ function ExtraDebtEditor({
             </div>
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             danger
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
           >
             Salvar
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -229,7 +233,7 @@ export default function ExtraDebts() {
       title: `Excluir "${item.name}"?`,
       icon: <ExclamationCircleOutlined />,
       content:
-        'Para marcar apenas a parcela deste mês como paga, use o botão verde de check. Excluir removerá todas as parcelas.',
+        'Para marcar apenas a parcela deste mês como paga, use o botão Pagar. Excluir removerá todas as parcelas.',
       okText: 'Excluir',
       okType: 'danger',
       cancelText: 'Cancelar',
@@ -317,11 +321,17 @@ export default function ExtraDebts() {
                         >
                           {item.name}
                         </ItemName>
-                        <Tag color='volcano'>
+                        <Tag color='volcano' style={{ margin: 0 }}>
                           Parcela {item.currentInstallment} de {item.totalInstallments}
                         </Tag>
-                        {item.effectivePaid && <Tag color='success'>Pago no mês</Tag>}
-                        {item.effectiveDisabled && <Tag>Ignorado</Tag>}
+                        {item.effectivePaid && (
+                          <Tag color='success' style={{ margin: 0 }}>
+                            Pago no mês
+                          </Tag>
+                        )}
+                        {item.effectiveDisabled && (
+                          <Tag style={{ margin: 0 }}>Ignorado</Tag>
+                        )}
                       </ItemTitleRow>
                       <ItemAmount
                         $color={
@@ -335,62 +345,49 @@ export default function ExtraDebts() {
                     </ItemInfo>
 
                     <ItemActions>
-                      <Tooltip
-                        title={
-                          item.effectivePaid
-                            ? 'Desmarcar pagamento neste mês'
-                            : 'Marcar parcela como paga'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        $bg={item.effectivePaid ? '#F8FAFC' : '#F0FDF4'}
+                        $border={item.effectivePaid ? '#CBD5E1' : '#86EFAC'}
+                        $color={item.effectivePaid ? '#475569' : '#15803D'}
+                        onClick={() => handleTogglePaid(item)}
+                        disabled={item.effectiveDisabled}
+                        style={{ flex: 1 }}
                       >
-                        <IconActionBtn
-                          type='button'
-                          $bg='#F0FDF4'
-                          $border='#86EFAC'
-                          $color='#15803D'
-                          onClick={() => handleTogglePaid(item)}
-                          disabled={item.effectiveDisabled}
-                        >
-                          {item.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
-                        </IconActionBtn>
-                      </Tooltip>
+                        {item.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
+                        <span style={{ fontSize: '0.8rem' }}>
+                          {item.effectivePaid ? 'Reabrir' : 'Pagar'}
+                        </span>
+                      </IconActionBtn>
 
-                      <Tooltip
-                        title={
-                          item.effectiveDisabled
-                            ? 'Reativar neste mês'
-                            : 'Ignorar apenas neste mês'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        onClick={() => handleToggleDisabled(item)}
+                        aria-label='Ignorar no mês'
                       >
-                        <IconActionBtn
-                          type='button'
-                          onClick={() => handleToggleDisabled(item)}
-                        >
-                          <StopOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                        <StopOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Editar'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#D97706'
-                          onClick={() => {
-                            setAdding(false);
-                            setEditingId(item.id);
-                          }}
-                        >
-                          <EditOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#D97706'
+                        onClick={() => {
+                          setAdding(false);
+                          setEditingId(item.id);
+                        }}
+                        aria-label='Editar'
+                      >
+                        <EditOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Excluir de todos os meses'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#DC2626'
-                          onClick={() => confirmDelete(item)}
-                        >
-                          <DeleteOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#DC2626'
+                        onClick={() => confirmDelete(item)}
+                        aria-label='Excluir'
+                      >
+                        <DeleteOutlined />
+                      </IconActionBtn>
                     </ItemActions>
                   </ListItemCard>
                 )

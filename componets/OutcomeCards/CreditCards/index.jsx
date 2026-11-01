@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
 import {
   CheckOutlined,
   CloseOutlined,
@@ -7,12 +8,13 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
+  MoreOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
-import { Button, Input, InputNumber, Modal, Tag, Tooltip, message } from 'antd';
+import { Button, Dropdown, Input, InputNumber, Modal, Tag, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import { getSelectedMonth } from '../../../containers/Main/redux/reducer';
@@ -31,17 +33,12 @@ import { formatMonthYear } from '../../../utils/monthUtils';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   HeaderActions,
   IconActionBtn,
   InlineEditorBox,
-  ItemActions,
-  ItemAmount,
-  ItemInfo,
-  ItemName,
   ItemsList,
-  ItemTitleRow,
-  ListItemCard,
   SectionCard,
   SectionHeader,
   SectionSubtitle,
@@ -49,6 +46,132 @@ import {
   SectionTitleGroup,
   TotalBanner,
 } from '../../SharedCardStyles';
+
+const CreditCardTile = styled.div`
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: ${({ $muted }) => ($muted ? '#F8FAFC' : '#FFFFFF')};
+  border: 1px solid ${({ $muted }) => ($muted ? '#E2E8F0' : '#CBD5E1')};
+  opacity: ${({ $muted }) => ($muted ? 0.78 : 1)};
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+`;
+
+const CardTopRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+`;
+
+const CardTitleBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+`;
+
+const CardNameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+`;
+
+const CardNameText = styled.span`
+  font-size: 1rem;
+  font-weight: 800;
+  color: ${({ $strike }) => ($strike ? '#64748B' : '#0F172A')};
+  text-decoration: ${({ $strike }) => ($strike ? 'line-through' : 'none')};
+  word-break: break-word;
+`;
+
+const CardMetaLine = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #64748B;
+`;
+
+const CardTotalValue = styled.div`
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: ${({ $color }) => $color || '#DC2626'};
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+
+const CardActionBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+`;
+
+const PrimaryCardBtn = styled.button`
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid #C7D2FE;
+  background: #EEF2FF;
+  color: #1E295E;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #E0E7FF;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const PayToggleBtn = styled.button`
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid ${({ $paid }) => ($paid ? '#CBD5E1' : '#86EFAC')};
+  background: ${({ $paid }) => ($paid ? '#F8FAFC' : '#F0FDF4')};
+  color: ${({ $paid }) => ($paid ? '#475569' : '#15803D')};
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+`;
 
 function CardFormEditor({
   initialName = '',
@@ -86,7 +209,6 @@ function CardFormEditor({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: Nubank, Inter, Itaú'
-              autoFocus
             />
           </div>
           {!hasDetailedPurchases && (
@@ -107,21 +229,25 @@ function CardFormEditor({
             />
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
             style={{ background: '#1E295E', borderColor: '#1E295E' }}
           >
             Salvar Cartão
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -138,6 +264,7 @@ export default function CreditCards() {
   const [editingCardId, setEditingCardId] = useState(null);
   const [detailCardId, setDetailCardId] = useState(null);
   const [aiImportCardId, setAiImportCardId] = useState(undefined); // undefined = closed, null = any card, string = specific card
+  const [returnToDetailId, setReturnToDetailId] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const cards = [...resolvedCreditCards].reverse();
@@ -246,6 +373,16 @@ export default function CreditCards() {
     });
   };
 
+  const openAiImportForCard = (cardIdOrNull, fromDetailModal = false) => {
+    if (fromDetailModal && cardIdOrNull) {
+      setReturnToDetailId(cardIdOrNull);
+      setDetailCardId(null);
+    } else {
+      setReturnToDetailId(null);
+    }
+    setAiImportCardId(cardIdOrNull);
+  };
+
   return (
     <SectionCard>
       <SectionHeader>
@@ -255,17 +392,17 @@ export default function CreditCards() {
             Cartões de Crédito
           </SectionTitle>
           <SectionSubtitle>
-            Detalhe compras parceladas ou anexe a fatura para leitura automática com IA
+            Cadastre parcelas ou envie o PDF/foto da fatura para leitura automática
           </SectionSubtitle>
         </SectionTitleGroup>
 
         <HeaderActions>
           <Button
             icon={<CloudUploadOutlined />}
-            onClick={() => setAiImportCardId(null)}
-            style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 600 }}
+            onClick={() => openAiImportForCard(null, false)}
+            style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 700 }}
           >
-            Anexar Fatura (IA)
+            Ler Fatura (IA)
           </Button>
           <Button
             type='primary'
@@ -293,21 +430,21 @@ export default function CreditCards() {
       {cards.length === 0 && !addingCard ? (
         <EmptyBox>
           <span>Nenhum cartão de crédito cadastrado.</span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
             <Button
               type='primary'
               danger
               icon={<PlusOutlined />}
               onClick={() => setAddingCard(true)}
             >
-              Criar cartão manualmente
+              Criar cartão
             </Button>
             <Button
               icon={<CloudUploadOutlined />}
-              onClick={() => setAiImportCardId(null)}
-              style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 600 }}
+              onClick={() => openAiImportForCard(null, false)}
+              style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 700 }}
             >
-              Anexar fatura PDF/Foto (IA)
+              Ler fatura PDF/Foto (IA)
             </Button>
           </div>
         </EmptyBox>
@@ -315,54 +452,106 @@ export default function CreditCards() {
         cards.length > 0 && (
           <>
             <TotalBanner $variant='danger'>
-              <span>Total de faturas pendentes no mês:</span>
+              <span>Faturas pendentes no mês:</span>
               <span>{formatBRL(pendingTotal)}</span>
             </TotalBanner>
 
             <ItemsList>
-              {cards.map((card) =>
-                editingCardId === card.id ? (
-                  <CardFormEditor
-                    key={card.id}
-                    initialName={card.name}
-                    initialManualValue={card.effectiveValue}
-                    initialDueDay={card.due_day}
-                    hasDetailedPurchases={card.hasDetailedPurchases}
-                    onSave={(vals) => handleUpdateCard(card, vals)}
-                    onCancel={() => setEditingCardId(null)}
-                    saving={saving}
-                  />
-                ) : (
-                  <ListItemCard
+              {cards.map((card) => {
+                if (editingCardId === card.id) {
+                  return (
+                    <CardFormEditor
+                      key={card.id}
+                      initialName={card.name}
+                      initialManualValue={card.effectiveValue}
+                      initialDueDay={card.due_day}
+                      hasDetailedPurchases={card.hasDetailedPurchases}
+                      onSave={(vals) => handleUpdateCard(card, vals)}
+                      onCancel={() => setEditingCardId(null)}
+                      saving={saving}
+                    />
+                  );
+                }
+
+                const moreMenuItems = [
+                  {
+                    key: 'edit',
+                    icon: <EditOutlined />,
+                    label: 'Editar nome / vencimento',
+                    onClick: () => {
+                      setAddingCard(false);
+                      setEditingCardId(card.id);
+                    },
+                  },
+                  {
+                    key: 'disable',
+                    icon: <StopOutlined />,
+                    label: card.effectiveDisabled
+                      ? 'Reativar fatura neste mês'
+                      : 'Ignorar fatura neste mês',
+                    onClick: () => handleToggleDisabled(card),
+                  },
+                  {
+                    type: 'divider',
+                  },
+                  {
+                    key: 'delete',
+                    icon: <DeleteOutlined />,
+                    danger: true,
+                    label: 'Excluir cartão',
+                    onClick: () => confirmDelete(card),
+                  },
+                ];
+
+                return (
+                  <CreditCardTile
                     key={card.id}
                     $muted={card.effectivePaid || card.effectiveDisabled}
                   >
-                    <ItemInfo>
-                      <ItemTitleRow>
-                        <ItemName
-                          $strike={card.effectivePaid || card.effectiveDisabled}
-                        >
-                          {card.name}
-                        </ItemName>
-                        {card.due_day && (
-                          <Tag color='blue'>Vence dia {card.due_day}</Tag>
-                        )}
-                        {card.purchases.length > 0 && (
-                          <Tag color='purple'>
-                            {card.purchases.length}{' '}
-                            {card.purchases.length === 1 ? 'item' : 'itens'}
-                          </Tag>
-                        )}
-                        {card.installmentsTotal > 0 && (
-                          <Tag color='geekblue'>
-                            {formatBRL(card.installmentsTotal)} parcelado
-                          </Tag>
-                        )}
-                        {card.effectivePaid && <Tag color='success'>Fatura Paga</Tag>}
-                        {card.effectiveDisabled && <Tag>Ignorado no mês</Tag>}
-                      </ItemTitleRow>
+                    <CardTopRow onClick={() => setDetailCardId(card.id)}>
+                      <CardTitleBlock>
+                        <CardNameRow>
+                          <CardNameText
+                            $strike={card.effectivePaid || card.effectiveDisabled}
+                          >
+                            {card.name}
+                          </CardNameText>
+                          {card.due_day && (
+                            <Tag color='blue' style={{ margin: 0 }}>
+                              Dia {card.due_day}
+                            </Tag>
+                          )}
+                          {card.effectivePaid && (
+                            <Tag color='success' style={{ margin: 0 }}>
+                              Paga
+                            </Tag>
+                          )}
+                          {card.effectiveDisabled && (
+                            <Tag style={{ margin: 0 }}>Ignorada</Tag>
+                          )}
+                        </CardNameRow>
 
-                      <ItemAmount
+                        {(card.purchases.length > 0 || card.installmentsTotal > 0) && (
+                          <CardMetaLine>
+                            {card.purchases.length > 0 && (
+                              <span>
+                                {card.purchases.length}{' '}
+                                {card.purchases.length === 1 ? 'item' : 'itens'}
+                              </span>
+                            )}
+                            {card.purchases.length > 0 && card.installmentsTotal > 0 && (
+                              <span>•</span>
+                            )}
+                            {card.installmentsTotal > 0 && (
+                              <span style={{ color: '#4F46E5', fontWeight: 600 }}>
+                                {formatBRL(card.installmentsTotal)} parcelado
+                              </span>
+                            )}
+                          </CardMetaLine>
+                        )}
+                      </CardTitleBlock>
+
+                      <CardTotalValue
                         $color={
                           card.effectivePaid || card.effectiveDisabled
                             ? '#64748B'
@@ -370,92 +559,56 @@ export default function CreditCards() {
                         }
                       >
                         {formatBRL(card.effectiveValue)}
-                      </ItemAmount>
-                    </ItemInfo>
+                      </CardTotalValue>
+                    </CardTopRow>
 
-                    <ItemActions>
-                      <Button
-                        size='small'
-                        type='primary'
-                        ghost
-                        icon={<UnorderedListOutlined />}
+                    <CardActionBar>
+                      <PrimaryCardBtn
+                        type='button'
                         onClick={() => setDetailCardId(card.id)}
                       >
-                        Fatura
-                      </Button>
+                        <UnorderedListOutlined />
+                        <span>Ver Fatura</span>
+                      </PrimaryCardBtn>
 
-                      <Tooltip title='Anexar fatura PDF/Imagem neste cartão'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#4F46E5'
-                          $border='#C7D2FE'
-                          $bg='#EEF2FF'
-                          onClick={() => setAiImportCardId(card.id)}
-                        >
-                          <CloudUploadOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <PayToggleBtn
+                        type='button'
+                        $paid={card.effectivePaid}
+                        onClick={() => handleTogglePaid(card)}
+                        disabled={card.effectiveDisabled}
+                      >
+                        {card.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
+                        <span>{card.effectivePaid ? 'Reabrir' : 'Pagar'}</span>
+                      </PayToggleBtn>
 
-                      <Tooltip
-                        title={
-                          card.effectivePaid
-                            ? 'Reabrir fatura neste mês'
-                            : 'Confirmar pagamento da fatura neste mês'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        $color='#4F46E5'
+                        $border='#C7D2FE'
+                        $bg='#EEF2FF'
+                        onClick={() => openAiImportForCard(card.id, false)}
+                        aria-label='Importar fatura com IA'
+                      >
+                        <CloudUploadOutlined />
+                        <span style={{ fontSize: '0.78rem' }}>IA</span>
+                      </IconActionBtn>
+
+                      <Dropdown
+                        menu={{ items: moreMenuItems }}
+                        trigger={['click']}
+                        placement='bottomRight'
                       >
                         <IconActionBtn
                           type='button'
-                          $bg='#F0FDF4'
-                          $border='#86EFAC'
-                          $color='#15803D'
-                          onClick={() => handleTogglePaid(card)}
-                          disabled={card.effectiveDisabled}
+                          aria-label='Mais opções do cartão'
                         >
-                          {card.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
+                          <MoreOutlined style={{ fontSize: '1.1rem' }} />
                         </IconActionBtn>
-                      </Tooltip>
-
-                      <Tooltip
-                        title={
-                          card.effectiveDisabled
-                            ? 'Reativar neste mês'
-                            : 'Ignorar neste mês'
-                        }
-                      >
-                        <IconActionBtn
-                          type='button'
-                          onClick={() => handleToggleDisabled(card)}
-                        >
-                          <StopOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
-
-                      <Tooltip title='Editar cartão'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#D97706'
-                          onClick={() => {
-                            setAddingCard(false);
-                            setEditingCardId(card.id);
-                          }}
-                        >
-                          <EditOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
-
-                      <Tooltip title='Excluir cartão'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#DC2626'
-                          onClick={() => confirmDelete(card)}
-                        >
-                          <DeleteOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
-                    </ItemActions>
-                  </ListItemCard>
-                )
-              )}
+                      </Dropdown>
+                    </CardActionBar>
+                  </CreditCardTile>
+                );
+              })}
             </ItemsList>
           </>
         )
@@ -466,15 +619,23 @@ export default function CreditCards() {
         onClose={() => setDetailCardId(null)}
         cardId={detailCardId}
         selectedMonth={selectedMonth}
-        onOpenAiImport={(cId) => setAiImportCardId(cId)}
+        onOpenAiImport={(cId) => openAiImportForCard(cId, true)}
       />
 
       <AiInvoiceImportModal
         open={aiImportCardId !== undefined}
-        onClose={() => setAiImportCardId(undefined)}
+        onClose={() => {
+          setAiImportCardId(undefined);
+          if (returnToDetailId) {
+            setDetailCardId(returnToDetailId);
+            setReturnToDetailId(null);
+          }
+        }}
         preselectedCardId={aiImportCardId}
         selectedMonth={selectedMonth}
         onImported={(importedCardId) => {
+          setReturnToDetailId(null);
+          setAiImportCardId(undefined);
           setDetailCardId(importedCardId);
         }}
       />

@@ -7,12 +7,13 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   ExportOutlined,
+  MoreOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
   UserAddOutlined,
 } from '@ant-design/icons';
-import { Button, Input, InputNumber, Modal, Tag, Tooltip, message } from 'antd';
+import { Button, Dropdown, Input, InputNumber, Modal, Tag, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import { getSelectedMonth, getUserInfo } from '../../../containers/Main/redux/reducer';
@@ -34,6 +35,7 @@ import { formatMonthYear } from '../../../utils/monthUtils';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   HeaderActions,
   IconActionBtn,
@@ -62,34 +64,55 @@ const DebtorBox = styled.div`
 `;
 
 const DebtorTopBar = styled.div`
-  padding: 12px 14px;
+  padding: 12px;
   background: #EEF2FF;
   border-bottom: 1px solid #E0E7FF;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
+
+  @media (min-width: 560px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 `;
 
-const DebtorTitleArea = styled.div`
+const DebtorHeaderRow = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  flex-wrap: wrap;
+  min-width: 0;
 `;
 
 const DebtorName = styled.span`
   font-size: 1rem;
   font-weight: 800;
   color: #1E295E;
+  word-break: break-word;
+`;
+
+const DebtorActionsBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+
+  @media (min-width: 560px) {
+    width: auto;
+  }
 `;
 
 const DebtorBody = styled.div`
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  @media (min-width: 560px) {
+    padding: 12px;
+  }
 `;
 
 function DebtorNameEditor({ initialName = '', initialPhone = '', onSave, onCancel, saving }) {
@@ -115,7 +138,6 @@ function DebtorNameEditor({ initialName = '', initialPhone = '', onSave, onCance
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: Cunhado, João, Irmã'
-              autoFocus
             />
           </div>
           <div>
@@ -127,20 +149,24 @@ function DebtorNameEditor({ initialName = '', initialPhone = '', onSave, onCance
             />
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
           >
             Salvar
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -188,7 +214,6 @@ function DebtorDebtEditor({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: Compra no cartão, Empréstimo'
-              autoFocus
             />
           </div>
           <div>
@@ -220,21 +245,25 @@ function DebtorDebtEditor({
             </div>
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
             style={{ background: '#16A34A', borderColor: '#16A34A' }}
           >
             Salvar Débito
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -384,7 +413,7 @@ export default function Debtors() {
       title: `Excluir o débito "${debt.name}"?`,
       icon: <ExclamationCircleOutlined />,
       content:
-        'Para marcar apenas a parcela deste mês como paga, clique no botão verde de check. Excluir removerá o débito de todos os meses.',
+        'Para marcar apenas a parcela deste mês como paga, toque em Receber. Excluir removerá o débito de todos os meses.',
       okText: 'Excluir',
       okType: 'danger',
       cancelText: 'Cancelar',
@@ -401,7 +430,7 @@ export default function Debtors() {
         <SectionTitleGroup>
           <SectionTitle>Devedores</SectionTitle>
           <SectionSubtitle>
-            Pessoas que te devem em {formatMonthYear(selectedMonth)} — exporte o extrato em 1 clique
+            Pessoas que te devem em {formatMonthYear(selectedMonth)}
           </SectionSubtitle>
         </SectionTitleGroup>
         <HeaderActions>
@@ -444,7 +473,7 @@ export default function Debtors() {
         reversedDebtors.length > 0 && (
           <>
             <TotalBanner>
-              <span>Total a receber de devedores no mês:</span>
+              <span>A receber de devedores:</span>
               <span>{formatBRL(totalPendingAllDebtors)}</span>
             </TotalBanner>
 
@@ -462,6 +491,25 @@ export default function Debtors() {
                   0
                 );
 
+                const debtorMenu = [
+                  {
+                    key: 'edit',
+                    icon: <EditOutlined />,
+                    label: 'Editar nome / WhatsApp',
+                    onClick: () => setEditingDebtorId(debtor.id),
+                  },
+                  {
+                    type: 'divider',
+                  },
+                  {
+                    key: 'delete',
+                    icon: <DeleteOutlined />,
+                    danger: true,
+                    label: 'Excluir devedor',
+                    onClick: () => confirmDeleteDebtor(debtor),
+                  },
+                ];
+
                 return (
                   <DebtorBox key={debtor.id}>
                     <DebtorTopBar>
@@ -475,56 +523,53 @@ export default function Debtors() {
                         />
                       ) : (
                         <>
-                          <DebtorTitleArea>
+                          <DebtorHeaderRow>
                             <DebtorName>{debtor.name}</DebtorName>
-                            <Tag color='green' style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                            <Tag color='green' style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem' }}>
                               {formatBRL(debtorPendingSum)}
                             </Tag>
-                          </DebtorTitleArea>
+                          </DebtorHeaderRow>
 
-                          <HeaderActions>
-                            <Tooltip title='Exportar extrato do mês (WhatsApp / PDF / Imagem)'>
-                              <Button
-                                size='small'
-                                type='primary'
-                                ghost
-                                icon={<ExportOutlined />}
-                                onClick={() => setExportingDebtor(debtor)}
-                              >
-                                Exportar Mês
-                              </Button>
-                            </Tooltip>
+                          <DebtorActionsBar>
+                            <Button
+                              type='primary'
+                              ghost
+                              icon={<ExportOutlined />}
+                              onClick={() => setExportingDebtor(debtor)}
+                              style={{ flex: 1, minHeight: 38, fontWeight: 600 }}
+                            >
+                              Exportar
+                            </Button>
 
                             <Button
-                              size='small'
                               type='primary'
                               icon={<PlusOutlined />}
                               onClick={() => setAddingDebtForDebtor(debtor.id)}
-                              style={{ background: '#4F46E5', borderColor: '#4F46E5' }}
+                              style={{
+                                flex: 1,
+                                minHeight: 38,
+                                fontWeight: 600,
+                                background: '#4F46E5',
+                                borderColor: '#4F46E5',
+                              }}
                             >
                               Débito
                             </Button>
 
-                            <Tooltip title='Editar nome / telefone'>
+                            <Dropdown
+                              menu={{ items: debtorMenu }}
+                              trigger={['click']}
+                              placement='bottomRight'
+                            >
                               <IconActionBtn
                                 type='button'
-                                $color='#D97706'
-                                onClick={() => setEditingDebtorId(debtor.id)}
+                                $bg='#FFFFFF'
+                                aria-label='Opções do devedor'
                               >
-                                <EditOutlined />
+                                <MoreOutlined style={{ fontSize: '1.1rem' }} />
                               </IconActionBtn>
-                            </Tooltip>
-
-                            <Tooltip title='Excluir devedor'>
-                              <IconActionBtn
-                                type='button'
-                                $color='#DC2626'
-                                onClick={() => confirmDeleteDebtor(debtor)}
-                              >
-                                <DeleteOutlined />
-                              </IconActionBtn>
-                            </Tooltip>
-                          </HeaderActions>
+                            </Dropdown>
+                          </DebtorActionsBar>
                         </>
                       )}
                     </DebtorTopBar>
@@ -578,14 +623,17 @@ export default function Debtors() {
                                     >
                                       {debt.name}
                                     </ItemName>
-                                    <Tag color='geekblue'>
-                                      Parcela {debt.currentInstallment} de{' '}
-                                      {debt.totalInstallments}
+                                    <Tag color='geekblue' style={{ margin: 0 }}>
+                                      {debt.currentInstallment}/{debt.totalInstallments}
                                     </Tag>
                                     {debt.effectivePaid && (
-                                      <Tag color='success'>Pago no mês</Tag>
+                                      <Tag color='success' style={{ margin: 0 }}>
+                                        Pago
+                                      </Tag>
                                     )}
-                                    {debt.effectiveDisabled && <Tag>Pausado</Tag>}
+                                    {debt.effectiveDisabled && (
+                                      <Tag style={{ margin: 0 }}>Pausado</Tag>
+                                    )}
                                   </ItemTitleRow>
                                   <ItemAmount
                                     $color={
@@ -599,63 +647,50 @@ export default function Debtors() {
                                 </ItemInfo>
 
                                 <ItemActions>
-                                  <Tooltip
-                                    title={
-                                      debt.effectivePaid
-                                        ? 'Desmarcar pagamento neste mês'
-                                        : 'Confirmar pagamento desta parcela'
-                                    }
+                                  <IconActionBtn
+                                    type='button'
+                                    $bg={debt.effectivePaid ? '#F8FAFC' : '#F0FDF4'}
+                                    $border={debt.effectivePaid ? '#CBD5E1' : '#86EFAC'}
+                                    $color={debt.effectivePaid ? '#475569' : '#15803D'}
+                                    onClick={() => handleToggleDebtPaid(debt)}
+                                    disabled={debt.effectiveDisabled}
+                                    style={{ flex: 1 }}
                                   >
-                                    <IconActionBtn
-                                      type='button'
-                                      $bg='#F0FDF4'
-                                      $border='#86EFAC'
-                                      $color='#15803D'
-                                      onClick={() => handleToggleDebtPaid(debt)}
-                                      disabled={debt.effectiveDisabled}
-                                    >
-                                      {debt.effectivePaid ? (
-                                        <UndoOutlined />
-                                      ) : (
-                                        <CheckOutlined />
-                                      )}
-                                    </IconActionBtn>
-                                  </Tooltip>
+                                    {debt.effectivePaid ? (
+                                      <UndoOutlined />
+                                    ) : (
+                                      <CheckOutlined />
+                                    )}
+                                    <span style={{ fontSize: '0.8rem' }}>
+                                      {debt.effectivePaid ? 'Reabrir' : 'Receber'}
+                                    </span>
+                                  </IconActionBtn>
 
-                                  <Tooltip
-                                    title={
-                                      debt.effectiveDisabled
-                                        ? 'Reativar neste mês'
-                                        : 'Ignorar apenas neste mês'
-                                    }
+                                  <IconActionBtn
+                                    type='button'
+                                    onClick={() => handleToggleDebtDisabled(debt)}
+                                    aria-label='Pausar neste mês'
                                   >
-                                    <IconActionBtn
-                                      type='button'
-                                      onClick={() => handleToggleDebtDisabled(debt)}
-                                    >
-                                      <StopOutlined />
-                                    </IconActionBtn>
-                                  </Tooltip>
+                                    <StopOutlined />
+                                  </IconActionBtn>
 
-                                  <Tooltip title='Editar'>
-                                    <IconActionBtn
-                                      type='button'
-                                      $color='#D97706'
-                                      onClick={() => setEditingDebtId(debt.id)}
-                                    >
-                                      <EditOutlined />
-                                    </IconActionBtn>
-                                  </Tooltip>
+                                  <IconActionBtn
+                                    type='button'
+                                    $color='#D97706'
+                                    onClick={() => setEditingDebtId(debt.id)}
+                                    aria-label='Editar débito'
+                                  >
+                                    <EditOutlined />
+                                  </IconActionBtn>
 
-                                  <Tooltip title='Excluir débito'>
-                                    <IconActionBtn
-                                      type='button'
-                                      $color='#DC2626'
-                                      onClick={() => confirmDeleteDebt(debt)}
-                                    >
-                                      <DeleteOutlined />
-                                    </IconActionBtn>
-                                  </Tooltip>
+                                  <IconActionBtn
+                                    type='button'
+                                    $color='#DC2626'
+                                    onClick={() => confirmDeleteDebt(debt)}
+                                    aria-label='Excluir débito'
+                                  >
+                                    <DeleteOutlined />
+                                  </IconActionBtn>
                                 </ItemActions>
                               </ListItemCard>
                             )

@@ -65,8 +65,12 @@ const MetricAmount = styled.span`
 
 const BottomPills = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const SummaryPill = styled.div`
@@ -79,6 +83,15 @@ const SummaryPill = styled.div`
   background: ${({ $bg }) => $bg || '#F8FAFC'};
   border: 1px solid ${({ $border }) => $border || '#E2E8F0'};
   text-align: center;
+
+  ${({ $fullMobile }) =>
+    $fullMobile
+      ? `
+    @media (max-width: 520px) {
+      grid-column: 1 / -1;
+    }
+  `
+      : ''}
 `;
 
 const PillTitle = styled.span`
@@ -190,7 +203,7 @@ export default function MainInfo() {
         </SummaryPill>
 
         {alertCount > 0 && (
-          <SummaryPill $bg='#FFFBEB' $border='#FDE68A'>
+          <SummaryPill $bg='#FFFBEB' $border='#FDE68A' $fullMobile>
             <PillTitle $color='#B45309'>
               <WarningOutlined /> {alertCount} {alertCount > 1 ? 'Alertas' : 'Alerta'}
             </PillTitle>

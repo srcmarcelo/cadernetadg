@@ -199,8 +199,11 @@ export default function DebtorExportModal({
       onCancel={onClose}
       footer={null}
       width={620}
-      title={`Exportar Débitos — ${debtor.name} (${report.monthLabel})`}
-      centered
+      title={
+        <span style={{ paddingRight: 20, display: 'inline-block' }}>
+          Extrato • {debtor.name} ({report.monthLabel})
+        </span>
+      }
     >
       <div style={{ marginBottom: 10 }}>
         <Checkbox
@@ -218,7 +221,7 @@ export default function DebtorExportModal({
             key: 'card',
             label: (
               <span>
-                <FileImageOutlined /> Extrato Visual (PDF / Imagem)
+                <FileImageOutlined /> Imagem / PDF
               </span>
             ),
             children: (
@@ -239,7 +242,7 @@ export default function DebtorExportModal({
             key: 'whatsapp',
             label: (
               <span>
-                <WhatsAppOutlined /> Texto para WhatsApp
+                <WhatsAppOutlined /> Texto WhatsApp
               </span>
             ),
             children: <TextPreview>{whatsappText}</TextPreview>,

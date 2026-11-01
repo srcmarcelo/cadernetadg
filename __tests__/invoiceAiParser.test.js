@@ -3,6 +3,7 @@ import handler from '../pages/api/parse-invoice';
 import {
   buildOpenAiFileContentBlocks,
   DEFAULT_OPENAI_INVOICE_MODEL,
+  detectInvoiceFileKind,
   normalizeExtractedInvoice,
 } from '../services/invoiceAiParser';
 
@@ -32,15 +33,65 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     expect(DEFAULT_OPENAI_INVOICE_MODEL).toBe('gpt-6-luna');
   });
 
-  it('builds proper multimodal OpenAI content blocks for PDF, images, and CSV text', () => {
+  it('detects PDF and image files via magic bytes even when Android/iOS omits extension and MIME type', () => {
+    // Android content:// URI without .pdf extension and application/octet-stream
+    const pdfBuf = Buffer.from('%PDF-1.7\n1 0 obj\n<<>>\nendobj', 'utf8');
+    expect(
+      detectInvoiceFileKind({
+        filename: 'msf:1000034219',
+        mimeType: 'application/octet-stream',
+        buffer: pdfBuf,
+      })
+    ).toEqual({ kind: 'pdf', mime: 'application/pdf' });
+
+    // PNG magic bytes without extension
+    const pngBuf = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+    expect(
+      detectInvoiceFileKind({
+        filename: 'document_9912',
+        mimeType: '',
+        buffer: pngBuf,
+      })
+    ).toEqual({ kind: 'image', mime: 'image/png' });
+
+    // JPEG magic bytes without extension
+    const jpgBuf = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1]);
+    expect(
+      detectInvoiceFileKind({
+        filename: 'photo_picker_1',
+        mimeType: 'application/octet-stream',
+        buffer: jpgBuf,
+      })
+    ).toEqual({ kind: 'image', mime: 'image/jpeg' });
+  });
+
+  it('builds proper multimodal OpenAI content blocks for scanned PDF, digital PDF text, images, and CSV', () => {
+    // Scanned PDF (no extracted text) -> multimodal file block even with Android opaque filename
+    const pdfBase64 = Buffer.from('%PDF-1.4\n%scanned', 'utf8').toString('base64');
     const pdfBlocks = buildOpenAiFileContentBlocks({
-      filename: 'fatura-nubank.pdf',
-      mimeType: 'application/pdf',
-      base64Data: 'data:application/pdf;base64,JVBERi0xLjQK',
+      filename: 'msf:1000034219',
+      mimeType: 'application/octet-stream',
+      base64Data: pdfBase64,
       targetMonth: '2026-11',
+      extractedPdfText: '',
     });
     expect(pdfBlocks[0].type).toBe('file');
-    expect(pdfBlocks[0].file.file_data).toBe('data:application/pdf;base64,JVBERi0xLjQK');
+    expect(pdfBlocks[0].file.filename).toBe('msf:1000034219.pdf');
+    expect(pdfBlocks[0].file.file_data).toBe(`data:application/pdf;base64,${pdfBase64}`);
+
+    // Digital PDF (with extracted text >= 160 chars) -> fast low-token text block
+    const richPdfText =
+      '--- PÁGINA 1 ---\nNubank Fatura Novembro 2026 Vencimento 09 NOV 2026 Total a pagar R$ 2.642,89\n01 OUT Jim.Com* Evodia Camil - Parcela 6/10 R$ 111,06\n05 OUT Mercado Livre - Parcela 2/6 R$ 85,00';
+    const fastPdfBlocks = buildOpenAiFileContentBlocks({
+      filename: 'Nubank_2026-11-09.pdf',
+      mimeType: 'application/pdf',
+      base64Data: pdfBase64,
+      targetMonth: '2026-11',
+      extractedPdfText: richPdfText,
+    });
+    expect(fastPdfBlocks).toHaveLength(1);
+    expect(fastPdfBlocks[0].type).toBe('text');
+    expect(fastPdfBlocks[0].text).toContain('R$ 2.642,89');
 
     const imgBlocks = buildOpenAiFileContentBlocks({
       filename: 'print_fatura.png',
@@ -66,8 +117,8 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     const rawAiOutput = {
       card_name: 'Nubank',
       reference_month: '2026-11',
-      due_day: 12,
-      closing_day: 5,
+      due_day: 9,
+      closing_day: 2,
       invoice_total: 460.0,
       items: [
         {
@@ -103,7 +154,7 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     const normalized = normalizeExtractedInvoice(rawAiOutput, '2026-11');
     expect(normalized.card_name).toBe('Nubank');
     expect(normalized.reference_month).toBe('2026-11');
-    expect(normalized.due_day).toBe(12);
+    expect(normalized.due_day).toBe(9);
     expect(normalized.items).toHaveLength(3);
 
     // Installment 4/10 in 2026-11 MUST have start_month = 2026-08 so future months 5..10 project automatically!
@@ -121,7 +172,7 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     expect(normalized.residual_difference).toBe(323);
   });
 
-  it('validates method, auth token, and processes mocked OpenAI gpt-6-luna response in /api/parse-invoice', async () => {
+  it('validates method, auth token, reasoning_effort: none, and processes mocked OpenAI gpt-6-luna response in /api/parse-invoice', async () => {
     // 1. Reject GET with 405
     const getCall = createMockReqRes({ method: 'GET' });
     await handler(getCall.req, getCall.res);
@@ -132,7 +183,7 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     await handler(noAuthCall.req, noAuthCall.res);
     expect(noAuthCall.res.statusCode).toBe(401);
 
-    // 3. Test authenticated request (with Supabase URL temporarily unset for unit isolation)
+    // 3. Test authenticated request with gpt-6-luna fast reasoning_effort: 'none'
     const prevUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const prevKey = process.env.OPENAI_API_KEY;
     const prevModel = process.env.OPENAI_MODEL;
@@ -141,35 +192,37 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
     process.env.OPENAI_API_KEY = 'sk-test-dummy-key';
     delete process.env.OPENAI_MODEL;
 
+    const mockOpenAiPayload = {
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              card_name: 'Nubank',
+              reference_month: '2026-11',
+              due_day: 9,
+              closing_day: 2,
+              invoice_total: 200,
+              items: [
+                {
+                  name: 'Amazon',
+                  purchase_date: '10/10',
+                  amount: 200,
+                  current_installment: 2,
+                  total_installments: 5,
+                  category: 'Compras',
+                  is_recurring_hint: false,
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    };
+
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                card_name: 'Inter',
-                reference_month: '2026-11',
-                due_day: 10,
-                closing_day: 3,
-                invoice_total: 200,
-                items: [
-                  {
-                    name: 'Amazon',
-                    purchase_date: '10/10',
-                    amount: 200,
-                    current_installment: 2,
-                    total_installments: 5,
-                    category: 'Compras',
-                    is_recurring_hint: false,
-                  },
-                ],
-              }),
-            },
-          },
-        ],
-      }),
+      text: async () => JSON.stringify(mockOpenAiPayload),
     });
 
     try {
@@ -177,9 +230,9 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
         method: 'POST',
         headers: { authorization: 'Bearer test-jwt-token' },
         body: {
-          filename: 'fatura-inter.pdf',
-          mimeType: 'application/pdf',
-          base64Data: 'JVBERi0xLjQK',
+          filename: 'msf:1000034219',
+          mimeType: 'application/octet-stream',
+          base64Data: Buffer.from('%PDF-1.4\n%test', 'utf8').toString('base64'),
           targetMonth: '2026-11',
         },
       });
@@ -187,9 +240,13 @@ describe('AI Credit Card Invoice Extraction (gpt-6-luna)', () => {
       await handler(okCall.req, okCall.res);
       expect(okCall.res.statusCode).toBe(200);
       expect(okCall.res.jsonPayload.model).toBe('gpt-6-luna');
-      expect(okCall.res.jsonPayload.invoice.card_name).toBe('Inter');
+      expect(okCall.res.jsonPayload.invoice.card_name).toBe('Nubank');
       expect(okCall.res.jsonPayload.invoice.items[0].start_month).toBe('2026-10');
       expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+      const sentBody = JSON.parse(fetchSpy.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gpt-6-luna');
+      expect(sentBody.reasoning_effort).toBe('none');
     } finally {
       process.env.NEXT_PUBLIC_SUPABASE_URL = prevUrl;
       process.env.OPENAI_API_KEY = prevKey;

@@ -9,7 +9,7 @@ import {
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Modal, Tag, Tooltip, message } from 'antd';
+import { Button, Input, Modal, Tag, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import { getSelectedMonth } from '../../../containers/Main/redux/reducer';
@@ -25,6 +25,7 @@ import { formatMonthYear } from '../../../utils/monthUtils';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   HeaderActions,
   IconActionBtn,
@@ -71,7 +72,6 @@ function ExtraReceiptEditor({ initialName = '', initialValue = 0, onSave, onCanc
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder='Ex: 13º Salário, Freelance, Venda'
-              autoFocus
             />
           </div>
           <div>
@@ -79,21 +79,25 @@ function ExtraReceiptEditor({ initialName = '', initialValue = 0, onSave, onCanc
             <CurrencyInput value={value} onChange={setValue} compact />
           </div>
         </FormRow>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
             style={{ background: '#16A34A', borderColor: '#16A34A' }}
           >
             Salvar
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -218,7 +222,7 @@ export default function ExtraReceipts() {
             disabled={adding}
             style={{ background: '#16A34A', borderColor: '#16A34A' }}
           >
-            Adicionar
+            Novo Ganho Extra
           </Button>
         </HeaderActions>
       </SectionHeader>
@@ -233,7 +237,7 @@ export default function ExtraReceipts() {
 
       {items.length === 0 && !adding ? (
         <EmptyBox>
-          <span>Nenhum ganho extra cadastrado em {formatMonthYear(selectedMonth)}.</span>
+          <span>Nenhum ganho extra em {formatMonthYear(selectedMonth)}.</span>
           <Button
             type='primary'
             icon={<PlusOutlined />}
@@ -247,7 +251,7 @@ export default function ExtraReceipts() {
         items.length > 0 && (
           <>
             <TotalBanner className='extraReceiptsTotal'>
-              <span>Extras a receber neste mês:</span>
+              <span>Extras a receber no mês:</span>
               <span>{formatBRL(pendingTotal)}</span>
             </TotalBanner>
             <ItemsList>
@@ -273,8 +277,14 @@ export default function ExtraReceipts() {
                         >
                           {item.name}
                         </ItemName>
-                        {item.effectiveReceived && <Tag color='success'>Recebido</Tag>}
-                        {item.effectiveDisabled && <Tag>Ignorado</Tag>}
+                        {item.effectiveReceived && (
+                          <Tag color='success' style={{ margin: 0 }}>
+                            Recebido
+                          </Tag>
+                        )}
+                        {item.effectiveDisabled && (
+                          <Tag style={{ margin: 0 }}>Ignorado</Tag>
+                        )}
                       </ItemTitleRow>
                       <ItemAmount
                         $color={
@@ -288,58 +298,49 @@ export default function ExtraReceipts() {
                     </ItemInfo>
 
                     <ItemActions>
-                      <Tooltip
-                        title={
-                          item.effectiveReceived
-                            ? 'Marcar como pendente'
-                            : 'Confirmar recebimento'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        $bg={item.effectiveReceived ? '#F8FAFC' : '#F0FDF4'}
+                        $border={item.effectiveReceived ? '#CBD5E1' : '#86EFAC'}
+                        $color={item.effectiveReceived ? '#475569' : '#15803D'}
+                        onClick={() => handleToggleReceived(item)}
+                        disabled={item.effectiveDisabled}
+                        style={{ flex: 1 }}
                       >
-                        <IconActionBtn
-                          type='button'
-                          $bg='#F0FDF4'
-                          $border='#86EFAC'
-                          $color='#15803D'
-                          onClick={() => handleToggleReceived(item)}
-                          disabled={item.effectiveDisabled}
-                        >
-                          {item.effectiveReceived ? <UndoOutlined /> : <CheckOutlined />}
-                        </IconActionBtn>
-                      </Tooltip>
+                        {item.effectiveReceived ? <UndoOutlined /> : <CheckOutlined />}
+                        <span style={{ fontSize: '0.8rem' }}>
+                          {item.effectiveReceived ? 'Reabrir' : 'Receber'}
+                        </span>
+                      </IconActionBtn>
 
-                      <Tooltip
-                        title={item.effectiveDisabled ? 'Reativar' : 'Pausar'}
+                      <IconActionBtn
+                        type='button'
+                        onClick={() => handleToggleDisabled(item)}
+                        aria-label='Pausar'
                       >
-                        <IconActionBtn
-                          type='button'
-                          onClick={() => handleToggleDisabled(item)}
-                        >
-                          <StopOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                        <StopOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Editar'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#D97706'
-                          onClick={() => {
-                            setAdding(false);
-                            setEditingId(item.id);
-                          }}
-                        >
-                          <EditOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#D97706'
+                        onClick={() => {
+                          setAdding(false);
+                          setEditingId(item.id);
+                        }}
+                        aria-label='Editar'
+                      >
+                        <EditOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Excluir'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#DC2626'
-                          onClick={() => confirmDelete(item)}
-                        >
-                          <DeleteOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#DC2626'
+                        onClick={() => confirmDelete(item)}
+                        aria-label='Excluir'
+                      >
+                        <DeleteOutlined />
+                      </IconActionBtn>
                     </ItemActions>
                   </ListItemCard>
                 )

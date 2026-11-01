@@ -10,36 +10,44 @@ const NavWrapper = styled.div`
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 6px;
-  margin-bottom: 14px;
-  background: #FFFFFF;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
   border-radius: 14px;
   border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+  position: sticky;
+  top: 6px;
+  z-index: 25;
 `;
 
 const TabButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   height: 42px;
   border-radius: 10px;
   border: none;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.16s ease, color 0.16s ease;
   color: ${({ $selected, $color }) => ($selected ? '#FFFFFF' : $color)};
   background: ${({ $selected, $color }) =>
     $selected ? $color : 'transparent'};
   box-shadow: ${({ $selected, $color }) =>
-    $selected ? `0 4px 12px ${$color}40` : 'none'};
+    $selected ? `0 4px 10px ${$color}35` : 'none'};
 
-  &:hover {
-    background: ${({ $selected, $color }) =>
-      $selected ? $color : `${$color}14`};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ $selected, $color }) =>
+        $selected ? $color : `${$color}14`};
+    }
   }
 `;
 

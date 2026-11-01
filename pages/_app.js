@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import React from 'react';
+import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { ConfigProvider } from 'antd';
 import ptBR from 'antd/locale/pt_BR';
@@ -33,6 +34,12 @@ function shouldForwardProp(propName, target) {
 function MyApp({ Component, pageProps }) {
   return (
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+      <Head>
+        <meta
+          name='viewport'
+          content='width=device-width, initial-scale=1, viewport-fit=cover'
+        />
+      </Head>
       <ConfigProvider
         locale={ptBR}
         theme={{

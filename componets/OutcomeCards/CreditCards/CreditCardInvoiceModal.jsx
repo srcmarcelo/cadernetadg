@@ -22,11 +22,9 @@ import {
   Radio,
   Select,
   Tag,
-  Tooltip,
   message,
 } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
-import { store } from '../../../store';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
 import {
   getHasCardPurchasesTable,
@@ -57,6 +55,7 @@ import CurrencyInput from '../../CurrencyInput';
 import {
   EmptyBox,
   FieldLabel,
+  FormActionsRow,
   FormRow,
   IconActionBtn,
   InlineEditorBox,
@@ -69,15 +68,28 @@ import {
   ListItemCard,
 } from '../../SharedCardStyles';
 
+const ModalMonthBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #F1F5F9;
+  border-radius: 11px;
+`;
+
 const ProjectionStrip = styled.div`
-  display: grid;
-  grid-template-columns: repeat(6, minmax(84px, 1fr));
-  gap: 6px;
+  display: flex;
+  gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
 `;
 
 const ProjectionPill = styled.button`
+  flex: 0 0 98px;
+  scroll-snap-align: start;
   padding: 8px 6px;
   border-radius: 10px;
   border: 1.5px solid ${({ $active }) => ($active ? '#1E295E' : '#E2E8F0')};
@@ -87,17 +99,22 @@ const ProjectionPill = styled.button`
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  transition: all 0.15s;
+  touch-action: manipulation;
 
-  &:hover {
-    border-color: #6366F1;
+  @media (min-width: 640px) {
+    flex: 1 1 0;
+    min-width: 90px;
   }
 `;
 
 const SummaryGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+
+  @media (min-width: 580px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
 `;
 
 const StatBox = styled.div`
@@ -108,6 +125,23 @@ const StatBox = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2px;
+`;
+
+const ActionButtonsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  & > .ant-btn {
+    min-height: 40px;
+    font-weight: 600;
+  }
+
+  @media (min-width: 560px) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
 `;
 
 const CATEGORIES = [
@@ -175,8 +209,7 @@ function PurchaseFormEditor({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder='Ex: Amazon - Fone, Supermercado'
-              autoFocus
+              placeholder='Ex: Amazon, Supermercado'
             />
           </div>
           <div>
@@ -212,8 +245,8 @@ function PurchaseFormEditor({
               value={amountMode}
               onChange={(e) => setAmountMode(e.target.value)}
             >
-              <Radio.Button value='installment'>Valor da parcela</Radio.Button>
-              <Radio.Button value='total'>Valor total da compra</Radio.Button>
+              <Radio.Button value='installment'>Parcela</Radio.Button>
+              <Radio.Button value='total'>Total da compra</Radio.Button>
             </Radio.Group>
           )}
         </div>
@@ -237,7 +270,7 @@ function PurchaseFormEditor({
 
           {!isRecurring && (
             <div>
-              <FieldLabel>Parcelamento nesta fatura</FieldLabel>
+              <FieldLabel>Parcela atual / Total de parcelas</FieldLabel>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <InputNumber
                   min={1}
@@ -250,7 +283,7 @@ function PurchaseFormEditor({
                   }}
                   style={{ width: '100%' }}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#64748B' }}>de</span>
+                <span style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>de</span>
                 <InputNumber
                   min={1}
                   max={72}
@@ -263,21 +296,25 @@ function PurchaseFormEditor({
           )}
         </FormRow>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+        <FormActionsRow>
+          <Button
+            icon={<CloseOutlined />}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
           <Button
-            size='small'
             type='primary'
             htmlType='submit'
             icon={<CheckOutlined />}
             loading={saving}
+            onMouseDown={(e) => e.preventDefault()}
             style={{ background: '#1E295E', borderColor: '#1E295E' }}
           >
             Salvar Compra
           </Button>
-        </div>
+        </FormActionsRow>
       </InlineEditorBox>
     </form>
   );
@@ -291,6 +328,7 @@ export default function CreditCardInvoiceModal({
   onOpenAiImport,
 }) {
   const dispatch = useDispatch();
+  const reduxStore = useStore();
   const supabase = useSupabaseClient();
   const user = useUser();
   const creditCards = useSelector(getCreditCards);
@@ -329,7 +367,7 @@ export default function CreditCardInvoiceModal({
     try {
       await createCardPurchase({
         dispatch,
-        getState: store.getState,
+        getState: reduxStore.getState,
         supabase,
         user,
         cardId: card.id,
@@ -350,7 +388,7 @@ export default function CreditCardInvoiceModal({
     try {
       await updateCardPurchase({
         dispatch,
-        getState: store.getState,
+        getState: reduxStore.getState,
         supabase,
         user,
         id,
@@ -369,7 +407,7 @@ export default function CreditCardInvoiceModal({
   const handleTogglePurchaseDisabled = async (purchase) => {
     await toggleCardPurchaseMonthDisabled({
       dispatch,
-      getState: store.getState,
+      getState: reduxStore.getState,
       supabase,
       user,
       id: purchase.id,
@@ -391,7 +429,7 @@ export default function CreditCardInvoiceModal({
       onOk: async () => {
         await deleteCardPurchase({
           dispatch,
-          getState: store.getState,
+          getState: reduxStore.getState,
           supabase,
           user,
           id: purchase.id,
@@ -434,42 +472,41 @@ export default function CreditCardInvoiceModal({
       footer={null}
       width={740}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 24, flexWrap: 'wrap', gap: 8 }}>
-          <span>
-            Fatura <strong>{card.name}</strong>
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Button
-              size='small'
-              icon={<LeftOutlined />}
-              onClick={() => dispatch(setSelectedMonth(addMonths(selectedMonth, -1)))}
-            />
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E295E', minWidth: 135, textAlign: 'center' }}>
-              {formatMonthYear(selectedMonth)}
-            </span>
-            <Button
-              size='small'
-              icon={<RightOutlined />}
-              onClick={() => dispatch(setSelectedMonth(addMonths(selectedMonth, 1)))}
-            />
-          </div>
-        </div>
+        <span style={{ paddingRight: 24, display: 'inline-block' }}>
+          Fatura • <strong>{card.name}</strong>
+        </span>
       }
-      centered
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Dedicated non-overlapping Month Switcher Bar */}
+        <ModalMonthBar>
+          <Button
+            icon={<LeftOutlined />}
+            onClick={() => dispatch(setSelectedMonth(addMonths(selectedMonth, -1)))}
+            aria-label='Mês anterior'
+          />
+          <strong style={{ fontSize: '0.95rem', color: '#1E295E', textAlign: 'center' }}>
+            {formatMonthYear(selectedMonth)}
+          </strong>
+          <Button
+            icon={<RightOutlined />}
+            onClick={() => dispatch(setSelectedMonth(addMonths(selectedMonth, 1)))}
+            aria-label='Próximo mês'
+          />
+        </ModalMonthBar>
+
         {!hasCardPurchasesTable && (
           <Alert
             type='warning'
             showIcon
-            message='Execute a migração SQL no Supabase para sincronizar o detalhamento das compras entre dispositivos (arquivo em supabase/migrations/).'
+            title='Execute a migração SQL no Supabase para sincronizar o detalhamento das compras entre dispositivos.'
           />
         )}
 
-        {/* 6-month projection strip */}
+        {/* 6-month swipeable projection strip */}
         <div>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', marginBottom: 6 }}>
-            PROJEÇÃO DAS PRÓXIMAS FATURAS (CLIQUE PARA NAVEGAR)
+          <div style={{ fontSize: '0.73rem', fontWeight: 700, color: '#64748B', marginBottom: 6 }}>
+            PROJEÇÃO DAS PRÓXIMAS FATURAS (TOQUE PARA NAVEGAR)
           </div>
           <ProjectionStrip>
             {projection.map((p) => (
@@ -490,39 +527,39 @@ export default function CreditCardInvoiceModal({
           </ProjectionStrip>
         </div>
 
-        {/* Summary breakdown */}
+        {/* Summary breakdown (2x2 on mobile, 4x1 on desktop) */}
         <SummaryGrid>
           <StatBox $highlight>
             <span style={{ fontSize: '0.74rem', color: '#991B1B', fontWeight: 600 }}>
               Total da Fatura
             </span>
-            <strong style={{ fontSize: '1.15rem', color: '#DC2626' }}>
+            <strong style={{ fontSize: '1.1rem', color: '#DC2626' }}>
               {formatBRL(resolvedCard.effectiveValue)}
             </strong>
           </StatBox>
           <StatBox>
             <span style={{ fontSize: '0.74rem', color: '#64748B' }}>À vista</span>
-            <strong style={{ fontSize: '0.98rem', color: '#0F172A' }}>
+            <strong style={{ fontSize: '0.96rem', color: '#0F172A' }}>
               {formatBRL(resolvedCard.singleTotal)}
             </strong>
           </StatBox>
           <StatBox>
             <span style={{ fontSize: '0.74rem', color: '#64748B' }}>Parceladas</span>
-            <strong style={{ fontSize: '0.98rem', color: '#4F46E5' }}>
+            <strong style={{ fontSize: '0.96rem', color: '#4F46E5' }}>
               {formatBRL(resolvedCard.installmentsTotal)}
             </strong>
           </StatBox>
           <StatBox>
             <span style={{ fontSize: '0.74rem', color: '#64748B' }}>Recorrentes</span>
-            <strong style={{ fontSize: '0.98rem', color: '#0369A1' }}>
+            <strong style={{ fontSize: '0.96rem', color: '#0369A1' }}>
               {formatBRL(resolvedCard.recurringTotal)}
             </strong>
           </StatBox>
         </SummaryGrid>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <ActionButtonsGrid>
             <Button
               type='primary'
               icon={<PlusOutlined />}
@@ -532,50 +569,58 @@ export default function CreditCardInvoiceModal({
               }}
               style={{ background: '#1E295E', borderColor: '#1E295E' }}
             >
-              Nova Compra / Parcelada
+              Nova Compra
             </Button>
             <Button
               icon={<CloudUploadOutlined />}
               onClick={() => onOpenAiImport?.(card.id)}
-              style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 600 }}
+              style={{ borderColor: '#4F46E5', color: '#4F46E5', fontWeight: 700 }}
             >
-              Anexar Fatura (IA)
+              Ler Fatura (IA)
+            </Button>
+          </ActionButtonsGrid>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              size='small'
+              type='text'
+              icon={<SettingOutlined />}
+              onClick={() => {
+                setManualValueInput(resolvedCard.effectiveValue);
+                setEditingManualTotal((v) => !v);
+              }}
+            >
+              Definir valor manual / ajuste
             </Button>
           </div>
-
-          <Button
-            size='small'
-            type='text'
-            icon={<SettingOutlined />}
-            onClick={() => {
-              setManualValueInput(resolvedCard.effectiveValue);
-              setEditingManualTotal((v) => !v);
-            }}
-          >
-            Definir valor manual / ajuste
-          </Button>
         </div>
 
         {editingManualTotal && (
           <InlineEditorBox>
             <FieldLabel>
-              Definir valor total desejado para a fatura de {formatMonthYear(selectedMonth)}
+              Valor total desejado para a fatura de {formatMonthYear(selectedMonth)}
             </FieldLabel>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <CurrencyInput
-                value={manualValueInput}
-                onChange={setManualValueInput}
-                compact
-              />
+            <CurrencyInput
+              value={manualValueInput}
+              onChange={setManualValueInput}
+              compact
+            />
+            <FormActionsRow>
+              <Button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setEditingManualTotal(false)}
+              >
+                Cancelar
+              </Button>
               <Button
                 type='primary'
                 loading={saving}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={handleSaveManualOverride}
               >
                 Aplicar
               </Button>
-              <Button onClick={() => setEditingManualTotal(false)}>Cancelar</Button>
-            </div>
+            </FormActionsRow>
           </InlineEditorBox>
         )}
 
@@ -588,14 +633,14 @@ export default function CreditCardInvoiceModal({
         )}
 
         {/* Purchases list */}
-        <div style={{ maxHeight: 360, overflowY: 'auto', paddingRight: 2 }}>
+        <div style={{ maxHeight: '48dvh', overflowY: 'auto', paddingRight: 2 }}>
           {purchasesList.length === 0 && !addingPurchase ? (
             <EmptyBox>
               <span>
-                Nenhuma compra detalhada cadastrada em {formatMonthYear(selectedMonth)}.
+                Nenhuma compra detalhada em {formatMonthYear(selectedMonth)}.
               </span>
               <span style={{ fontSize: '0.8rem' }}>
-                Adicione compras parceladas manualmente ou anexe o PDF/print da fatura para a IA cadastrar tudo automaticamente!
+                Toque em <strong>Nova Compra</strong> ou em <strong>Ler Fatura (IA)</strong> para anexar seu PDF/print!
               </span>
             </EmptyBox>
           ) : (
@@ -617,20 +662,18 @@ export default function CreditCardInvoiceModal({
                           {purchase.name}
                         </ItemName>
                         {purchase.isRecurring ? (
-                          <Tag color='cyan'>Assinatura mensal</Tag>
+                          <Tag color='cyan' style={{ margin: 0 }}>
+                            Mensal
+                          </Tag>
                         ) : purchase.totalInstallments > 1 ? (
-                          <Tag color='geekblue'>
-                            Parcela {purchase.currentInstallment}/
-                            {purchase.totalInstallments}
+                          <Tag color='geekblue' style={{ margin: 0 }}>
+                            {purchase.currentInstallment}/{purchase.totalInstallments}
                           </Tag>
                         ) : (
-                          <Tag>À vista</Tag>
-                        )}
-                        {purchase.category && (
-                          <Tag color='default'>{purchase.category}</Tag>
+                          <Tag style={{ margin: 0 }}>À vista</Tag>
                         )}
                         {purchase.purchase_date && (
-                          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                          <span style={{ fontSize: '0.74rem', color: '#64748B' }}>
                             {purchase.purchase_date}
                           </span>
                         )}
@@ -649,40 +692,31 @@ export default function CreditCardInvoiceModal({
                     </ItemInfo>
 
                     <ItemActions>
-                      <Tooltip
-                        title={
-                          purchase.effectiveDisabled
-                            ? 'Reativar nesta fatura'
-                            : 'Ignorar nesta fatura'
-                        }
+                      <IconActionBtn
+                        type='button'
+                        onClick={() => handleTogglePurchaseDisabled(purchase)}
+                        aria-label='Ignorar nesta fatura'
                       >
-                        <IconActionBtn
-                          type='button'
-                          onClick={() => handleTogglePurchaseDisabled(purchase)}
-                        >
-                          <StopOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                        <StopOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Editar compra'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#D97706'
-                          onClick={() => setEditingPurchaseId(purchase.id)}
-                        >
-                          <EditOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#D97706'
+                        onClick={() => setEditingPurchaseId(purchase.id)}
+                        aria-label='Editar compra'
+                      >
+                        <EditOutlined />
+                      </IconActionBtn>
 
-                      <Tooltip title='Excluir compra'>
-                        <IconActionBtn
-                          type='button'
-                          $color='#DC2626'
-                          onClick={() => handleDeletePurchase(purchase)}
-                        >
-                          <DeleteOutlined />
-                        </IconActionBtn>
-                      </Tooltip>
+                      <IconActionBtn
+                        type='button'
+                        $color='#DC2626'
+                        onClick={() => handleDeletePurchase(purchase)}
+                        aria-label='Excluir compra'
+                      >
+                        <DeleteOutlined />
+                      </IconActionBtn>
                     </ItemActions>
                   </ListItemCard>
                 )

@@ -8,7 +8,7 @@ import {
   RightOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Button, Popover, Tooltip } from 'antd';
+import { Button, Popover } from 'antd';
 import {
   addMonths,
   formatMonthYear,
@@ -22,20 +22,25 @@ const Bar = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 8px 10px;
   margin-bottom: 10px;
   background: #1E295E;
   border-radius: 14px;
   color: #FFFFFF;
   box-shadow: 0 4px 14px rgba(30, 41, 94, 0.16);
-  flex-wrap: wrap;
+
+  @media (min-width: 640px) {
+    padding: 8px 14px;
+    gap: 10px;
+  }
 `;
 
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 `;
 
 const IconBtn = styled.button`
@@ -43,49 +48,76 @@ const IconBtn = styled.button`
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 11px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0 10px;
   border-radius: 10px;
   border: 1px solid
-    ${({ $active }) => ($active ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.16)')};
+    ${({ $active }) => ($active ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)')};
   background: ${({ $active }) =>
-    $active ? '#6366F1' : 'rgba(255, 255, 255, 0.08)'};
+    $active ? '#6366F1' : 'rgba(255, 255, 255, 0.1)'};
   color: #FFFFFF;
   font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
+  touch-action: manipulation;
 
-  &:hover {
-    background: ${({ $active }) =>
-      $active ? '#4F46E5' : 'rgba(255, 255, 255, 0.18)'};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ $active }) =>
+        $active ? '#4F46E5' : 'rgba(255, 255, 255, 0.2)'};
+    }
+  }
+`;
+
+const ProfileText = styled.span`
+  @media (max-width: 480px) {
+    display: none;
+  }
+`;
+
+const HelpBtnWrapper = styled.div`
+  @media (max-width: 380px) {
+    display: none;
   }
 `;
 
 const MonthSelectorGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  justify-content: space-between;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.12);
   padding: 3px;
   border-radius: 11px;
+  flex: 1;
+  max-width: 245px;
+
+  @media (min-width: 520px) {
+    flex: initial;
+    max-width: none;
+    gap: 4px;
+  }
 `;
 
 const ArrowBtn = styled.button`
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: none;
   border-radius: 8px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.08);
   color: #FFFFFF;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  flex-shrink: 0;
+  touch-action: manipulation;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
   }
 `;
 
@@ -93,38 +125,52 @@ const MonthCenterBtn = styled.button`
   border: none;
   background: transparent;
   color: #FFFFFF;
-  padding: 2px 10px;
+  padding: 2px 6px;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 148px;
-  transition: background 0.15s;
+  flex: 1;
+  min-width: 0;
+  touch-action: manipulation;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.14);
+  @media (min-width: 520px) {
+    min-width: 150px;
+    padding: 2px 10px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
   }
 `;
 
 const MonthTitle = styled.span`
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-weight: 700;
   line-height: 1.2;
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
+
+  @media (min-width: 420px) {
+    font-size: 0.92rem;
+  }
 `;
 
 const MonthBadge = styled.span`
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: ${({ $isCurrent }) => ($isCurrent ? '#86EFAC' : '#CBD5E1')};
   line-height: 1.15;
+  white-space: nowrap;
 `;
 
 const PickerWrapper = styled.div`
-  width: 260px;
+  width: 256px;
   padding: 4px;
 `;
 
@@ -146,21 +192,16 @@ const MonthsGrid = styled.div`
 `;
 
 const MonthCell = styled.button`
-  padding: 8px 4px;
+  padding: 9px 4px;
   border-radius: 8px;
   border: 1px solid ${({ $selected }) => ($selected ? '#1E295E' : '#E2E8F0')};
   background: ${({ $selected, $today }) =>
     $selected ? '#1E295E' : $today ? '#EEF2FF' : '#FFFFFF'};
   color: ${({ $selected }) => ($selected ? '#FFFFFF' : '#0F172A')};
   font-weight: ${({ $selected, $today }) => ($selected || $today ? 700 : 500)};
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    border-color: #1E295E;
-    background: ${({ $selected }) => ($selected ? '#1E295E' : '#F1F5F9')};
-  }
+  touch-action: manipulation;
 `;
 
 const SHORT_MONTHS = [
@@ -202,12 +243,15 @@ export default function MonthNavigator({
     setPickerOpen(open);
   };
 
+  // Compact month string without "de" on narrow mobile if needed
+  const formattedMonth = formatMonthYear(selectedMonth).replace(' de ', ' ');
+
   const pickerContent = (
     <PickerWrapper>
       <YearHeader>
-        <Button size='small' icon={<LeftOutlined />} onClick={() => setPickerYear((y) => y - 1)} />
+        <Button icon={<LeftOutlined />} onClick={() => setPickerYear((y) => y - 1)} />
         <span>{pickerYear}</span>
-        <Button size='small' icon={<RightOutlined />} onClick={() => setPickerYear((y) => y + 1)} />
+        <Button icon={<RightOutlined />} onClick={() => setPickerYear((y) => y + 1)} />
       </YearHeader>
       <MonthsGrid>
         {SHORT_MONTHS.map((label, idx) => {
@@ -232,13 +276,12 @@ export default function MonthNavigator({
         <Button
           type='primary'
           block
-          size='small'
           onClick={() => {
             onSelectMonth(baseMonth);
             setPickerOpen(false);
           }}
         >
-          Voltar para o mês atual ({formatMonthYear(baseMonth, { short: true })})
+          Ir para mês atual ({formatMonthYear(baseMonth, { short: true })})
         </Button>
       )}
     </PickerWrapper>
@@ -252,38 +295,37 @@ export default function MonthNavigator({
           $active={currentTab === 'profile'}
           onClick={() => onClickProfile(currentTab === 'profile' ? 'panel' : 'profile')}
           className='profile-button'
+          aria-label='Perfil'
         >
           <UserOutlined />
-          <span>Perfil</span>
+          <ProfileText>Perfil</ProfileText>
         </IconBtn>
-        <Tooltip title='Sincronizar dados com a nuvem'>
-          <IconBtn
-            type='button'
-            onClick={onManualSync}
-            aria-label='Sincronizar agora'
-          >
-            <ReloadOutlined spin={syncing} />
-          </IconBtn>
-        </Tooltip>
+
+        <IconBtn
+          type='button'
+          onClick={onManualSync}
+          aria-label='Sincronizar agora'
+        >
+          <ReloadOutlined spin={syncing} />
+        </IconBtn>
+
         {onStartTour && (
-          <Tooltip title='Guia rápido do aplicativo'>
+          <HelpBtnWrapper>
             <IconBtn type='button' onClick={onStartTour} aria-label='Guia rápido'>
               <QuestionCircleOutlined />
             </IconBtn>
-          </Tooltip>
+          </HelpBtnWrapper>
         )}
       </LeftGroup>
 
       <MonthSelectorGroup className='swith-month-button'>
-        <Tooltip title='Mês anterior'>
-          <ArrowBtn
-            type='button'
-            onClick={() => onSelectMonth(addMonths(selectedMonth, -1))}
-            aria-label='Mês anterior'
-          >
-            <LeftOutlined style={{ fontSize: '0.8rem' }} />
-          </ArrowBtn>
-        </Tooltip>
+        <ArrowBtn
+          type='button'
+          onClick={() => onSelectMonth(addMonths(selectedMonth, -1))}
+          aria-label='Mês anterior'
+        >
+          <LeftOutlined style={{ fontSize: '0.8rem' }} />
+        </ArrowBtn>
 
         <Popover
           content={pickerContent}
@@ -294,22 +336,20 @@ export default function MonthNavigator({
         >
           <MonthCenterBtn type='button'>
             <MonthTitle>
-              <CalendarOutlined style={{ fontSize: '0.82rem', opacity: 0.85 }} />
-              {formatMonthYear(selectedMonth)}
+              <CalendarOutlined style={{ fontSize: '0.8rem', opacity: 0.85 }} />
+              {formattedMonth}
             </MonthTitle>
             <MonthBadge $isCurrent={isCurrent}>{badgeText}</MonthBadge>
           </MonthCenterBtn>
         </Popover>
 
-        <Tooltip title='Próximo mês'>
-          <ArrowBtn
-            type='button'
-            onClick={() => onSelectMonth(addMonths(selectedMonth, 1))}
-            aria-label='Próximo mês'
-          >
-            <RightOutlined style={{ fontSize: '0.8rem' }} />
-          </ArrowBtn>
-        </Tooltip>
+        <ArrowBtn
+          type='button'
+          onClick={() => onSelectMonth(addMonths(selectedMonth, 1))}
+          aria-label='Próximo mês'
+        >
+          <RightOutlined style={{ fontSize: '0.8rem' }} />
+        </ArrowBtn>
       </MonthSelectorGroup>
     </Bar>
   );

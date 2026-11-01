@@ -254,7 +254,7 @@ export default function Auth() {
           <Alert
             type='error'
             showIcon
-            message={signInErrors[signInError]}
+            title={signInErrors[signInError]}
             style={{ width: '100%', marginBottom: 14 }}
           />
         )}
