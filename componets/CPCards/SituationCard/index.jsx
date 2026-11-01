@@ -1,189 +1,158 @@
-import { Spin } from 'antd';
-import React, { useMemo, useState } from 'react';
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
+import styled from 'styled-components';
 import {
-  getLoadingDebtors,
-  getLoadingDebts,
-  getLoadingExtraReceipts,
-  getLoadingFixedReceipts,
-} from '../../../containers/Income/redux/reducer';
-import {
-  getCurrentBalance,
-  getKeptBalance,
-  getLoadingCurrentBalance,
-  getLoadingKeptBalance,
-  getLoadingUserInfo,
-  getTotalDebts,
-  getWillReceive,
-} from '../../../containers/Main/redux/reducer';
-import {
-  getLoadingCreditCards,
-  getLoadingExtraDebts,
-  getLoadingFixedDebts,
-} from '../../../containers/Outcome/redux/reducer';
-import { Container, Description, Situation, Title } from './styles';
+  CheckCircleFilled,
+  ExclamationCircleFilled,
+  InfoCircleFilled,
+  WarningFilled,
+} from '@ant-design/icons';
+import { useMonthlyFinancialView } from '../../../services/useMonthlyFinancialView';
+import { formatBRL } from '../../../utils/currency';
 
-export default function SituationCard({ future, pastValue }) {
-  const currentBalance = useSelector(getCurrentBalance);
-  const keptBalance = useSelector(getKeptBalance);
-  const willReceive = useSelector(getWillReceive);
-  const totalDebts = useSelector(getTotalDebts);
+const Card = styled.div`
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+`;
 
-  const loadingFixedReceipts = useSelector(getLoadingFixedReceipts);
-  const loadingDebtors = useSelector(getLoadingDebtors);
-  const loadingDebts = useSelector(getLoadingDebts);
-  const loadingExtraReceipts = useSelector(getLoadingExtraReceipts);
+const HeaderBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
+  font-weight: 800;
+  font-size: 0.95rem;
+`;
 
-  const loadingCurrentBalance = useSelector(getLoadingCurrentBalance);
-  const loadingKeptBalance = useSelector(getLoadingKeptBalance);
-  const loadingUserInfo = useSelector(getLoadingUserInfo);
+const Desc = styled.div`
+  font-size: 0.95rem;
+  color: #334155;
+  max-width: 520px;
+  line-height: 1.5;
+`;
 
-  const loadingFixedDebts = useSelector(getLoadingFixedDebts);
-  const loadingExtraDebts = useSelector(getLoadingExtraDebts);
-  const loadingCreditCards = useSelector(getLoadingCreditCards);
+export default function SituationCard() {
+  const view = useMonthlyFinancialView();
+  const {
+    willReceive,
+    totalDebts,
+    openingBalance,
+    projectedKept,
+    isFutureMonth,
+    isPastMonth,
+  } = view;
 
-  const [loading, setLoading] = useState(true);
+  let statusKey = 'pending';
+  if (!willReceive && !totalDebts && !openingBalance) {
+    statusKey = 'pending';
+  } else if (willReceive >= totalDebts) {
+    statusKey = 'receipts';
+  } else if (!isPastMonth && willReceive + openingBalance >= totalDebts) {
+    statusKey = 'balance';
+  } else if (!isPastMonth && willReceive + openingBalance + projectedKept >= totalDebts) {
+    statusKey = 'kept';
+  } else {
+    statusKey = 'noway';
+  }
 
-  useEffect(() => {
-    const loadings = [
-      loadingFixedReceipts,
-      loadingDebtors,
-      loadingDebts,
-      loadingExtraReceipts,
-      loadingCurrentBalance,
-      loadingKeptBalance,
-      loadingUserInfo,
-      loadingFixedDebts,
-      loadingExtraDebts,
-      loadingCreditCards,
-    ];
-
-    setLoading(loadings.includes(true));
-  }, [
-    loadingFixedReceipts,
-    loadingDebtors,
-    loadingDebts,
-    loadingExtraReceipts,
-    loadingCurrentBalance,
-    loadingKeptBalance,
-    loadingUserInfo,
-    loadingFixedDebts,
-    loadingExtraDebts,
-    loadingCreditCards,
-  ]);
-
-  const actualBalance = useMemo(
-    () => (future ? pastValue : currentBalance),
-    [future, currentBalance, pastValue]
-  );
-
-  const [paymentStatus, setPaymentStatus] = useState('balance');
-
-  const situations = {
+  const configs = {
     receipts: {
-      title: 'Excelente',
-      description: `Conseguirá pagar todas as dívidas mensais com o que receberá.`,
-      color: '#368f42',
+      title: 'Situação Excelente',
+      color: '#15803D',
+      bg: '#DCFCE7',
+      icon: <CheckCircleFilled />,
+      description:
+        'Seus recebimentos deste mês cobrem 100% das despesas pendentes sem precisar tocar no seu saldo atual.',
     },
     balance: {
-      title: 'Estável',
+      title: 'Situação Estável',
+      color: '#0369A1',
+      bg: '#E0F2FE',
+      icon: <CheckCircleFilled />,
       description: (
-        <div>
-          Conseguirá pagar suas dívidas, mas terá que usar{' '}
-          {
-            <strong style={{ color: '#c83126' }}>
-              R${' '}
-              {parseFloat(totalDebts - willReceive)
-                .toFixed(2)
-                .replace('.', ',')}
-            </strong>
-          }{' '}
-          do seu saldo {future ? 'futuro' : 'atual'}.
-        </div>
+        <span>
+          Você conseguirá quitar todas as despesas, utilizando{' '}
+          <strong style={{ color: '#DC2626' }}>
+            {formatBRL(totalDebts - willReceive)}
+          </strong>{' '}
+          do seu saldo {isFutureMonth ? 'projetado' : 'atual'}.
+        </span>
       ),
-      color: '#368f42',
     },
     kept: {
-      title: 'Instável',
+      title: 'Atenção: Uso da Reserva',
+      color: '#B45309',
+      bg: '#FEF3C7',
+      icon: <WarningFilled />,
       description: (
-        <div>
-          Conseguirá pagar suas dívidas, mas terá que usar{' '}
-          {
-            <strong style={{ color: '#c83126' }}>
-              R${' '}
-              {parseFloat(totalDebts - willReceive - actualBalance)
-                .toFixed(2)
-                .replace('.', ',')}
-            </strong>
-          }{' '}
-          do que {future ? 'terá' : 'tem'} guardado.
-        </div>
+        <span>
+          Para quitar todas as despesas deste mês, será necessário retirar{' '}
+          <strong style={{ color: '#DC2626' }}>
+            {formatBRL(totalDebts - willReceive - openingBalance)}
+          </strong>{' '}
+          do valor que {isFutureMonth ? 'terá' : 'tem'} guardado.
+        </span>
       ),
-      color: 'orange',
     },
     noway: {
-      title: 'Inviável',
+      title: 'Situação Crítica',
+      color: '#B91C1C',
+      bg: '#FEE2E2',
+      icon: <ExclamationCircleFilled />,
       description: (
-        <div>
-          Com os débitos e saldos atuais, não conseguirá quitar as dívidas do
-          mês. Faltará{' '}
-          {
-            <strong style={{ color: '#c83126' }}>
-              R${' '}
-              {parseFloat(
-                totalDebts - willReceive - actualBalance - keptBalance
+        <span>
+          Com os lançamentos deste mês, faltará{' '}
+          <strong style={{ color: '#DC2626' }}>
+            {formatBRL(
+              Math.max(
+                0,
+                totalDebts -
+                  willReceive -
+                  (isPastMonth ? 0 : openingBalance + projectedKept)
               )
-                .toFixed(2)
-                .replace('.', ',')}
-            </strong>
-          }{', '}
-          mesmo usando todo o saldo guardado.
-        </div>
+            )}
+          </strong>{' '}
+          {isPastMonth
+            ? 'entre recebimentos e despesas pendentes.'
+            : 'mesmo utilizando todo o saldo guardado.'}
+        </span>
       ),
-      color: '#c83126',
     },
     pending: {
-      title: 'Pendente',
+      title: 'Comece por aqui',
+      color: '#1E295E',
+      bg: '#E0E7FF',
+      icon: <InfoCircleFilled />,
       description: (
-        <p style={{ margin: 0 }}>
-          Adicione seus recebimentos e débitos do mês nas telas de{' '}
-          <strong style={{ color: '#368f42' }}>ganhos</strong> e{' '}
-          <strong style={{ color: '#c83126' }}>dívidas</strong> para começar a
-          usar a Caderneta!
-        </p>
+        <span>
+          Cadastre seus recebimentos na aba{' '}
+          <strong style={{ color: '#16A34A' }}>Ganhos</strong> e suas contas ou faturas na aba{' '}
+          <strong style={{ color: '#DC2626' }}>Dívidas</strong> para acompanhar sua saúde financeira.
+        </span>
       ),
-      color: '#232C68',
     },
   };
 
-  useEffect(() => {
-    if (!willReceive && !totalDebts && !actualBalance) {
-      setPaymentStatus('pending');
-    } else if (willReceive >= totalDebts) {
-      setPaymentStatus('receipts');
-    } else if (willReceive + actualBalance >= totalDebts) {
-      setPaymentStatus('balance');
-    } else if (willReceive + actualBalance + keptBalance >= totalDebts) {
-      setPaymentStatus('kept');
-    } else {
-      setPaymentStatus('noway');
-    }
-  }, [actualBalance, willReceive, keptBalance, totalDebts, loading]);
+  const cfg = configs[statusKey];
 
   return (
-    <Container>
-      {loading ? (
-        <Spin size='large' style={{ marginTop: '15%', marginBottom: '15%' }} />
-      ) : (
-        <>
-          <Title color={situations[paymentStatus].color}>SITUAÇÃO</Title>
-          <Description>{situations[paymentStatus].description}</Description>
-          <Situation color={situations[paymentStatus].color}>
-            {situations[paymentStatus].title}
-          </Situation>
-        </>
-      )}
-    </Container>
+    <Card>
+      <HeaderBadge $bg={cfg.bg} $color={cfg.color}>
+        {cfg.icon}
+        <span>{cfg.title}</span>
+      </HeaderBadge>
+      <Desc>{cfg.description}</Desc>
+    </Card>
   );
 }

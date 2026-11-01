@@ -1,5 +1,5 @@
 import React from 'react';
-import CurrencyFormat from 'react-currency-format';
+import { formatBRL } from '../../utils/currency';
 import { DisplayDebtValue, DisplayValue } from './styles';
 
 export default function RenderValue({
@@ -10,31 +10,24 @@ export default function RenderValue({
   textAlign,
   className,
 }) {
+  const formatted = formatBRL(value);
+
+  if (debt) {
+    return (
+      <DisplayDebtValue className={className} color={color}>
+        {formatted}
+      </DisplayDebtValue>
+    );
+  }
+
   return (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$ '}
-      renderText={(textValue) =>
-        debt ? (
-          <DisplayDebtValue className={className} color={color}>
-            {textValue}
-          </DisplayDebtValue>
-        ) : (
-          <DisplayValue
-            className={className}
-            color={color}
-            fontSize={fontSize}
-            textAlign={textAlign}
-          >
-            {textValue}
-          </DisplayValue>
-        )
-      }
-    />
+    <DisplayValue
+      className={className}
+      color={color}
+      fontSize={fontSize}
+      textAlign={textAlign}
+    >
+      {formatted}
+    </DisplayValue>
   );
 }

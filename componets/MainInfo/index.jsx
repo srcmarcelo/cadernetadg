@@ -1,347 +1,224 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import styled from 'styled-components';
+import { Skeleton } from 'antd';
+import { WarningOutlined } from '@ant-design/icons';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  Balance,
-  BalanceLabel,
-  BalancesContainer,
-  BalanceValue,
-  CardContainer,
-  Container,
-  SituationContainer,
-  SituationDescription,
-  SituationTitle,
-  WarningContainer,
-} from './styles';
-import CurrencyFormat from 'react-currency-format';
-import {
-  getFixedReceipts,
-  getExtraReceipts,
-  getDebts,
-} from '../../containers/Income/redux/reducer';
-import {
-  getCurrentBalance,
   getSyncing,
-  getTotalDebtorsDebts,
-  getTotalDebts,
-  getWillReceive,
   setCurrentDebtorDependency,
   setMonthlyLoss,
   setTotalDebtorsDebts,
   setTotalDebts,
   setWillReceive,
 } from '../../containers/Main/redux/reducer';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  getFixedDebts,
-  getExtraDebts,
-  getCreditCards,
-} from '../../containers/Outcome/redux/reducer';
-import { Skeleton } from 'antd';
+import { useMonthlyFinancialView } from '../../services/useMonthlyFinancialView';
+import { formatBRL } from '../../utils/currency';
 
-export default function MainInfo({ dispatch, future, setPastValue }) {
-  const actualBalance = useSelector(getCurrentBalance);
-  const extraReceipts = useSelector(getExtraReceipts);
-  const fixedReceipts = useSelector(getFixedReceipts);
-  const fixedDebts = useSelector(getFixedDebts);
-  const extraDebts = useSelector(getExtraDebts);
-  const creditCards = useSelector(getCreditCards);
-  const debtorsDebts = useSelector(getDebts);
+const HeaderCard = styled.div`
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+`;
 
-  const willReceive = useSelector(getWillReceive);
-  const totalDebts = useSelector(getTotalDebts);
-  const totalDebtorsDebts = useSelector(getTotalDebtorsDebts);
+const MetricsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+`;
+
+const MetricItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #F8FAFC;
+
+  @media (max-width: 480px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+  }
+`;
+
+const MetricLabel = styled.span`
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748B;
+`;
+
+const MetricAmount = styled.span`
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: ${({ $color }) => $color || '#0F172A'};
+`;
+
+const BottomPills = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+`;
+
+const SummaryPill = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: ${({ $bg }) => $bg || '#F8FAFC'};
+  border: 1px solid ${({ $border }) => $border || '#E2E8F0'};
+  text-align: center;
+`;
+
+const PillTitle = styled.span`
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: ${({ $color }) => $color || '#475569'};
+`;
+
+const PillValue = styled.span`
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: ${({ $color }) => $color || '#0F172A'};
+  margin-top: 2px;
+`;
+
+export default function MainInfo() {
+  const dispatch = useDispatch();
   const syncing = useSelector(getSyncing);
+  const view = useMonthlyFinancialView();
 
-  const [monthlySituation, setMonthlySituation] = useState('profit');
-  const [generalSituation, setGeneralSituation] = useState('positive');
+  const {
+    willReceive,
+    totalDebts,
+    totalDebtorsPending,
+    monthlyNet,
+    openingBalance,
+    closingBalance,
+    monthlyLoss,
+    debtorDependency,
+    isPastMonth,
+    isFutureMonth,
+  } = view;
 
-  const [debtorDependency, setDebtorDependency] = useState(false);
-  const [loss, setLoss] = useState(false);
-
-  const [pastBalance, setPastBalance] = useState(0);
-
-  const monthlyBalance = {
-    profit: {
-      label: 'Lucro',
-      color: '#368F42',
-    },
-    deficit: {
-      label: 'Diferença',
-      color: '#C83126',
-    },
-  };
-
-  const generalBalance = {
-    positive: {
-      label: 'Restará',
-      color: '#368F42',
-    },
-    negative: {
-      label: 'Faltará',
-      color: '#C83126',
-    },
-  };
-
-  const warningLabels = {
-    debtorDependency: 'Dependência de devedores',
-    loss: 'Saldo mensal negativo',
-  };
-
+  // Keep Redux summary fields synchronized for backwards compatibility
   useEffect(() => {
-    let total = 0;
-    const receipts = [...fixedReceipts, ...extraReceipts, ...debtorsDebts];
-    receipts.forEach(
-      (
-        {
-          value,
-          received,
-          disabled,
-          future_value,
-          future_received,
-          future_disabled,
-          current_pay,
-          future_pay,
-          installments,
-        },
-        index
-      ) => {
-        const currentPay = future ? future_pay : current_pay;
-        const valid = installments ? currentPay <= installments : true;
+    dispatch(setWillReceive(willReceive));
+    dispatch(setTotalDebts(totalDebts));
+    dispatch(setTotalDebtorsDebts(totalDebtorsPending));
+    dispatch(setMonthlyLoss(monthlyLoss));
+    dispatch(setCurrentDebtorDependency(debtorDependency));
+  }, [
+    dispatch,
+    willReceive,
+    totalDebts,
+    totalDebtorsPending,
+    monthlyLoss,
+    debtorDependency,
+  ]);
 
-        const hasFutureValue = future_value !== undefined;
-        const hasFutureReceived = future_received !== undefined;
-        const hasFutureDisabled = future_disabled !== undefined;
-
-        const currentValue = future && hasFutureValue ? future_value : value;
-        const currentReceived =
-          future && hasFutureReceived ? future_received : received;
-        const currentDisabled =
-          future && hasFutureDisabled ? future_disabled : disabled;
-
-        if (currentValue && !currentReceived && !currentDisabled && valid) {
-          index === 0 ? (total = currentValue) : (total += currentValue);
-        }
-      }
-    );
-    dispatch(setWillReceive(total));
-  }, [fixedReceipts, extraReceipts, debtorsDebts, future]);
-
-  useEffect(() => {
-    let total = 0;
-    const debts = [...fixedDebts, ...extraDebts, ...creditCards];
-    debts.forEach(
-      (
-        {
-          value,
-          payed,
-          disabled,
-          future_value,
-          future_payed,
-          future_disabled,
-          future_pay,
-          current_pay,
-          installments,
-        },
-        index
-      ) => {
-        const currentPay = future ? future_pay : current_pay;
-        const valid = installments ? currentPay <= installments : true;
-
-        const hasFutureValue = future_value !== undefined;
-        const hasFuturePayed = future_payed !== undefined;
-        const hasFutureDisabled = future_disabled !== undefined;
-
-        const currentValue = future && hasFutureValue ? future_value : value;
-        const currentPayed = future && hasFuturePayed ? future_payed : payed;
-        const currentDisabled =
-          future && hasFutureDisabled ? future_disabled : disabled;
-
-        if (currentValue && !currentPayed && !currentDisabled && valid) {
-          index === 0 ? (total = currentValue) : (total += currentValue);
-        }
-      }
-    );
-    dispatch(setTotalDebts(total));
-  }, [fixedDebts, extraDebts, creditCards, future]);
-
-  useEffect(() => {
-    let total = 0;
-    debtorsDebts.forEach(
-      (
-        {
-          value,
-          disabled,
-          future_disabled,
-          current_pay,
-          future_pay,
-          installments,
-        },
-        index
-      ) => {
-        const currentPay = future ? future_pay : current_pay;
-        const hasFutureDisabled = future_disabled !== undefined;
-
-        const currentDisabled =
-          future && hasFutureDisabled ? future_disabled : disabled;
-
-        if (value && !currentDisabled && currentPay <= installments) {
-          index === 0 ? (total = value) : (total += value);
-        }
-      }
-    );
-    dispatch(setTotalDebtorsDebts(total));
-  }, [debtorsDebts, future]);
-
-  useEffect(() => {
-    const currentBalance = future ? pastBalance : actualBalance;
-
-    if (willReceive - totalDebts < 0) {
-      setMonthlySituation('deficit');
-      handleSetLoss(true);
-      if (totalDebtorsDebts > 0) {
-        handleSetDebtorsDependency(true);
-      } else handleSetDebtorsDependency(false);
-    } else {
-      setMonthlySituation('profit');
-      handleSetLoss(false);
-      if (willReceive + currentBalance - totalDebts - totalDebtorsDebts < 0) {
-        handleSetDebtorsDependency(true);
-      } else handleSetDebtorsDependency(false);
-    }
-
-    willReceive - totalDebts + currentBalance < 0
-      ? setGeneralSituation('negative')
-      : setGeneralSituation('positive');
-  }, [totalDebts, willReceive, actualBalance, pastBalance]);
-
-  useEffect(() => {
-    const value = willReceive - totalDebts + actualBalance;
-
-    if (!future) {
-      setPastValue(value);
-      setPastBalance(value > 0 ? value : 0);
-    }
-  }, [future, willReceive, totalDebts, actualBalance, generalSituation]);
-
-  const handleSetLoss = (value) => {
-    setLoss(value);
-    dispatch(setMonthlyLoss(value));
-  };
-  const handleSetDebtorsDependency = (value) => {
-    setDebtorDependency(value);
-    dispatch(setCurrentDebtorDependency(value));
-  };
-
-  const RenderValue = ({ color, value }) => (
-    <CurrencyFormat
-      value={value}
-      displayType={'text'}
-      thousandSeparator='.'
-      decimalSeparator=','
-      fixedDecimalScale={true}
-      decimalScale={2}
-      prefix={'R$'}
-      renderText={(textValue) => (
-        <BalanceValue color={color} width={screen.width}>
-          {textValue}
-        </BalanceValue>
-      )}
-    />
-  );
-
-  const RenderBalance = ({ label, value, color, weight, className }) => (
-    <Balance className={className}>
-      <BalanceLabel weight={weight} color={color}>
-        {label}
-      </BalanceLabel>
-      <RenderValue color={color} value={value} />
-    </Balance>
-  );
-
-  const RenderBalanceCard = ({ label, value, color, className }) => (
-    <CardContainer className={className}>
-      <SituationTitle color={color} width={screen.width}>
-        {label}
-      </SituationTitle>
-      <RenderValue color={color} value={value} />
-    </CardContainer>
-  );
-
-  const RenderWarning = ({ debtorDependency, loss }) => {
-    const warnings = [{ debtorDependency: debtorDependency }, { loss: loss }];
-    const filteredWarnings = warnings.filter(
-      (obj) => Object.values(obj)[0] === true
-    );
-    const alertAmount = filteredWarnings.length;
-    if (_.isEmpty(filteredWarnings)) return;
+  if (syncing) {
     return (
-      <SituationContainer>
-        <SituationTitle color='orange'>
-          {alertAmount} {alertAmount > 1 ? 'alertas' : 'alerta'}
-        </SituationTitle>
-        <SituationDescription width={screen.width} color='darkorange'>
-          {alertAmount > 1
-            ? 'Veja detalhes no Painel'
-            : warningLabels[Object.keys(filteredWarnings[0])[0]]}
-        </SituationDescription>
-      </SituationContainer>
+      <HeaderCard className='main-info'>
+        <Skeleton active paragraph={{ rows: 2 }} />
+      </HeaderCard>
     );
-  };
+  }
+
+  const alertCount = (monthlyLoss ? 1 : 0) + (debtorDependency ? 1 : 0);
+  const isPositiveNet = monthlyNet >= 0;
+  const isPositiveClose = closingBalance >= 0;
 
   return (
-    <Container className='main-info'>
-      {syncing ? (
-        <Skeleton active />
-      ) : (
-        <>
-          <BalancesContainer>
-            <RenderBalance
-              color='#368F42'
-              label={future ? 'Quanto terá:' : 'Quanto você tem agora:'}
-              value={future ? pastBalance : actualBalance}
-              className="currentBalanceInfo"
-            />
-            <RenderBalance
-              color='#368F42'
-              label={future ? 'Quanto receberá:' : 'Quanto ainda receberá:'}
-              value={willReceive}
-              weight='bold'
-              className="willReceiveInfo"
-            />
-            <RenderBalance
-              color='#C83126'
-              label={future ? 'Quanto deverá:' : 'Quanto ainda deve:'}
-              value={totalDebts}
-              weight='bold'
-              className="totalDebtsInfo"
-            />
-          </BalancesContainer>
-          <WarningContainer>
-            <RenderBalanceCard
-              label={monthlyBalance[monthlySituation].label}
-              color={monthlyBalance[monthlySituation].color}
-              value={
-                (willReceive - totalDebts) *
-                (monthlySituation === 'deficit' ? -1 : 1)
-              }
-              className="monthlyBalance"
-            />
-            <RenderWarning debtorDependency={debtorDependency} loss={loss} />
-            <RenderBalanceCard
-              label={generalBalance[generalSituation].label}
-              color={generalBalance[generalSituation].color}
-              value={
-                (willReceive -
-                  totalDebts +
-                  (future ? pastBalance : actualBalance)) *
-                (generalSituation === 'negative' ? -1 : 1)
-              }
-              className="generalBalance"
-            />
-          </WarningContainer>
-        </>
-      )}
-    </Container>
+    <HeaderCard className='main-info'>
+      <MetricsGrid>
+        {!isPastMonth && (
+          <MetricItem className='currentBalanceInfo'>
+            <MetricLabel>
+              {isFutureMonth ? 'Saldo inicial projetado:' : 'Quanto tem agora:'}
+            </MetricLabel>
+            <MetricAmount $color='#16A34A'>{formatBRL(openingBalance)}</MetricAmount>
+          </MetricItem>
+        )}
+        <MetricItem className='willReceiveInfo'>
+          <MetricLabel>
+            {isPastMonth
+              ? 'Pendente a receber:'
+              : isFutureMonth
+              ? 'Quanto receberá:'
+              : 'Ainda receberá:'}
+          </MetricLabel>
+          <MetricAmount $color='#16A34A'>{formatBRL(willReceive)}</MetricAmount>
+        </MetricItem>
+        <MetricItem className='totalDebtsInfo'>
+          <MetricLabel>
+            {isPastMonth
+              ? 'Pendente a pagar:'
+              : isFutureMonth
+              ? 'Quanto deverá:'
+              : 'Ainda deve:'}
+          </MetricLabel>
+          <MetricAmount $color='#DC2626'>{formatBRL(totalDebts)}</MetricAmount>
+        </MetricItem>
+      </MetricsGrid>
+
+      <BottomPills>
+        <SummaryPill
+          className='monthlyBalance'
+          $bg={isPositiveNet ? '#F0FDF4' : '#FEF2F2'}
+          $border={isPositiveNet ? '#BBF7D0' : '#FECACA'}
+        >
+          <PillTitle $color={isPositiveNet ? '#15803D' : '#B91C1C'}>
+            {isPositiveNet ? 'Saldo do Mês' : 'Déficit do Mês'}
+          </PillTitle>
+          <PillValue $color={isPositiveNet ? '#15803D' : '#B91C1C'}>
+            {formatBRL(Math.abs(monthlyNet))}
+          </PillValue>
+        </SummaryPill>
+
+        {alertCount > 0 && (
+          <SummaryPill $bg='#FFFBEB' $border='#FDE68A'>
+            <PillTitle $color='#B45309'>
+              <WarningOutlined /> {alertCount} {alertCount > 1 ? 'Alertas' : 'Alerta'}
+            </PillTitle>
+            <PillValue $color='#D97706' style={{ fontSize: '0.84rem', fontWeight: 600 }}>
+              {alertCount > 1
+                ? 'Veja detalhes no Painel'
+                : debtorDependency
+                ? 'Dependência de devedores'
+                : 'Saldo mensal negativo'}
+            </PillValue>
+          </SummaryPill>
+        )}
+
+        {!isPastMonth && (
+          <SummaryPill
+            className='generalBalance'
+            $bg={isPositiveClose ? '#EFF6FF' : '#FEF2F2'}
+            $border={isPositiveClose ? '#BFDBFE' : '#FECACA'}
+          >
+            <PillTitle $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
+              {isPositiveClose ? 'Restará no Fim' : 'Faltará no Fim'}
+            </PillTitle>
+            <PillValue $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
+              {formatBRL(Math.abs(closingBalance))}
+            </PillValue>
+          </SummaryPill>
+        )}
+      </BottomPills>
+    </HeaderCard>
   );
 }

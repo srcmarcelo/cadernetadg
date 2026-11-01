@@ -1,590 +1,684 @@
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import {
-  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
+  ExportOutlined,
   PlusOutlined,
-  SelectOutlined,
   StopOutlined,
+  UndoOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, InputNumber, message, Modal } from 'antd';
-import React, { useMemo, useState } from 'react';
+import { Button, Input, InputNumber, Modal, Tag, Tooltip, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
+import { getSelectedMonth, getUserInfo } from '../../../containers/Main/redux/reducer';
+import { getDebtors } from '../../../containers/Income/redux/reducer';
 import {
-  dispatchDeleteDebt,
-  dispatchDeleteDebtor,
-  dispatchEditDebtors,
-  dispatchEditDebts,
+  createDebtor,
+  createDebtorDebt,
+  deleteDebtorAndDebts,
+  deleteDebtorDebt,
+  updateDebtor,
+  updateDebtorDebt,
+  updateDebtorDebtMonthStatus,
 } from '../../../containers/Income/redux';
-import { getDebtors, getDebts } from '../../../containers/Income/redux/reducer';
-import { getMaxId } from '../../../utils/getMaxId';
-import Empty from '../../Empty';
-import RenderValue from '../../RenderValue';
-import Total from '../../Total';
+import { useMonthlyFinancialView } from '../../../services/useMonthlyFinancialView';
+import CurrencyInput from '../../CurrencyInput';
+import DebtorExportModal from './DebtorExportModal';
+import { formatBRL } from '../../../utils/currency';
+import { formatMonthYear } from '../../../utils/monthUtils';
 import {
-  Container,
-  Head,
-  Label,
-  AddButton,
-  ValueContainer,
-  Title,
-  Value,
-  ButtonsContainer,
-  ActionButton,
-  FormContainer,
-  TitleInput,
-  DebtorContainer,
-  DebtorHeader,
-  DebtorNameContainer,
-  DebtorValueContainer,
-  DebtorButtonsContainer,
-  EditNameButton,
-  DebtsContainer,
-  DebtContainer,
-  TitleDebtInput,
-  DebtContent,
-  TitleDebt,
-  InstallmentsContainer,
-  InstalmentsLabel,
-  TitleInputContainer,
-  Buttons,
-} from './styles';
-import CardTourButton from '../../CardTourButton';
-import AddItem from '../../AddItem';
+  EmptyBox,
+  FieldLabel,
+  FormRow,
+  HeaderActions,
+  IconActionBtn,
+  InlineEditorBox,
+  ItemActions,
+  ItemAmount,
+  ItemInfo,
+  ItemName,
+  ItemsList,
+  ItemTitleRow,
+  ListItemCard,
+  SectionCard,
+  SectionHeader,
+  SectionSubtitle,
+  SectionTitle,
+  SectionTitleGroup,
+  TotalBanner,
+} from '../../SharedCardStyles';
 
-export default function Debtors({ future }) {
-  const dispatch = useDispatch();
+const DebtorBox = styled.div`
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  overflow: hidden;
+`;
 
-  const supabase = useSupabaseClient();
-  const user = useUser();
+const DebtorTopBar = styled.div`
+  padding: 12px 14px;
+  background: #EEF2FF;
+  border-bottom: 1px solid #E0E7FF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
 
-  const debtors = useSelector(getDebtors);
-  const reversedDebtors = _.reverse(_.cloneDeep(debtors));
-  const hasDebtors = !_.isEmpty(debtors);
+const DebtorTitleArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
 
-  const debts = useSelector(getDebts);
+const DebtorName = styled.span`
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1E295E;
+`;
 
-  const filteredDebts = useMemo(() => {
-    const newDebts = debts.filter((debt) => {
-      const currentPay = future ? debt.future_pay : debt.current_pay;
-      return currentPay <= debt.installments;
-    });
+const DebtorBody = styled.div`
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
 
-    return newDebts;
-  }, [debts, future]);
+function DebtorNameEditor({ initialName = '', initialPhone = '', onSave, onCancel, saving }) {
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
 
-  const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [creating, setCreating] = useState(false);
-
-  const handleCreateDebtor = () => {
-    const number = hasDebtors ? getMaxId(debtors) + 1 : 1;
-    const id = `${user.id}_${number}`;
-    const newDebtor = {
-      id: id,
-      name: '',
-      user_uuid: user.id,
-    };
-    const newDebtors = [...debtors, newDebtor];
-    dispatchEditDebtors(dispatch, newDebtors, supabase, newDebtors.length - 1);
-    setCreating(true);
-    setCurrentIdEditing(id);
-
-    message.success('Novo devedor criado com sucesso.');
-  };
-
-  const handleEditDebtor = async (values, id) => {
-    const index = debtors.findIndex((item) => item.id === id);
-    const newDebtors = _.cloneDeep(debtors);
-    newDebtors[index].name = values.name;
-    dispatchEditDebtors(dispatch, newDebtors, supabase, index);
-    setCurrentIdEditing(null);
-    setCreating(false);
-
-    message.success(`Devedor ${values.name.toUpperCase()} editado com sucesso.`);
-  };
-
-  const handleDeleteDebtor = async (id) => {
-    const index = debtors.findIndex((item) => item.id === id);
-    const name = debtors[index].name;
-
-    const newDebtors = _.cloneDeep(debtors);
-    newDebtors.splice(index, 1);
-    dispatchDeleteDebtor(dispatch, newDebtors, supabase, id);
-    creating && setCreating(false);
-    currentIdEditing && setCurrentIdEditing(null);
-
-    message.success(`Devedor ${name.toUpperCase()} deletado com sucesso.`);
-  };
-
-  const handleCreateDebt = (debtorId, hasDebts, debtorDebts) => {
-    const number = hasDebts ? getMaxId(debtorDebts, 2) + 1 : 1;
-    const id = `${debtorId}_${number}`;
-    const newDebt = {
-      id: id,
-      value: undefined,
-      name: '',
-      user_uuid: user.id,
-      debtor_id: debtorId,
-      disabled: future,
-      installments: 1,
-      current_pay: future ? 0 : 1,
-      future_pay: future ? 1 : 2,
-      future_disabled: false,
-    };
-    const newDebts = [...debts, newDebt];
-    dispatchEditDebts(dispatch, newDebts, supabase, newDebts.length - 1);
-    setCreating(true);
-    setCurrentIdEditing(id);
-
-    message.success('Novo débito criado com sucesso.');
-  };
-
-  const handleEditDebt = async (values, id) => {
-    const index = debts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(debts);
-    newDebts[index].name = values.name;
-    newDebts[index].installments = values.installments || 1;
-
-    if (future) {
-      newDebts[index].future_pay = values.current_pay || 1;
-      newDebts[index].current_pay = (values.current_pay || 1) - 1;
-    } else {
-      newDebts[index].current_pay = values.current_pay || 1;
-      newDebts[index].future_pay = (values.current_pay || 1) + 1;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      message.warning('Digite o nome da pessoa.');
+      return;
     }
-
-    const debtValue =
-      typeof values.value === 'string'
-        ? parseFloat(
-            values.value.slice(3).replaceAll('.', '').replace(',', '.')
-          )
-        : values.value;
-    newDebts[index].value = debtValue;
-    await dispatchEditDebts(dispatch, newDebts, supabase, index);
-    setCurrentIdEditing(null);
-    setCreating(false);
-
-    message.success(`Débito ${values.name.toUpperCase()} editado com sucesso.`);
-  };
-
-  const handleDisableDebt = async (id) => {
-    const index = debts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(debts);
-
-    if (future) {
-      newDebts[index].future_disabled = !newDebts[index].future_disabled;
-    } else {
-      if(newDebts[index].disabled) {
-        newDebts[index].future_pay = newDebts[index].current_pay + 1;
-      } else {
-        newDebts[index].future_pay = newDebts[index].current_pay;
-      }
-      newDebts[index].disabled = !newDebts[index].disabled;
-    }
-
-    await dispatchEditDebts(dispatch, newDebts, supabase, index);
-    setCurrentIdEditing(null);
-  };
-
-  const handleIncreaseInstallment = async (id, name, pay) => {
-    const index = debts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(debts);
-
-    newDebts[index].current_pay = newDebts[index].current_pay + 1;
-
-    if (future) {
-      newDebts[index].future_disabled = true;
-    } else {
-      newDebts[index].disabled = true;
-    }
-
-    await dispatchEditDebts(dispatch, newDebts, supabase, index);
-    setCurrentIdEditing(null);
-
-    message.success(
-      `Parcela ${pay}/${
-        newDebts[index].installments
-      } de ${name.toUpperCase()} confirmada com sucesso.`
-    );
-  };
-
-  const handleDeleteDebt = async (id) => {
-    const index = debts.findIndex((item) => item.id === id);
-    const name = debts[index].name;
-  
-    await dispatchDeleteDebt(dispatch, user, supabase, id);
-    creating && setCreating(false);
-    currentIdEditing && setCurrentIdEditing(null);
-
-    message.success(`Débito ${name.toUpperCase()} deletado com sucesso.`);
-  };
-
-  const handleConfirmDeleteModal = (id, debtorDebts) => {
-    Modal.confirm({
-      title: 'Realmente deseja excluir este devedor?',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
-      okText: 'SIM',
-      okType: 'danger',
-      cancelText: 'NÃO',
-      onOk: async () => {
-        await debtorDebts.forEach(
-          async (debt) => await handleDeleteDebt(debt.id)
-        );
-        await handleDeleteDebtor(id);
-      },
-    });
-  };
-
-  const handleConfirmDeleteDebt = (id) => {
-    Modal.confirm({
-      title: 'Como esta foi a última parcela, o débito será deletado.',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Caso queira que ele retorne, terá que registra-lo novamente.',
-      okText: 'OK',
-      okType: 'danger',
-      cancelText: 'Cancelar',
-      onOk: async () => {
-        await handleDeleteDebt(id);
-      },
-    });
-  };
-
-  const RenderForm = ({ debt }) => {
-    const initialValues = { ...debt };
-    if (future) initialValues.current_pay = debt.future_pay;
-
-    return (
-      <FormContainer
-        onFinish={(values) => handleEditDebt(values, debt.id)}
-        initialValues={initialValues}
-        onFinishFailed={() => setErrorFinish(true)}
-      >
-        <ValueContainer editing={true}>
-          <Form.Item
-            style={{ margin: 0 }}
-            name='name'
-            rules={[
-              {
-                required: true,
-                message: 'Digite um nome para identificacar o devedor.',
-              },
-            ]}
-          >
-            <TitleDebtInput
-              key={`debt_name_${debt.id}`}
-              id={`debt_name_${debt.id}`}
-              placeholder='Exemplo: Emprestado'
-            />
-          </Form.Item>
-          <Form.Item
-            style={{ margin: 0 }}
-            name='value'
-            rules={[
-              {
-                required: true,
-                message: 'Digite o valor do débito.',
-              },
-            ]}
-          >
-            <Value
-              prefix='R$ '
-              key={`value_${debt.id}`}
-              decimalSeparator=','
-              thousandSeparator='.'
-              precision={2}
-            />
-          </Form.Item>
-        </ValueContainer>
-        <InstallmentsContainer form={'true'}>
-          <InstalmentsLabel>Parcela</InstalmentsLabel>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
-            }}
-          >
-            <Form.Item
-              style={{ width: '38%', display: 'flex' }}
-              name='current_pay'
-              rules={[
-                {
-                  required: false,
-                  message: 'Coloque a parcela atual.',
-                },
-              ]}
-            >
-              <InputNumber min={1} size='small' style={{ width: '100%' }} />
-            </Form.Item>
-            <div
-              style={{
-                width: '20%',
-                textAlign: 'center',
-                alignItems: 'center',
-                paddingTop: '7px',
-              }}
-            >
-              de
-            </div>
-            <Form.Item
-              style={{ width: '38%' }}
-              name='installments'
-              rules={[
-                {
-                  required: false,
-                  message: 'Coloque a quantidade de parcelas.',
-                },
-              ]}
-            >
-              <InputNumber min={1} size='small' style={{ width: '100%' }} />
-            </Form.Item>
-          </div>
-        </InstallmentsContainer>
-        <ButtonsContainer form={'true'}>
-          <ActionButton color='green' htmlType='submit'>
-            <CheckOutlined />
-          </ActionButton>
-          <ActionButton
-            color='red'
-            onClick={() =>
-              creating ? handleDeleteDebt(debt.id) : setCurrentIdEditing(null)
-            }
-          >
-            {creating ? <DeleteOutlined /> : <CloseOutlined />}
-          </ActionButton>
-        </ButtonsContainer>
-      </FormContainer>
-    );
-  };
-
-  const RenderDebtContent = ({ debt }) => {
-    const currentPay = future ? debt.future_pay : debt.current_pay;
-    const disabled = future ? debt.future_disabled : debt.disabled;
-
-    return (
-      <DebtContent>
-        <ValueContainer>
-          <TitleDebt disabled={disabled}>{debt.name.toUpperCase()}</TitleDebt>
-          <RenderValue
-            value={debt.value}
-            debt={true}
-            color={disabled ? 'grey' : null}
-          />
-        </ValueContainer>
-        <InstallmentsContainer>
-          <InstalmentsLabel color={disabled ? 'grey' : 'black'}>
-            Parcela
-          </InstalmentsLabel>
-          <div
-            style={{
-              fontSize: '0.8rem',
-              color: disabled ? 'grey' : 'black',
-              textAlign: 'center',
-            }}
-          >
-            {currentPay} de {debt.installments}
-          </div>
-        </InstallmentsContainer>
-        <ButtonsContainer>
-          <ActionButton
-            color={disabled ? '#368f42' : 'grey'}
-            disabled={currentIdEditing}
-            onClick={() => handleDisableDebt(debt.id)}
-          >
-            {disabled ? <SelectOutlined /> : <StopOutlined />}
-          </ActionButton>
-          <ActionButton
-            color='orange'
-            disabled={currentIdEditing || disabled}
-            onClick={() => setCurrentIdEditing(debt.id)}
-          >
-            <EditOutlined />
-          </ActionButton>
-          <ActionButton
-            color='#368f42'
-            disabled={currentIdEditing || disabled}
-            onClick={() =>
-              debt.installments - currentPay < 1
-                ? handleConfirmDeleteDebt(debt.id)
-                : handleIncreaseInstallment(debt.id, debt.name, currentPay)
-            }
-          >
-            <CarryOutOutlined />
-          </ActionButton>
-        </ButtonsContainer>
-      </DebtContent>
-    );
-  };
-
-  const RenderFormName = ({ debtor }) => (
-    <FormContainer
-      onFinish={(values) => handleEditDebtor(values, debtor.id)}
-      initialValues={{ ...debtor }}
-      onFinishFailed={() => setErrorFinish(true)}
-    >
-      <TitleInputContainer>
-        <Form.Item
-          style={{ margin: 0 }}
-          name='name'
-          rules={[
-            {
-              required: true,
-              message: 'Digite um nome para identificacar o devedor.',
-            },
-          ]}
-        >
-          <TitleInput
-            key={`debtor_name_${debtor.id}`}
-            id={`debtor_name_${debtor.id}`}
-            placeholder='Exemplo: Cunhado'
-          />
-        </Form.Item>
-      </TitleInputContainer>
-      <ButtonsContainer>
-        <EditNameButton color='green' htmlType='submit'>
-          <CheckOutlined />
-        </EditNameButton>
-        <EditNameButton
-          color='red'
-          onClick={() =>
-            creating ? handleDeleteDebtor(debtor.id) : setCurrentIdEditing(null)
-          }
-        >
-          {creating ? <DeleteOutlined /> : <CloseOutlined />}
-        </EditNameButton>
-      </ButtonsContainer>
-    </FormContainer>
-  );
-
-  const RenderDebt = ({ debt }) => {
-    return (
-      <DebtContainer>
-        {debt.id === currentIdEditing ? (
-          <RenderForm debt={debt} />
-        ) : (
-          <RenderDebtContent debt={debt} />
-        )}
-      </DebtContainer>
-    );
-  };
-
-  const RenderDebtor = ({ debtor }) => {
-    const allDebtorDebts = debts.filter((debt) => {
-      return debt.debtor_id === debtor.id;
-    });
-    const debtorDebts = allDebtorDebts.filter((debt) => {
-      const currentPay = future ? debt.future_pay : debt.current_pay;
-      return currentPay <= debt.installments;
-    });
-    const reversedDebtorsDebts = _.reverse(_.cloneDeep(debtorDebts));
-    const hasDebtorDebts = !_.isEmpty(debtorDebts);
-    const hasAnyDebtorDebts = !_.isEmpty(allDebtorDebts);
-    let debtsValue = 0;
-
-    debtorDebts.forEach(({ value, disabled, future_disabled }, index) => {
-      const currentDisabled = future ? future_disabled : disabled;
-
-      if (value && !currentDisabled) {
-        index === 0 ? (debtsValue = value) : (debtsValue += value);
-      }
-    });
-
-    return (
-      <DebtorContainer>
-        <DebtorHeader>
-          {debtor.id === currentIdEditing ? (
-            <RenderFormName debtor={debtor} />
-          ) : (
-            <>
-              <DebtorNameContainer>
-                <Title>{debtor.name.toUpperCase()}</Title>
-                <EditNameButton
-                  color='black'
-                  disabled={currentIdEditing}
-                  onClick={() => setCurrentIdEditing(debtor.id)}
-                >
-                  <EditOutlined />
-                </EditNameButton>
-              </DebtorNameContainer>
-              <DebtorValueContainer>
-                <RenderValue value={debtsValue} />
-              </DebtorValueContainer>
-              <DebtorButtonsContainer justifyEnd={currentIdEditing || !hasDebtorDebts}>
-                <ActionButton
-                  color='red'
-                  disabled={currentIdEditing}
-                  onClick={() =>
-                    handleConfirmDeleteModal(debtor.id, allDebtorDebts)
-                  }
-                >
-                  <DeleteOutlined />
-                </ActionButton>
-                <AddItem
-                  style={{ backgroundColor: '#8176fb' }}
-                  disabled={currentIdEditing || !hasDebtorDebts}
-                  onClick={() =>
-                    handleCreateDebt(debtor.id, hasAnyDebtorDebts, allDebtorDebts)
-                  }
-                >
-                  <PlusOutlined />
-                </AddItem>
-              </DebtorButtonsContainer>
-            </>
-          )}
-        </DebtorHeader>
-        <DebtsContainer>
-          {hasDebtorDebts ? (
-            reversedDebtorsDebts.map((debt) => (
-              <RenderDebt key={debt.id} debt={debt} />
-            ))
-          ) : debtor.id === currentIdEditing ? (
-            <div>
-              <h4 style={{ textAlign: 'center', fontWeight: 'normal' }}>
-                Digite o {<strong>nome</strong>} da pessoa que te deve algo este
-                mês e clique no check
-              </h4>
-            </div>
-          ) : (
-            <Empty
-              title='Nenhum débito cadastrado'
-              onClick={() =>
-                handleCreateDebt(debtor.id, hasDebtorDebts, debtorDebts)
-              }
-              sizeAdjust={4}
-            />
-          )}
-        </DebtsContainer>
-      </DebtorContainer>
-    );
+    onSave({ name: name.trim(), phone: phone.trim() });
   };
 
   return (
-    <Container>
-      <Head>
-        <Label>Devedores</Label>
-        <Buttons>
-          {/* <CardTourButton /> */}
-          <AddItem
-            onClick={handleCreateDebtor}
-            disabled={currentIdEditing || !hasDebtors}
-            style={{ marginLeft: '10px' }}
-          />
-        </Buttons>
-      </Head>
-      {!hasDebtors ? (
-        <Empty title='Nenhum devedor cadastrado' onClick={handleCreateDebtor} />
-      ) : (
-        <>
-          <Total array={filteredDebts} future={future} />
-          {reversedDebtors.map((debtor) => (
-            <RenderDebtor key={debtor.id} debtor={debtor} />
-          ))}
-        </>
+    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+      <InlineEditorBox>
+        <FormRow>
+          <div>
+            <FieldLabel>Nome do devedor</FieldLabel>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder='Ex: Cunhado, João, Irmã'
+              autoFocus
+            />
+          </div>
+          <div>
+            <FieldLabel>WhatsApp (opcional)</FieldLabel>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder='Ex: (11) 99999-9999'
+            />
+          </div>
+        </FormRow>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button
+            size='small'
+            type='primary'
+            htmlType='submit'
+            icon={<CheckOutlined />}
+            loading={saving}
+          >
+            Salvar
+          </Button>
+        </div>
+      </InlineEditorBox>
+    </form>
+  );
+}
+
+function DebtorDebtEditor({
+  initialName = '',
+  initialValue = 0,
+  initialCurrentInstallment = 1,
+  initialInstallments = 1,
+  onSave,
+  onCancel,
+  saving,
+}) {
+  const [name, setName] = useState(initialName);
+  const [value, setValue] = useState(initialValue);
+  const [curInst, setCurInst] = useState(initialCurrentInstallment);
+  const [totalInst, setTotalInst] = useState(initialInstallments);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      message.warning('Digite uma descrição para o débito.');
+      return;
+    }
+    if (value <= 0) {
+      message.warning('Informe o valor da parcela.');
+      return;
+    }
+    onSave({
+      name: name.trim(),
+      value,
+      currentInstallment: curInst || 1,
+      installments: Math.max(curInst || 1, totalInst || 1),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <InlineEditorBox>
+        <FormRow>
+          <div>
+            <FieldLabel>Descrição</FieldLabel>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder='Ex: Compra no cartão, Empréstimo'
+              autoFocus
+            />
+          </div>
+          <div>
+            <FieldLabel>Valor da parcela no mês</FieldLabel>
+            <CurrencyInput value={value} onChange={setValue} compact />
+          </div>
+          <div>
+            <FieldLabel>Parcela neste mês</FieldLabel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <InputNumber
+                min={1}
+                max={120}
+                value={curInst}
+                onChange={(v) => {
+                  const next = v || 1;
+                  setCurInst(next);
+                  if (next > totalInst) setTotalInst(next);
+                }}
+                style={{ width: '100%' }}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#64748B' }}>de</span>
+              <InputNumber
+                min={1}
+                max={120}
+                value={totalInst}
+                onChange={(v) => setTotalInst(Math.max(curInst || 1, v || 1))}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        </FormRow>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button
+            size='small'
+            type='primary'
+            htmlType='submit'
+            icon={<CheckOutlined />}
+            loading={saving}
+            style={{ background: '#16A34A', borderColor: '#16A34A' }}
+          >
+            Salvar Débito
+          </Button>
+        </div>
+      </InlineEditorBox>
+    </form>
+  );
+}
+
+export default function Debtors() {
+  const dispatch = useDispatch();
+  const supabase = useSupabaseClient();
+  const user = useUser();
+  const userInfo = useSelector(getUserInfo);
+  const selectedMonth = useSelector(getSelectedMonth);
+  const debtors = useSelector(getDebtors);
+  const { resolvedDebtorDebts } = useMonthlyFinancialView();
+
+  const [addingDebtor, setAddingDebtor] = useState(false);
+  const [editingDebtorId, setEditingDebtorId] = useState(null);
+  const [addingDebtForDebtor, setAddingDebtForDebtor] = useState(null);
+  const [editingDebtId, setEditingDebtId] = useState(null);
+  const [exportingDebtor, setExportingDebtor] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const reversedDebtors = [...debtors].reverse();
+
+  const totalPendingAllDebtors = resolvedDebtorDebts.reduce(
+    (sum, d) => (!d.effectivePaid && !d.effectiveDisabled ? sum + d.effectiveValue : sum),
+    0
+  );
+
+  const handleCreateDebtor = async ({ name, phone }) => {
+    setSaving(true);
+    try {
+      const created = await createDebtor({ dispatch, supabase, user, name, phone });
+      setAddingDebtor(false);
+      setAddingDebtForDebtor(created.id);
+      message.success(`Devedor "${name}" cadastrado.`);
+    } catch {
+      message.error('Erro ao criar devedor.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateDebtor = async (id, { name, phone }) => {
+    setSaving(true);
+    try {
+      await updateDebtor({
+        dispatch,
+        supabase,
+        user,
+        id,
+        patch: { name, ...(phone !== undefined ? { phone } : {}) },
+      });
+      setEditingDebtorId(null);
+      message.success(`Devedor "${name}" atualizado.`);
+    } catch {
+      message.error('Erro ao atualizar devedor.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDeleteDebtor = (debtor) => {
+    Modal.confirm({
+      title: `Excluir o devedor "${debtor.name}"?`,
+      icon: <ExclamationCircleOutlined />,
+      content: 'Todos os débitos vinculados a esta pessoa também serão excluídos.',
+      okText: 'Excluir',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await deleteDebtorAndDebts({ dispatch, supabase, user, debtorId: debtor.id });
+        message.success(`Devedor "${debtor.name}" removido.`);
+      },
+    });
+  };
+
+  const handleCreateDebt = async (debtorId, vals) => {
+    setSaving(true);
+    try {
+      await createDebtorDebt({
+        dispatch,
+        supabase,
+        user,
+        debtorId,
+        ...vals,
+        selectedMonth,
+      });
+      setAddingDebtForDebtor(null);
+      message.success('Débito adicionado com sucesso.');
+    } catch {
+      message.error('Erro ao salvar débito.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateDebt = async (id, vals) => {
+    setSaving(true);
+    try {
+      await updateDebtorDebt({
+        dispatch,
+        supabase,
+        user,
+        id,
+        ...vals,
+        selectedMonth,
+      });
+      setEditingDebtId(null);
+      message.success('Débito atualizado.');
+    } catch {
+      message.error('Erro ao atualizar débito.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleDebtPaid = async (debt) => {
+    const nextPaid = !debt.effectivePaid;
+    await updateDebtorDebtMonthStatus({
+      dispatch,
+      supabase,
+      user,
+      id: debt.id,
+      selectedMonth,
+      monthPatch: { paid: nextPaid },
+    });
+    if (nextPaid) {
+      message.success(
+        `Parcela ${debt.currentInstallment}/${debt.totalInstallments} de "${debt.name}" marcada como recebida!`
+      );
+    }
+  };
+
+  const handleToggleDebtDisabled = async (debt) => {
+    await updateDebtorDebtMonthStatus({
+      dispatch,
+      supabase,
+      user,
+      id: debt.id,
+      selectedMonth,
+      monthPatch: { disabled: !debt.effectiveDisabled },
+    });
+  };
+
+  const confirmDeleteDebt = (debt) => {
+    Modal.confirm({
+      title: `Excluir o débito "${debt.name}"?`,
+      icon: <ExclamationCircleOutlined />,
+      content:
+        'Para marcar apenas a parcela deste mês como paga, clique no botão verde de check. Excluir removerá o débito de todos os meses.',
+      okText: 'Excluir',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await deleteDebtorDebt({ dispatch, supabase, user, id: debt.id });
+        message.success('Débito excluído.');
+      },
+    });
+  };
+
+  return (
+    <SectionCard>
+      <SectionHeader>
+        <SectionTitleGroup>
+          <SectionTitle>Devedores</SectionTitle>
+          <SectionSubtitle>
+            Pessoas que te devem em {formatMonthYear(selectedMonth)} — exporte o extrato em 1 clique
+          </SectionSubtitle>
+        </SectionTitleGroup>
+        <HeaderActions>
+          <Button
+            type='primary'
+            icon={<UserAddOutlined />}
+            onClick={() => {
+              setEditingDebtorId(null);
+              setAddingDebtor(true);
+            }}
+            disabled={addingDebtor}
+            style={{ background: '#4F46E5', borderColor: '#4F46E5' }}
+          >
+            Novo Devedor
+          </Button>
+        </HeaderActions>
+      </SectionHeader>
+
+      {addingDebtor && (
+        <DebtorNameEditor
+          onSave={handleCreateDebtor}
+          onCancel={() => setAddingDebtor(false)}
+          saving={saving}
+        />
       )}
-    </Container>
+
+      {reversedDebtors.length === 0 && !addingDebtor ? (
+        <EmptyBox>
+          <span>Nenhuma pessoa cadastrada como devedora ainda.</span>
+          <Button
+            type='primary'
+            icon={<UserAddOutlined />}
+            onClick={() => setAddingDebtor(true)}
+            style={{ background: '#4F46E5', borderColor: '#4F46E5' }}
+          >
+            Cadastrar devedor
+          </Button>
+        </EmptyBox>
+      ) : (
+        reversedDebtors.length > 0 && (
+          <>
+            <TotalBanner>
+              <span>Total a receber de devedores no mês:</span>
+              <span>{formatBRL(totalPendingAllDebtors)}</span>
+            </TotalBanner>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {reversedDebtors.map((debtor) => {
+                const debtorMonthDebts = resolvedDebtorDebts
+                  .filter((d) => d.debtor_id === debtor.id)
+                  .reverse();
+
+                const debtorPendingSum = debtorMonthDebts.reduce(
+                  (sum, d) =>
+                    !d.effectivePaid && !d.effectiveDisabled
+                      ? sum + d.effectiveValue
+                      : sum,
+                  0
+                );
+
+                return (
+                  <DebtorBox key={debtor.id}>
+                    <DebtorTopBar>
+                      {editingDebtorId === debtor.id ? (
+                        <DebtorNameEditor
+                          initialName={debtor.name}
+                          initialPhone={debtor.phone || ''}
+                          onSave={(vals) => handleUpdateDebtor(debtor.id, vals)}
+                          onCancel={() => setEditingDebtorId(null)}
+                          saving={saving}
+                        />
+                      ) : (
+                        <>
+                          <DebtorTitleArea>
+                            <DebtorName>{debtor.name}</DebtorName>
+                            <Tag color='green' style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                              {formatBRL(debtorPendingSum)}
+                            </Tag>
+                          </DebtorTitleArea>
+
+                          <HeaderActions>
+                            <Tooltip title='Exportar extrato do mês (WhatsApp / PDF / Imagem)'>
+                              <Button
+                                size='small'
+                                type='primary'
+                                ghost
+                                icon={<ExportOutlined />}
+                                onClick={() => setExportingDebtor(debtor)}
+                              >
+                                Exportar Mês
+                              </Button>
+                            </Tooltip>
+
+                            <Button
+                              size='small'
+                              type='primary'
+                              icon={<PlusOutlined />}
+                              onClick={() => setAddingDebtForDebtor(debtor.id)}
+                              style={{ background: '#4F46E5', borderColor: '#4F46E5' }}
+                            >
+                              Débito
+                            </Button>
+
+                            <Tooltip title='Editar nome / telefone'>
+                              <IconActionBtn
+                                type='button'
+                                $color='#D97706'
+                                onClick={() => setEditingDebtorId(debtor.id)}
+                              >
+                                <EditOutlined />
+                              </IconActionBtn>
+                            </Tooltip>
+
+                            <Tooltip title='Excluir devedor'>
+                              <IconActionBtn
+                                type='button'
+                                $color='#DC2626'
+                                onClick={() => confirmDeleteDebtor(debtor)}
+                              >
+                                <DeleteOutlined />
+                              </IconActionBtn>
+                            </Tooltip>
+                          </HeaderActions>
+                        </>
+                      )}
+                    </DebtorTopBar>
+
+                    <DebtorBody>
+                      {addingDebtForDebtor === debtor.id && (
+                        <DebtorDebtEditor
+                          onSave={(vals) => handleCreateDebt(debtor.id, vals)}
+                          onCancel={() => setAddingDebtForDebtor(null)}
+                          saving={saving}
+                        />
+                      )}
+
+                      {debtorMonthDebts.length === 0 && addingDebtForDebtor !== debtor.id ? (
+                        <div
+                          style={{
+                            textAlign: 'center',
+                            padding: '10px',
+                            color: '#64748B',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          Nenhum débito ativo para {debtor.name} em{' '}
+                          {formatMonthYear(selectedMonth)}.
+                        </div>
+                      ) : (
+                        <ItemsList>
+                          {debtorMonthDebts.map((debt) =>
+                            editingDebtId === debt.id ? (
+                              <DebtorDebtEditor
+                                key={debt.id}
+                                initialName={debt.name}
+                                initialValue={debt.effectiveValue}
+                                initialCurrentInstallment={debt.currentInstallment}
+                                initialInstallments={debt.totalInstallments}
+                                onSave={(vals) => handleUpdateDebt(debt.id, vals)}
+                                onCancel={() => setEditingDebtId(null)}
+                                saving={saving}
+                              />
+                            ) : (
+                              <ListItemCard
+                                key={debt.id}
+                                $muted={debt.effectivePaid || debt.effectiveDisabled}
+                              >
+                                <ItemInfo>
+                                  <ItemTitleRow>
+                                    <ItemName
+                                      $strike={
+                                        debt.effectivePaid || debt.effectiveDisabled
+                                      }
+                                    >
+                                      {debt.name}
+                                    </ItemName>
+                                    <Tag color='geekblue'>
+                                      Parcela {debt.currentInstallment} de{' '}
+                                      {debt.totalInstallments}
+                                    </Tag>
+                                    {debt.effectivePaid && (
+                                      <Tag color='success'>Pago no mês</Tag>
+                                    )}
+                                    {debt.effectiveDisabled && <Tag>Pausado</Tag>}
+                                  </ItemTitleRow>
+                                  <ItemAmount
+                                    $color={
+                                      debt.effectivePaid || debt.effectiveDisabled
+                                        ? '#64748B'
+                                        : '#16A34A'
+                                    }
+                                  >
+                                    {formatBRL(debt.effectiveValue)}
+                                  </ItemAmount>
+                                </ItemInfo>
+
+                                <ItemActions>
+                                  <Tooltip
+                                    title={
+                                      debt.effectivePaid
+                                        ? 'Desmarcar pagamento neste mês'
+                                        : 'Confirmar pagamento desta parcela'
+                                    }
+                                  >
+                                    <IconActionBtn
+                                      type='button'
+                                      $bg='#F0FDF4'
+                                      $border='#86EFAC'
+                                      $color='#15803D'
+                                      onClick={() => handleToggleDebtPaid(debt)}
+                                      disabled={debt.effectiveDisabled}
+                                    >
+                                      {debt.effectivePaid ? (
+                                        <UndoOutlined />
+                                      ) : (
+                                        <CheckOutlined />
+                                      )}
+                                    </IconActionBtn>
+                                  </Tooltip>
+
+                                  <Tooltip
+                                    title={
+                                      debt.effectiveDisabled
+                                        ? 'Reativar neste mês'
+                                        : 'Ignorar apenas neste mês'
+                                    }
+                                  >
+                                    <IconActionBtn
+                                      type='button'
+                                      onClick={() => handleToggleDebtDisabled(debt)}
+                                    >
+                                      <StopOutlined />
+                                    </IconActionBtn>
+                                  </Tooltip>
+
+                                  <Tooltip title='Editar'>
+                                    <IconActionBtn
+                                      type='button'
+                                      $color='#D97706'
+                                      onClick={() => setEditingDebtId(debt.id)}
+                                    >
+                                      <EditOutlined />
+                                    </IconActionBtn>
+                                  </Tooltip>
+
+                                  <Tooltip title='Excluir débito'>
+                                    <IconActionBtn
+                                      type='button'
+                                      $color='#DC2626'
+                                      onClick={() => confirmDeleteDebt(debt)}
+                                    >
+                                      <DeleteOutlined />
+                                    </IconActionBtn>
+                                  </Tooltip>
+                                </ItemActions>
+                              </ListItemCard>
+                            )
+                          )}
+                        </ItemsList>
+                      )}
+                    </DebtorBody>
+                  </DebtorBox>
+                );
+              })}
+            </div>
+          </>
+        )
+      )}
+
+      <DebtorExportModal
+        open={Boolean(exportingDebtor)}
+        onClose={() => setExportingDebtor(null)}
+        debtor={exportingDebtor}
+        resolvedDebts={resolvedDebtorDebts}
+        selectedMonth={selectedMonth}
+        creditorName={userInfo?.name || user?.user_metadata?.user_name || ''}
+      />
+    </SectionCard>
   );
 }

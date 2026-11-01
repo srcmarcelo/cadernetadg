@@ -1,17 +1,23 @@
 import React from 'react';
+import styled from 'styled-components';
 import Debtors from '../../componets/IncomeCards/Debtors';
 import ExtraReceipts from '../../componets/IncomeCards/ExtraReceipts';
 import FixedReceipts from '../../componets/IncomeCards/FixedReceipts';
-import { Container, Content } from './styles';
 
-export default function Income({future}) {
+const Wrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 28px;
+`;
+
+export default function Income() {
   return (
-    <Container className='income-screen'>
-      <Content>
-        <FixedReceipts future={future} />
-        <Debtors future={future} />
-        <ExtraReceipts future={future} />
-      </Content>
-    </Container>
+    <Wrapper className='income-screen'>
+      <FixedReceipts />
+      <Debtors />
+      <ExtraReceipts />
+    </Wrapper>
   );
 }

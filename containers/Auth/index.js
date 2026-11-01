@@ -1,19 +1,85 @@
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import { GoogleCircleFilled } from '@ant-design/icons';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Button, Form, Input, message, Modal, Result } from 'antd';
-import _ from 'lodash';
+import { Alert, Button, Form, Input, Modal, Result, message } from 'antd';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
-import {
-  ChangeModeButton,
-  Container,
-  ErrorLabel,
-  GoogleButton,
-  RegistrationForm,
-  Terms,
-  TermsLinks,
-  VideoModalContainer,
-} from './styles';
+import { useSupabaseClient } from '../../services/supabaseClient';
+
+const AuthWrapper = styled.div`
+  width: 100%;
+  min-height: 92dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+`;
+
+const AuthCard = styled.div`
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 32px 26px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 12px 32px rgba(30, 41, 94, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const GoogleBtn = styled.button`
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.16s;
+
+  &:hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
+  }
+`;
+
+const DividerText = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: #94A3B8;
+  font-size: 0.82rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E2E8F0;
+  }
+`;
+
+const TermsNotice = styled.p`
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  color: #64748B;
+  text-align: center;
+  line-height: 1.45;
+
+  a {
+    color: #1E295E;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+`;
 
 export default function Auth() {
   const supabase = useSupabaseClient();
@@ -21,555 +87,401 @@ export default function Auth() {
   const [mode, setMode] = useState('signin');
   const [signInError, setSignInError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-
-  useEffect(() => {
-    setPageLoading(false);
-    setTimeout(() => setVideoModalOpen(true), 1000);
-  }, []);
 
   const verifyUserExist = async (email) => {
-    let { data } = await supabase
+    const { data } = await supabase
       .from('registered_users')
-      .select('*')
-      .eq('email', email);
-    return !_.isEmpty(data);
+      .select('id')
+      .eq('email', email)
+      .limit(1);
+    return Array.isArray(data) && data.length > 0;
   };
 
-  const SignIn = async (values) => {
+  const handleSignIn = async (values) => {
     setLoading(true);
+    setSignInError(null);
+
     const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
+      email: values.email.trim(),
       password: values.password,
     });
 
-    if (error?.message.includes('Email')) {
-      setSignInError('notVerified');
-    } else {
-      const alreadyRegistered = await verifyUserExist(values.email);
-      if (!alreadyRegistered) {
-        setSignInError('notRegistered');
+    if (error) {
+      if (error.message?.toLowerCase().includes('email not confirmed')) {
+        setSignInError('notVerified');
       } else {
-        setSignInError('credentials');
+        const alreadyRegistered = await verifyUserExist(values.email.trim());
+        setSignInError(alreadyRegistered ? 'credentials' : 'notRegistered');
       }
     }
+
     setLoading(false);
   };
 
-  async function signInWithGoogle() {
+  const signInWithGoogle = async () => {
+    const redirectTo =
+      typeof window !== 'undefined' ? window.location.origin : undefined;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: redirectTo ? { redirectTo } : undefined,
     });
-
     if (error) {
       setMode('googleError');
     }
-  }
+  };
 
-  const SignUp = async (values) => {
+  const handleSignUp = async (values) => {
     setLoading(true);
-    const alreadyRegistered = await verifyUserExist(values.email);
+    setSignInError(null);
+    const cleanEmail = values.email.trim();
+
+    const alreadyRegistered = await verifyUserExist(cleanEmail);
     if (alreadyRegistered) {
       setMode('alreadyRegistered');
       setLoading(false);
       return;
     }
-    const { data, error } = await supabase.auth.signUp({
-      email: values.email,
+
+    const { error } = await supabase.auth.signUp({
+      email: cleanEmail,
       password: values.password,
       options: {
         data: {
-          user_name: values.user_name,
+          user_name: values.user_name.trim(),
         },
       },
     });
+
     if (!error) {
       setMode('successRegistry');
     } else {
-      message.error('Algo deu errado :(');
+      message.error(error.message || 'Não foi possível criar a conta.');
     }
     setLoading(false);
   };
 
-  const RecoverySubmit = async (values) => {
+  const handleRecovery = async (values) => {
     setLoading(true);
-    const alreadyRegistered = await verifyUserExist(values.email);
+    setSignInError(null);
+    const cleanEmail = values.email.trim();
+
+    const alreadyRegistered = await verifyUserExist(cleanEmail);
     if (!alreadyRegistered) {
       setSignInError('notRegistered');
       setLoading(false);
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: 'http://cadernetadg.com.br/update-password',
+
+    const redirectUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/update-password`
+        : 'https://cadernetadg.com.br/update-password';
+
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: redirectUrl,
     });
 
     if (!error) {
       setMode('recoverySucceed');
     } else {
-      message.error('Algo deu errado :(');
+      message.error('Não foi possível enviar o link de recuperação.');
     }
     setLoading(false);
   };
 
-  const SpamAdvice = () => {
+  const showSpamAdvice = () => {
     Modal.info({
       title: 'Olhe na sua caixa de spam!',
       content: (
         <div>
           <p>
-            Infelizmente, para algumas contas, nossos emails caem na caixa de
-            SPAM. Verifique a sua e marque o email como confiável, depois clique
-            no link.
+            Para algumas contas, os emails de confirmação podem cair na pasta de SPAM ou Lixo Eletrônico.
           </p>
           <p>
-            Não se preocupe, o link é confiável! O responsável pelo site sou eu,
-            Marcelo Crístian. Se quiser ou precisar, pode entrar em contato
-            comigo no número (87) 98817-5129.
-          </p>
-          <p>
-            Caso não esteja nem na caixa de SPAM, favor aguardar 2 minutos. Caso
-            não apareça mesmo assim, tente se cadastrar novamente. Caso persista
-            o erro, favor enviar mensagem via Whatsapp para o número acima.
+            Caso utilize Gmail, você também pode entrar diretamente clicando em <strong>Continuar com o Google</strong>!
           </p>
         </div>
       ),
-      onOk() {},
     });
-  };
-
-  const emailWarning = () => {
-    Modal.warning({
-      title: 'Pode demorar uns minutinhos...',
-      content:
-        'Infelizmente, para algumas contas, o email de confirmação está demorando até 10 minutos para chegar. Caso seu email seja "gmail", clique em "Continuar com o Google" para ser mais rápido!',
-    });
-  };
-
-  const SignInForm = () => (
-    <RegistrationForm layout='vertical' onFinish={SignIn}>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Seu email</span>}
-        style={{ width: '100%' }}
-        name='email'
-        requiredMark='optional'
-        rules={[
-          {
-            required: true,
-            message: 'Digite um email válido.',
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Sua senha</span>}
-        name='password'
-        requiredMark='optional'
-        rules={[
-          {
-            required: true,
-            message: 'Digite sua senha.',
-          },
-        ]}
-      >
-        <Input.Password />
-      </Form.Item>
-      <Button type='primary' htmlType='submit' loading={loading}>
-        ENTRAR
-      </Button>
-    </RegistrationForm>
-  );
-
-  const SignUpForm = () => (
-    <RegistrationForm layout='vertical' onFinish={SignUp}>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Seu nome</span>}
-        style={{ width: '100%' }}
-        name='user_name'
-        requiredMark='optional'
-        rules={[
-          {
-            required: true,
-            message: 'Digite seu nome.',
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Seu email</span>}
-        style={{ width: '100%' }}
-        name='email'
-        requiredMark='optional'
-        rules={[
-          {
-            required: true,
-            message: 'Digite um email válido.',
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Sua senha</span>}
-        style={{ width: '100%' }}
-        name='password'
-        requiredMark='optional'
-        hasFeedback
-        rules={[
-          {
-            required: true,
-            message: 'Digite uma senha de no mínimo 6 dígitos.',
-            min: 6,
-          },
-        ]}
-      >
-        <Input.Password style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item
-        label={<span style={{ color: 'white' }}>Confirmar senha</span>}
-        name='confirmPassword'
-        requiredMark='optional'
-        dependencies={['password']}
-        hasFeedback
-        rules={[
-          {
-            required: true,
-            message: 'Confirme sua senha.',
-          },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error('As senhas devem ser iguais!'));
-            },
-          }),
-        ]}
-      >
-        <Input.Password style={{ width: '100%' }} />
-      </Form.Item>
-      <Button type='primary' htmlType='submit' loading={loading}>
-        Criar Conta
-      </Button>
-    </RegistrationForm>
-  );
-
-  const PasswordRecoveryForm = () => (
-    <RegistrationForm layout='vertical' onFinish={RecoverySubmit}>
-      <Form.Item
-        label={
-          <span style={{ color: 'white', textAlign: 'center' }}>
-            Digite o email cadastrado abaixo. Te enviaremos um link de
-            recuperação.
-          </span>
-        }
-        style={{ width: '100%' }}
-        name='email'
-        requiredMark='optional'
-        rules={[
-          {
-            required: true,
-            message: 'Digite um email válido.',
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
-      <Button type='primary' htmlType='submit' loading={loading}>
-        RECUPERAR
-      </Button>
-    </RegistrationForm>
-  );
-
-  const ResgistrySucceed = () => (
-    <div>
-      <Result
-        status='success'
-        title='Entre no seu email para confirmar!'
-        subTitle='Acabamos de te enviar o link de confirmação, entre no seu email e clique nesse link para confirmar!'
-        extra={[
-          <Button
-            type='primary'
-            key='goToLogin'
-            onClick={() => setMode('signin')}
-          >
-            Ir para o login
-          </Button>,
-          <Button key='didNotReceived' onClick={SpamAdvice}>
-            Não recebi o email
-          </Button>,
-        ]}
-      />
-    </div>
-  );
-
-  const RecoverySucceed = () => (
-    <div>
-      <Result
-        status='success'
-        title='Link de recuperação enviado!'
-        subTitle='Enviamos o link de recuperação para o seu email.'
-        extra={[
-          <Button
-            type='primary'
-            key='goToLogin'
-            onClick={() => setMode('signin')}
-          >
-            Ir para o login
-          </Button>,
-          <Button key='didNotReceived' onClick={SpamAdvice}>
-            Não recebi o email
-          </Button>,
-        ]}
-      />
-    </div>
-  );
-
-  const AlreadyRegistered = () => (
-    <div>
-      <Result
-        status='error'
-        title='Email já cadastrado'
-        subTitle='Caso tenha esquecido a senha, clique em "esqueci senha" na tela de login para recupera-la.'
-        extra={[
-          <Button
-            type='primary'
-            key='goToLogin'
-            onClick={() => setMode('signin')}
-          >
-            Ir para o login
-          </Button>,
-        ]}
-      />
-    </div>
-  );
-
-  const ErrorWithGoogle = () => (
-    <div>
-      <Result
-        status='error'
-        title='Algo deu errado'
-        subTitle='Algo deu errado ao tentar continuar com o Google. Por favor, utilize o email.'
-        extra={[
-          <Button
-            type='primary'
-            key='goToLogin'
-            onClick={() => setMode('signin')}
-          >
-            Ir para o login
-          </Button>,
-        ]}
-      />
-    </div>
-  );
-
-  const Main = {
-    signup: <SignUpForm />,
-    signin: <SignInForm />,
-    passwordRecovery: <PasswordRecoveryForm />,
-    successRegistry: <ResgistrySucceed />,
-    alreadyRegistered: <AlreadyRegistered />,
-    recoverySucceed: <RecoverySucceed />,
-    googleError: <ErrorWithGoogle />,
-  };
-
-  const SignModes = {
-    signin: {
-      label: 'Criar Conta',
-      mode: 'signup',
-      color: '#368f42',
-    },
-    signup: {
-      label: 'Já tenho conta',
-      mode: 'signin',
-      color: 'orange',
-    },
   };
 
   const signInErrors = {
     credentials:
-      'Senha inválida. Caso tenha esquecido, clique em "Esqueci Senha" no botão abaixo para redefinir.',
+      'Senha incorreta. Caso tenha esquecido, clique em "Esqueci minha senha" abaixo.',
     notRegistered:
-      'Email não cadastrado. Você precisa criar uma conta para acessar a Caderneta, clique em "Continuar com o Google" ou "Criar Conta" para se cadastrar.',
+      'Email não encontrado. Clique em "Criar nova conta" ou entre com o Google.',
     notVerified:
-      'Email não confirmado. Clique no link no email que te enviamos para verificar. Olhe também na caixa de spam.',
+      'Email ainda não confirmado. Verifique sua caixa de entrada e o SPAM.',
   };
 
-  const RenderErrorLabel = ({ error }) => (
-    <ErrorLabel>{signInErrors[error]}</ErrorLabel>
-  );
-
-  const RenderTerms = () => (
-    <Terms>
-      Ao se cadastrar você concorda com nossa{' '}
-      {
-        <TermsLinks
-          href='/privacy_policies'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          Política de Privacidade
-        </TermsLinks>
-      }{' '}
-      e nossos{' '}
-      {
-        <TermsLinks href='/terms' target='_blank' rel='noopener noreferrer'>
-          Termos e Condições
-        </TermsLinks>
-      }
-      .
-    </Terms>
-  );
-
-  const RenderGoogleButton = () => (
-    <GoogleButton onClick={signInWithGoogle}>
-      <GoogleCircleFilled style={{ fontSize: '1.5rem', marginTop: '3px' }} />
-      Continuar com o Google
-    </GoogleButton>
-  );
-
-  const RenderSeparator = () => (
-    <div
-      style={{
-        margin: '15px 0px',
-        color: '#232c68',
-        alignSelf: 'center',
-        justifySelf: 'center',
-      }}
-    >
-      ou
-    </div>
-  );
-
-  const RenderVideoModal = () => (
-    <Modal
-      open={videoModalOpen}
-      onOk={() => {
-        setVideoModalOpen(false),
-          open('https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc=');
-      }}
-      onCancel={() => setVideoModalOpen(false)}
-      cancelText='Já assisti'
-      okText='Ir para o vídeo'
-      closable={false}
-      title={
-        <h3 style={{ textAlign: 'center', margin: 0 }}>
-          O que é o Caderneta Digital?
-        </h3>
-      }
-      centered={true}
-    >
-      <VideoModalContainer>
-        <div
-          style={{
-            textAlign: 'center',
-            marginBottom: '10px',
-            fontSize: '1rem',
-          }}
-        >
-          Assista o vídeo abaixo na minha conta do Instagram para saber do que
-          se trata!
-        </div>
-        <Image
-          src='/InstagramVideo.jpeg'
-          width={300}
-          height={298}
-          alt='Frame do vídeo de anúncio do Caderneta Digital'
-          onClick={() => {
-            setVideoModalOpen(false),
-              open('https://instagram.com/srcmarcelo?igshid=NTA5ZTk1NTc=');
-          }}
-        />
-      </VideoModalContainer>
-    </Modal>
-  );
-
-  if (pageLoading)
-    return (
-      <Container>
+  return (
+    <AuthWrapper>
+      <AuthCard>
         <Image
           src='/logo.png'
-          width={125}
-          height={74}
+          width={96}
+          height={57}
           alt='Logo do Caderneta Digital'
+          priority
         />
-      </Container>
-    );
+        <h1
+          style={{
+            marginTop: 12,
+            marginBottom: 2,
+            color: '#1E295E',
+            fontSize: '1.55rem',
+            fontWeight: 800,
+            textAlign: 'center',
+          }}
+        >
+          Caderneta Digital
+        </h1>
+        <p style={{ marginBottom: 22, color: '#64748B', textAlign: 'center', fontSize: '0.92rem' }}>
+          Controle inteligente do seu dinheiro todos os meses
+        </p>
 
-  return (
-    <Container
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        paddingTop: '10px',
-      }}
-    >
-      <Image
-        src='/logo.png'
-        width={125}
-        height={74}
-        alt='Logo do Caderneta Digital'
-      />
-      <h1
-        style={{
-          marginTop: '10px',
-          marginBottom: 0,
-          color: '#232C68',
-          textAlign: 'center',
-        }}
-      >
-        Caderneta Digital
-      </h1>
-      <p
-        style={{ marginBottom: '20px', color: '#232C68', textAlign: 'center' }}
-      >
-        Controle seu dinheiro!
-      </p>
-      {['signup', 'signin'].includes(mode) && <RenderGoogleButton />}
-      {['signup', 'signin'].includes(mode) && <RenderSeparator />}
-      {Main[mode]}
-      {['signup'].includes(mode) && <RenderTerms />}
-      {signInError && <RenderErrorLabel error={signInError} />}
-      {['signin'].includes(mode) && (
-        <ChangeModeButton
-          onClick={() => {
-            setMode('passwordRecovery');
-            setSignInError(null);
-          }}
-          color='#C83126'
-        >
-          Esqueci Senha
-        </ChangeModeButton>
-      )}
-      {['passwordRecovery'].includes(mode) && (
-        <ChangeModeButton
-          onClick={() => {
-            setMode('signin');
-            setSignInError(null);
-          }}
-          color='#232c68'
-        >
-          Ir para login
-        </ChangeModeButton>
-      )}
-      {['signup', 'signin'].includes(mode) && (
-        <ChangeModeButton
-          onClick={() => {
-            setMode(SignModes[mode].mode);
-            setSignInError(null);
-            SignModes[mode].mode === 'signup' && emailWarning();
-          }}
-          color={SignModes[mode].color}
-        >
-          {SignModes[mode].label}
-        </ChangeModeButton>
-      )}
-      <RenderVideoModal />
-    </Container>
+        {['signup', 'signin'].includes(mode) && (
+          <>
+            <GoogleBtn type='button' onClick={signInWithGoogle}>
+              <GoogleCircleFilled style={{ fontSize: '1.3rem', color: '#EA4335' }} />
+              <span>Continuar com o Google</span>
+            </GoogleBtn>
+            <DividerText>ou continue com seu email</DividerText>
+          </>
+        )}
+
+        {signInError && (
+          <Alert
+            type='error'
+            showIcon
+            message={signInErrors[signInError]}
+            style={{ width: '100%', marginBottom: 14 }}
+          />
+        )}
+
+        {mode === 'signin' && (
+          <Form layout='vertical' onFinish={handleSignIn} style={{ width: '100%' }}>
+            <Form.Item
+              label='Seu email'
+              name='email'
+              rules={[{ required: true, type: 'email', message: 'Digite um email válido.' }]}
+            >
+              <Input size='large' placeholder='voce@exemplo.com' />
+            </Form.Item>
+            <Form.Item
+              label='Sua senha'
+              name='password'
+              rules={[{ required: true, message: 'Digite sua senha.' }]}
+            >
+              <Input.Password size='large' placeholder='••••••' />
+            </Form.Item>
+            <Button
+              type='primary'
+              htmlType='submit'
+              size='large'
+              block
+              loading={loading}
+              style={{ background: '#1E295E', borderColor: '#1E295E', fontWeight: 700 }}
+            >
+              Entrar
+            </Button>
+          </Form>
+        )}
+
+        {mode === 'signup' && (
+          <Form layout='vertical' onFinish={handleSignUp} style={{ width: '100%' }}>
+            <Form.Item
+              label='Seu nome'
+              name='user_name'
+              rules={[{ required: true, message: 'Digite seu nome.' }]}
+            >
+              <Input size='large' placeholder='Como gostaria de ser chamado' />
+            </Form.Item>
+            <Form.Item
+              label='Seu email'
+              name='email'
+              rules={[{ required: true, type: 'email', message: 'Digite um email válido.' }]}
+            >
+              <Input size='large' placeholder='voce@exemplo.com' />
+            </Form.Item>
+            <Form.Item
+              label='Crie uma senha'
+              name='password'
+              rules={[{ required: true, min: 6, message: 'Mínimo de 6 caracteres.' }]}
+            >
+              <Input.Password size='large' />
+            </Form.Item>
+            <Form.Item
+              label='Confirmar senha'
+              name='confirmPassword'
+              dependencies={['password']}
+              rules={[
+                { required: true, message: 'Confirme sua senha.' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('As senhas devem ser iguais.'));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password size='large' />
+            </Form.Item>
+            <Button
+              type='primary'
+              htmlType='submit'
+              size='large'
+              block
+              loading={loading}
+              style={{ background: '#16A34A', borderColor: '#16A34A', fontWeight: 700 }}
+            >
+              Criar Conta Gratuita
+            </Button>
+
+            <TermsNotice>
+              Ao se cadastrar você concorda com nossa{' '}
+              <a href='/privacy_policies' target='_blank' rel='noopener noreferrer'>
+                Política de Privacidade
+              </a>{' '}
+              e nossos{' '}
+              <a href='/terms' target='_blank' rel='noopener noreferrer'>
+                Termos e Condições
+              </a>
+              .
+            </TermsNotice>
+          </Form>
+        )}
+
+        {mode === 'passwordRecovery' && (
+          <Form layout='vertical' onFinish={handleRecovery} style={{ width: '100%' }}>
+            <Form.Item
+              label='Digite seu email cadastrado para receber o link de redefinição'
+              name='email'
+              rules={[{ required: true, type: 'email', message: 'Digite um email válido.' }]}
+            >
+              <Input size='large' placeholder='voce@exemplo.com' />
+            </Form.Item>
+            <Button
+              type='primary'
+              htmlType='submit'
+              size='large'
+              block
+              loading={loading}
+            >
+              Enviar link de recuperação
+            </Button>
+          </Form>
+        )}
+
+        {mode === 'successRegistry' && (
+          <Result
+            status='success'
+            title='Confirme seu email!'
+            subTitle='Enviamos um link de confirmação para o seu email. Clique nele para ativar sua conta.'
+            extra={[
+              <Button type='primary' key='login' onClick={() => setMode('signin')}>
+                Ir para o login
+              </Button>,
+              <Button key='spam' onClick={showSpamAdvice}>
+                Não recebi o email
+              </Button>,
+            ]}
+          />
+        )}
+
+        {mode === 'recoverySucceed' && (
+          <Result
+            status='success'
+            title='Link enviado!'
+            subTitle='Verifique seu email para criar uma nova senha.'
+            extra={[
+              <Button type='primary' key='login' onClick={() => setMode('signin')}>
+                Voltar ao login
+              </Button>,
+              <Button key='spam' onClick={showSpamAdvice}>
+                Não recebi o email
+              </Button>,
+            ]}
+          />
+        )}
+
+        {mode === 'alreadyRegistered' && (
+          <Result
+            status='warning'
+            title='Este email já possui cadastro'
+            subTitle='Entre com sua senha ou utilize a opção "Esqueci minha senha".'
+            extra={[
+              <Button type='primary' key='login' onClick={() => setMode('signin')}>
+                Ir para o login
+              </Button>,
+            ]}
+          />
+        )}
+
+        {mode === 'googleError' && (
+          <Result
+            status='error'
+            title='Falha ao conectar com o Google'
+            subTitle='Por favor, tente novamente ou acesse utilizando seu email e senha.'
+            extra={[
+              <Button type='primary' key='login' onClick={() => setMode('signin')}>
+                Voltar ao login
+              </Button>,
+            ]}
+          />
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', marginTop: 16 }}>
+          {mode === 'signin' && (
+            <>
+              <Button
+                type='link'
+                onClick={() => {
+                  setMode('passwordRecovery');
+                  setSignInError(null);
+                }}
+              >
+                Esqueci minha senha
+              </Button>
+              <Button
+                block
+                onClick={() => {
+                  setMode('signup');
+                  setSignInError(null);
+                }}
+              >
+                Não tem conta? Criar nova conta
+              </Button>
+            </>
+          )}
+
+          {mode === 'signup' && (
+            <Button
+              block
+              onClick={() => {
+                setMode('signin');
+                setSignInError(null);
+              }}
+            >
+              Já tenho uma conta
+            </Button>
+          )}
+
+          {mode === 'passwordRecovery' && (
+            <Button
+              block
+              onClick={() => {
+                setMode('signin');
+                setSignInError(null);
+              }}
+            >
+              Voltar para o login
+            </Button>
+          )}
+        </div>
+      </AuthCard>
+    </AuthWrapper>
   );
 }

@@ -1,35 +1,45 @@
 import React from 'react';
 import RenderValue from '../RenderValue';
+import { roundMoney } from '../../utils/currency';
 import { TotalContainer, TotalLabel } from './styles';
 
-export default function Total({ array, color, future, className }) {
-  let total = 0;
-  array.forEach((item, index) => {
-    const hasFutureValue = item.future_value !== undefined;
-    const hasFutureReceived = item.future_received !== undefined;
-    const hasFutureDisabled = item.future_disabled !== undefined;
-    const hasFuturePayed = item.future_payed !== undefined;
+/**
+ * Displays total pending amount for resolved monthly items (or raw legacy items).
+ */
+export default function Total({
+  array = [],
+  totalValue,
+  label = 'Total pendente no mês:',
+  color,
+  className,
+}) {
+  let computed = 0;
 
-    const currentValue =
-      future && hasFutureValue ? item.future_value : item.value;
-    const currentReceived =
-      future && hasFutureReceived ? item.future_received : item.received;
-    const currentDisabled =
-      future && hasFutureDisabled ? item.future_disabled : item.disabled;
-    const currentPayed =
-      future && hasFuturePayed ? item.future_payed : item.payed;
+  if (typeof totalValue === 'number') {
+    computed = roundMoney(totalValue);
+  } else {
+    array.forEach((item) => {
+      const val =
+        item.effectiveValue !== undefined
+          ? Number(item.effectiveValue || 0)
+          : Number(item.value || 0);
+      const isPaid = Boolean(
+        item.effectivePaid ?? item.effectiveReceived ?? item.payed ?? item.received
+      );
+      const isDisabled = Boolean(item.effectiveDisabled ?? item.disabled);
 
-    if (currentValue && !(currentPayed || currentReceived || currentDisabled)) {
-      if (index === 0) total = currentValue;
-      else total += currentValue;
-    }
-  });
+      if (val > 0 && !isPaid && !isDisabled) {
+        computed += val;
+      }
+    });
+    computed = roundMoney(computed);
+  }
 
   return (
     <TotalContainer color={color} className={className}>
-      <TotalLabel>Valor total:</TotalLabel>
+      <TotalLabel>{label}</TotalLabel>
       <div>
-        <RenderValue value={total} color='#fff' fontSize='1.3rem' />
+        <RenderValue value={computed} color='#fff' fontSize='1.15rem' />
       </div>
     </TotalContainer>
   );

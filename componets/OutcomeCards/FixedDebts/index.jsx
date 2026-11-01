@@ -1,373 +1,349 @@
+import React, { useState } from 'react';
 import {
-  CarryOutOutlined,
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
-  FileDoneOutlined,
   PlusOutlined,
-  RollbackOutlined,
-  SelectOutlined,
   StopOutlined,
+  UndoOutlined,
 } from '@ant-design/icons';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
-import { Form, Modal, message } from 'antd';
-import React, { useState } from 'react';
+import { Button, Input, Modal, Tag, Tooltip, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSupabaseClient, useUser } from '../../../services/supabaseClient';
+import { getSelectedMonth } from '../../../containers/Main/redux/reducer';
 import {
-  dispatchDeleteFixedDebt,
-  dispatchEditFixedDebts,
+  createFixedDebt,
+  deleteFixedDebt,
+  updateFixedDebt,
+  updateFixedDebtMonthStatus,
 } from '../../../containers/Outcome/redux';
-import { getFixedDebts } from '../../../containers/Outcome/redux/reducer';
-import { getMaxId } from '../../../utils/getMaxId';
-import Empty from '../../Empty';
-import RenderValue from '../../RenderValue';
-import Total from '../../Total';
+import { useMonthlyFinancialView } from '../../../services/useMonthlyFinancialView';
+import CurrencyInput from '../../CurrencyInput';
+import { formatBRL } from '../../../utils/currency';
+import { formatMonthYear } from '../../../utils/monthUtils';
 import {
-  Container,
-  Head,
-  Label,
-  AddButton,
-  ItemContainer,
-  ValueContainer,
-  Title,
-  Value,
-  ButtonsContainer,
-  ActionButton,
-  FormContainer,
-  TitleInput,
-  ItemContent,
-  ConfirmButton,
-  InputContainer,
-  InputLabel,
-  Buttons,
-} from './styles';
-import CardTourButton from '../../CardTourButton';
-import AddItem from '../../AddItem';
-import ReactJoyride from 'react-joyride';
-import { fixedDebtsTourSteps } from '../../../utils/toursSteps/fixedDebtsTour';
+  EmptyBox,
+  FieldLabel,
+  FormRow,
+  HeaderActions,
+  IconActionBtn,
+  InlineEditorBox,
+  ItemActions,
+  ItemAmount,
+  ItemInfo,
+  ItemName,
+  ItemsList,
+  ItemTitleRow,
+  ListItemCard,
+  SectionCard,
+  SectionHeader,
+  SectionSubtitle,
+  SectionTitle,
+  SectionTitleGroup,
+  TotalBanner,
+} from '../../SharedCardStyles';
 
-export default function FixedDebts({ future }) {
+function FixedDebtEditor({ initialName = '', initialValue = 0, onSave, onCancel, saving }) {
+  const [name, setName] = useState(initialName);
+  const [value, setValue] = useState(initialValue);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      message.warning('Digite um nome para identificar a despesa.');
+      return;
+    }
+    if (value <= 0) {
+      message.warning('Informe um valor maior que zero.');
+      return;
+    }
+    onSave({ name: name.trim(), value });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <InlineEditorBox>
+        <FormRow>
+          <div>
+            <FieldLabel>Descrição</FieldLabel>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder='Ex: Aluguel, Energia, Internet'
+              autoFocus
+            />
+          </div>
+          <div>
+            <FieldLabel>Valor mensal</FieldLabel>
+            <CurrencyInput value={value} onChange={setValue} compact />
+          </div>
+        </FormRow>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Button size='small' icon={<CloseOutlined />} onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button
+            size='small'
+            type='primary'
+            danger
+            htmlType='submit'
+            icon={<CheckOutlined />}
+            loading={saving}
+          >
+            Salvar
+          </Button>
+        </div>
+      </InlineEditorBox>
+    </form>
+  );
+}
+
+export default function FixedDebts() {
   const dispatch = useDispatch();
-
   const supabase = useSupabaseClient();
   const user = useUser();
+  const selectedMonth = useSelector(getSelectedMonth);
+  const { resolvedFixedDebts } = useMonthlyFinancialView();
 
-  const fixedDebts = useSelector(getFixedDebts);
-  const reversedFixedDebts = _.reverse(_.cloneDeep(fixedDebts));
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const hasDebts = !_.isEmpty(fixedDebts);
+  const items = [...resolvedFixedDebts].reverse();
+  const pendingTotal = items.reduce(
+    (sum, it) =>
+      !it.effectivePaid && !it.effectiveDisabled ? sum + it.effectiveValue : sum,
+    0
+  );
 
-  const [currentIdEditing, setCurrentIdEditing] = useState(null);
-  const [creating, setCreating] = useState(false);
-  const [tour, setTour] = useState(false);
-  const [fakeDebt, setFakeDebt] = useState(null);
-
-  const handleCreateDebt = (fake) => {
-    const number = hasDebts ? getMaxId(fixedDebts) + 1 : 1;
-    const id = `${user.id}_${number}`;
-    if (fake === true) setFakeDebt(id);
-    const newDebt = {
-      id: id,
-      value: undefined,
-      name: '',
-      payed: false,
-      user_uuid: user.id,
-      future_payed: false,
-    };
-    const newDebts = [...fixedDebts, newDebt];
-    dispatchEditFixedDebts(dispatch, newDebts, supabase, newDebts.length - 1);
-    setCreating(true);
-    setCurrentIdEditing(id);
-
-    message.success('Nova despesa criada com sucesso.');
-  };
-
-  const handleEditDebt = async (values, id) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const newDebts = _.cloneDeep(fixedDebts);
-    const debtValue =
-      typeof values.value === 'string'
-        ? parseFloat(
-            values.value.slice(3).replaceAll('.', '').replace(',', '.')
-          )
-        : values.value;
-
-    newDebts[index].value = debtValue;
-    newDebts[index].name = values.name;
-    dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
-    setCurrentIdEditing(null);
-    setCreating(false);
-
-    message.success(
-      `Despesa ${values.name.toUpperCase()} editada com sucesso.`
-    );
-  };
-
-  const handleDeleteDebt = async (id) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const name = fixedDebts[index].name;
-
-    const newDebts = _.cloneDeep(fixedDebts);
-    newDebts.splice(index, 1);
-    dispatchDeleteFixedDebt(dispatch, newDebts, supabase, id);
-    creating && setCreating(false);
-    currentIdEditing && setCurrentIdEditing(null);
-
-    message.success(`Despesa ${name.toUpperCase()} deletada com sucesso.`);
-  };
-
-  const handleConfirmDebt = async (id, pay) => {
-    const index = fixedDebts.findIndex((item) => item.id === id);
-    const name = fixedDebts[index].name;
-
-    const newDebts = _.cloneDeep(fixedDebts);
-
-    if (future) {
-      newDebts[index].future_payed = !newDebts[index].future_payed;
-    } else {
-      newDebts[index].payed = !newDebts[index].payed;
+  const handleCreate = async ({ name, value }) => {
+    setSaving(true);
+    try {
+      await createFixedDebt({ dispatch, supabase, user, name, value });
+      setAdding(false);
+      message.success(`Despesa fixa "${name}" adicionada.`);
+    } catch {
+      message.error('Erro ao salvar despesa fixa.');
+    } finally {
+      setSaving(false);
     }
-
-    dispatchEditFixedDebts(dispatch, newDebts, supabase, index);
-    creating && setCreating(false);
-    currentIdEditing && setCurrentIdEditing(null);
-
-    pay && message.success(`Despesa ${name.toUpperCase()} paga com sucesso.`);
   };
 
-  const handleConfirmDeleteModal = (id) => {
+  const handleUpdate = async (id, { name, value }) => {
+    setSaving(true);
+    try {
+      await updateFixedDebt({
+        dispatch,
+        supabase,
+        user,
+        id,
+        patch: { name, value },
+      });
+      setEditingId(null);
+      message.success(`Despesa "${name}" atualizada.`);
+    } catch {
+      message.error('Erro ao atualizar despesa.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTogglePaid = async (item) => {
+    const nextPaid = !item.effectivePaid;
+    await updateFixedDebtMonthStatus({
+      dispatch,
+      supabase,
+      user,
+      id: item.id,
+      selectedMonth,
+      monthPatch: { paid: nextPaid },
+    });
+    if (nextPaid) {
+      message.success(`"${item.name}" marcada como paga em ${formatMonthYear(selectedMonth)}.`);
+    }
+  };
+
+  const handleToggleDisabled = async (item) => {
+    await updateFixedDebtMonthStatus({
+      dispatch,
+      supabase,
+      user,
+      id: item.id,
+      selectedMonth,
+      monthPatch: { disabled: !item.effectiveDisabled },
+    });
+  };
+
+  const confirmDelete = (item) => {
     Modal.confirm({
-      title: 'Tem certeza que deseja excluir este débito?',
+      title: `Excluir "${item.name}" de todos os meses?`,
       icon: <ExclamationCircleOutlined />,
-      content: 'Caso queira que ele retorne, terá que cria-lo novamente.',
-      okText: 'SIM',
+      content:
+        'Para ignorar apenas neste mês, use o botão de pausar. Excluir removerá a despesa fixa permanentemente.',
+      okText: 'Excluir',
       okType: 'danger',
-      cancelText: 'NÃO',
-      onOk() {
-        handleDeleteDebt(id);
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        await deleteFixedDebt({ dispatch, supabase, user, id: item.id });
+        message.success('Despesa fixa removida.');
       },
     });
   };
 
-  const callbacks = {
-    1: () => {
-      handleCreateDebt(true);
-    },
-    3: () => {
-      document.getElementsByClassName('fixed_debt_label_0')[0].value = 'Aluguel';
-    },
-    4: () => {
-      document.getElementsByClassName('fixed_debt_value_0')[0].value = 'R$ 500,00';
-    },
-    5: () => {
-      const fakeValues = {
-        name: 'Aluguel',
-        value: 'R$ 500,00',
-      };
-      handleEditDebt(fakeValues, fakeDebt);
-    },
-  };
-
-  const RenderActionButton = ({
-    color,
-    onClick,
-    icon,
-    disabled,
-    className,
-  }) => (
-    <ActionButton
-      color={color}
-      disabled={currentIdEditing || disabled}
-      onClick={onClick}
-      className={className}
-    >
-      {icon}
-    </ActionButton>
-  );
-
-  const RenderForm = ({ item, index }) => (
-    <FormContainer
-      onFinish={(values) => handleEditDebt(values, item.id)}
-      initialValues={{ ...item }}
-    >
-      <ValueContainer editing={true}>
-        <InputContainer>
-          <InputLabel>Nome:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='name'
-            rules={[
-              {
-                required: true,
-                message: 'Digite um nome para identificacar o débito.',
-              },
-            ]}
-          >
-            <TitleInput
-              key={`fixed_debt_name_${item.id}`}
-              id={`fixed_debt_name_${item.id}`}
-              placeholder='Exemplo: Aluguel'
-              className={`fixed_debt_label_${index}`}
-            />
-          </Form.Item>
-        </InputContainer>
-        <InputContainer>
-          <InputLabel>Valor:</InputLabel>
-          <Form.Item
-            style={{ margin: 0, width: '100%' }}
-            name='value'
-            rules={[
-              {
-                required: true,
-                message: 'Digite o valor do débito.',
-              },
-            ]}
-          >
-            <Value
-              prefix='R$ '
-              key={`value_${item.id}`}
-              decimalSeparator=','
-              thousandSeparator='.'
-              precision={2}
-              className={`fixed_debt_value_${index}`}
-            />
-          </Form.Item>
-        </InputContainer>
-      </ValueContainer>
-      <ButtonsContainer>
-        <ActionButton color='green' htmlType='submit'>
-          <CheckOutlined />
-        </ActionButton>
-        <ActionButton
-          color='red'
-          onClick={() =>
-            creating ? handleDeleteDebt(item.id) : setCurrentIdEditing(null)
-          }
-        >
-          {creating ? <DeleteOutlined /> : <CloseOutlined />}
-        </ActionButton>
-      </ButtonsContainer>
-    </FormContainer>
-  );
-
-  const RenderItemContent = ({ item, index }) => {
-    const payed = future ? item.future_payed : item.payed;
-
-    return (
-      <ItemContent>
-        <ValueContainer>
-          <Title payed={payed}>{item.name.toUpperCase()}</Title>
-          <RenderValue
-            value={item.value}
-            color={payed ? 'grey' : '#c83126'}
-            fontSize='1.5rem'
-            textAlign='start'
-          />
-        </ValueContainer>
-        <ButtonsContainer>
-          <RenderActionButton
-            color='orange'
-            onClick={() => setCurrentIdEditing(item.id)}
-            disabled={payed}
-            icon={<EditOutlined />}
-            className={`fixed_debt_edit_button_${index}`}
-          />
-          <RenderActionButton
-            color='red'
-            onClick={() => handleConfirmDeleteModal(item.id)}
-            icon={<DeleteOutlined />}
-            className={`fixed_debt_delete_button_${index}`}
-          />
-        </ButtonsContainer>
-        <ButtonsContainer>
-          <RenderActionButton
-            color={payed ? '#368f42' : 'grey'}
-            onClick={() => handleConfirmDebt(item.id)}
-            icon={payed ? <SelectOutlined /> : <StopOutlined />}
-            className={`fixed_debt_disable_button_${index}`}
-          />
-          <RenderActionButton
-            color='#368f42'
-            onClick={() => handleConfirmDebt(item.id, true)}
-            disabled={payed}
-            icon={<CarryOutOutlined />}
-            className={`fixed_debt_confirm_button_${index}`}
-          />
-        </ButtonsContainer>
-      </ItemContent>
-    );
-  };
-
-  const RenderItem = ({ item, index }) => {
-    return (
-      <ItemContainer>
-        {item.id === currentIdEditing ? (
-          <RenderForm item={item} index={index} />
-        ) : (
-          <RenderItemContent item={item} index={index} />
-        )}
-      </ItemContainer>
-    );
-  };
-
   return (
-    <Container className='fixedDebtsCard'>
-      <ReactJoyride
-        steps={fixedDebtsTourSteps}
-        run={tour}
-        continuous={true}
-        showSkipButton={true}
-        disableScrolling={true}
-        locale={{
-          back: 'Voltar',
-          close: 'Fechar',
-          last: 'Finalizar',
-          next: 'Próximo',
-          open: 'Abrir legenda',
-          skip: 'Pular guia',
-        }}
-        callback={({ index, action }) => {
-          if (action === 'reset') {
-            handleDeleteDebt(fakeDebt);
-            setTour(false);
-            setFakeDebt(null);
-          }
-          if (index === 1 && !fakeDebt) callbacks[index]();
-          else if (callbacks[index] && index !== 1 && action === 'update')
-            callbacks[index]();
-        }}
-      />
-      <Head>
-        <Label>Despesas fixas</Label>
-        <Buttons>
-          <CardTourButton onClick={() => setTour(true)} />
-          <AddItem
-            onClick={handleCreateDebt}
-            disabled={currentIdEditing || !hasDebts}
-            style={{ marginLeft: '10px' }}
-          />
-        </Buttons>
-      </Head>
-      {!hasDebts ? (
-        <Empty
-          title='Nenhuma despesa fixa cadastrada'
-          onClick={handleCreateDebt}
+    <SectionCard className='fixedDebtsCard'>
+      <SectionHeader>
+        <SectionTitleGroup>
+          <SectionTitle>Despesas Fixas</SectionTitle>
+          <SectionSubtitle>Contas recorrentes todos os meses</SectionSubtitle>
+        </SectionTitleGroup>
+        <HeaderActions>
+          <Button
+            type='primary'
+            danger
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingId(null);
+              setAdding(true);
+            }}
+            disabled={adding}
+          >
+            Adicionar
+          </Button>
+        </HeaderActions>
+      </SectionHeader>
+
+      {adding && (
+        <FixedDebtEditor
+          onSave={handleCreate}
+          onCancel={() => setAdding(false)}
+          saving={saving}
         />
-      ) : (
-        <>
-          <Total
-            array={fixedDebts}
-            color='#c83126'
-            future={future}
-            className='fixedDebtsTotal'
-          />
-          {reversedFixedDebts.map((item, index) => (
-            <RenderItem key={item.id} item={item} index={index} />
-          ))}
-        </>
       )}
-    </Container>
+
+      {items.length === 0 && !adding ? (
+        <EmptyBox>
+          <span>Nenhuma despesa fixa cadastrada (ex: Aluguel, Água, Luz).</span>
+          <Button
+            type='primary'
+            danger
+            icon={<PlusOutlined />}
+            onClick={() => setAdding(true)}
+          >
+            Cadastrar despesa fixa
+          </Button>
+        </EmptyBox>
+      ) : (
+        items.length > 0 && (
+          <>
+            <TotalBanner $variant='danger' className='fixedDebtsTotal'>
+              <span>Despesas fixas pendentes no mês:</span>
+              <span>{formatBRL(pendingTotal)}</span>
+            </TotalBanner>
+            <ItemsList>
+              {items.map((item) =>
+                editingId === item.id ? (
+                  <FixedDebtEditor
+                    key={item.id}
+                    initialName={item.name}
+                    initialValue={item.effectiveValue}
+                    onSave={(vals) => handleUpdate(item.id, vals)}
+                    onCancel={() => setEditingId(null)}
+                    saving={saving}
+                  />
+                ) : (
+                  <ListItemCard
+                    key={item.id}
+                    $muted={item.effectivePaid || item.effectiveDisabled}
+                  >
+                    <ItemInfo>
+                      <ItemTitleRow>
+                        <ItemName
+                          $strike={item.effectivePaid || item.effectiveDisabled}
+                        >
+                          {item.name}
+                        </ItemName>
+                        {item.effectivePaid && <Tag color='success'>Pago</Tag>}
+                        {item.effectiveDisabled && <Tag>Ignorado no mês</Tag>}
+                      </ItemTitleRow>
+                      <ItemAmount
+                        $color={
+                          item.effectivePaid || item.effectiveDisabled
+                            ? '#64748B'
+                            : '#DC2626'
+                        }
+                      >
+                        {formatBRL(item.effectiveValue)}
+                      </ItemAmount>
+                    </ItemInfo>
+
+                    <ItemActions>
+                      <Tooltip
+                        title={
+                          item.effectivePaid
+                            ? 'Desmarcar pagamento neste mês'
+                            : 'Marcar como paga neste mês'
+                        }
+                      >
+                        <IconActionBtn
+                          type='button'
+                          $bg='#F0FDF4'
+                          $border='#86EFAC'
+                          $color='#15803D'
+                          onClick={() => handleTogglePaid(item)}
+                          disabled={item.effectiveDisabled}
+                        >
+                          {item.effectivePaid ? <UndoOutlined /> : <CheckOutlined />}
+                        </IconActionBtn>
+                      </Tooltip>
+
+                      <Tooltip
+                        title={
+                          item.effectiveDisabled
+                            ? 'Reativar neste mês'
+                            : 'Ignorar apenas neste mês'
+                        }
+                      >
+                        <IconActionBtn
+                          type='button'
+                          onClick={() => handleToggleDisabled(item)}
+                        >
+                          <StopOutlined />
+                        </IconActionBtn>
+                      </Tooltip>
+
+                      <Tooltip title='Editar'>
+                        <IconActionBtn
+                          type='button'
+                          $color='#D97706'
+                          onClick={() => {
+                            setAdding(false);
+                            setEditingId(item.id);
+                          }}
+                        >
+                          <EditOutlined />
+                        </IconActionBtn>
+                      </Tooltip>
+
+                      <Tooltip title='Excluir'>
+                        <IconActionBtn
+                          type='button'
+                          $color='#DC2626'
+                          onClick={() => confirmDelete(item)}
+                        >
+                          <DeleteOutlined />
+                        </IconActionBtn>
+                      </Tooltip>
+                    </ItemActions>
+                  </ListItemCard>
+                )
+              )}
+            </ItemsList>
+          </>
+        )
+      )}
+    </SectionCard>
   );
 }

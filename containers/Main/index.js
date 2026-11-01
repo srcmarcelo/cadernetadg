@@ -1,95 +1,111 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
-import JoyRide from 'react-joyride';
-
-import ProfileButton from '../../componets/ProfileButton';
+import React, { useRef, useState } from 'react';
+import styled from 'styled-components';
+import { Tour } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSupabaseClient, useUser } from '../../services/supabaseClient';
+import { useRealtimeSync } from '../../services/useRealtimeSync';
 import MainInfo from '../../componets/MainInfo';
+import MonthNavigator from '../../componets/MonthNavigator';
 import NavigationBar from '../../componets/NavigationBar';
 import ControlPanel from '../ControlPanel';
 import Income from '../Income';
 import Outcome from '../Outcome';
-import { syncData } from './redux';
-import { Container, Content } from './styles';
 import Profile from '../Profile';
-import { mainTourSteps } from '../../utils/toursSteps/mainTour';
+import { syncData } from './redux';
+import {
+  getBackgroundSyncing,
+  getSelectedMonth,
+  getSyncing,
+  setSelectedMonth,
+} from './redux/reducer';
+
+const AppShell = styled.div`
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+
+  @media (min-width: 768px) {
+    padding: 0;
+  }
+`;
 
 export default function Main() {
   const dispatch = useDispatch();
-
   const supabase = useSupabaseClient();
   const user = useUser();
 
+  const selectedMonth = useSelector(getSelectedMonth);
+  const syncing = useSelector(getSyncing);
+  const backgroundSyncing = useSelector(getBackgroundSyncing);
+
   const [currentTab, setCurrentTab] = useState('panel');
-  const [future, setFuture] = useState(false);
-  const [tour, setTour] = useState(false);
-  const [pastValue, setPastValue] = useState(0);
+  const [tourOpen, setTourOpen] = useState(false);
 
-  useEffect(() => {
-    syncData(dispatch, supabase, user);
-  }, []);
+  const mainInfoRef = useRef(null);
+  const monthNavRef = useRef(null);
+  const tabsNavRef = useRef(null);
 
-  const callbacks = {
-    2: () => setCurrentTab('panel'),
-    4: () => setCurrentTab('income'),
-    6: () => setCurrentTab('outcome'),
-    8: () => setCurrentTab('profile'),
-    10: () => {
-      setFuture(!future);
-      setCurrentTab('panel');
+  // Automatic initial load + Realtime multi-device sync + foreground resume sync
+  useRealtimeSync({ dispatch, supabase, user });
+
+  const tourSteps = [
+    {
+      title: 'Resumo Mensal Inteligente',
+      description:
+        'Acompanhe em tempo real quanto você tem, quanto vai receber, quanto deve e quanto sobrará no final do mês selecionado.',
+      target: () => mainInfoRef.current,
     },
-    11: () => setFuture(!future),
-  };
+    {
+      title: 'Navegue por Todos os Meses',
+      description:
+        'Use as setas ou clique no mês para navegar por qualquer mês passado ou futuro e ver como suas compras parceladas impactam os próximos meses!',
+      target: () => monthNavRef.current,
+    },
+    {
+      title: 'Ganhos, Painel e Dívidas',
+      description:
+        'Em Ganhos você gerencia recebimentos e exporta extratos de devedores; em Dívidas você detalha faturas de cartão de crédito (inclusive anexando PDF/foto com IA!).',
+      target: () => tabsNavRef.current,
+    },
+  ];
 
   return (
-    <Container className='app' future={future}>
-      <JoyRide
-        steps={mainTourSteps}
-        run={tour}
-        continuous={true}
-        showSkipButton={true}
-        disableScrolling={true}
-        locale={{
-          back: 'Voltar',
-          close: 'Fechar',
-          last: 'Finalizar',
-          next: 'Próximo',
-          open: 'Abrir legenda',
-          skip: 'Pular guia',
-        }}
-        callback={({ index, action }) => {
-          if (action === 'reset') setTour(false);
-          if (callbacks[index]) callbacks[index]();
-        }}
-      />
-      <Content>
-        <MainInfo
-          dispatch={dispatch}
-          future={future}
-          setPastValue={setPastValue}
+    <AppShell className='app'>
+      <div ref={mainInfoRef}>
+        <MainInfo />
+      </div>
+
+      <div ref={monthNavRef}>
+        <MonthNavigator
+          selectedMonth={selectedMonth}
+          onSelectMonth={(ym) => dispatch(setSelectedMonth(ym))}
+          onClickProfile={(tab) => setCurrentTab(tab)}
+          onStartTour={() => setTourOpen(true)}
+          onManualSync={() => syncData(dispatch, supabase, user, { silent: true })}
+          currentTab={currentTab}
+          syncing={syncing || backgroundSyncing}
         />
-        <ProfileButton
-          onClickProfile={setCurrentTab}
-          onClickMonth={setFuture}
-          activeTour={() => setTour(!tour)}
-          future={future}
+      </div>
+
+      <div ref={tabsNavRef}>
+        <NavigationBar
+          onClick={(value) => setCurrentTab(value)}
           currentTab={currentTab}
         />
-          <NavigationBar
-            onClick={(value) => setCurrentTab(value)}
-            currentTab={currentTab}
-          />
-        {currentTab === 'panel' && (
-          <ControlPanel
-            future={future}
-            pastValue={pastValue}
-          />
-        )}
-        {currentTab === 'income' && <Income future={future} />}
-        {currentTab === 'outcome' && <Outcome future={future} />}
-        {currentTab === 'profile' && <Profile dispatch={dispatch} />}
-      </Content>
-    </Container>
+      </div>
+
+      {currentTab === 'panel' && <ControlPanel />}
+      {currentTab === 'income' && <Income />}
+      {currentTab === 'outcome' && <Outcome />}
+      {currentTab === 'profile' && <Profile dispatch={dispatch} />}
+
+      <Tour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        steps={tourSteps}
+      />
+    </AppShell>
   );
 }
