@@ -11,16 +11,13 @@ const NavWrapper = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  padding: 5px;
-  margin-bottom: 12px;
+  padding: 4px;
+  margin-bottom: 0;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(8px);
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
-  position: sticky;
-  top: 6px;
-  z-index: 25;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 `;
 
 const TabButton = styled.button`

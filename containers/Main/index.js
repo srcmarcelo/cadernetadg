@@ -7,6 +7,7 @@ import { useRealtimeSync } from '../../services/useRealtimeSync';
 import MainInfo from '../../componets/MainInfo';
 import MonthNavigator from '../../componets/MonthNavigator';
 import NavigationBar from '../../componets/NavigationBar';
+import FinancialAnalysisModal from '../../componets/FinancialAnalysis';
 import ControlPanel from '../ControlPanel';
 import Income from '../Income';
 import Outcome from '../Outcome';
@@ -31,6 +32,20 @@ const AppShell = styled.div`
   }
 `;
 
+const StickyNavHeader = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(238, 242, 249, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+`;
+
 export default function Main() {
   const dispatch = useDispatch();
   const supabase = useSupabaseClient();
@@ -42,6 +57,7 @@ export default function Main() {
 
   const [currentTab, setCurrentTab] = useState('panel');
   const [tourOpen, setTourOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   const mainInfoRef = useRef(null);
   const monthNavRef = useRef(null);
@@ -74,32 +90,42 @@ export default function Main() {
   return (
     <AppShell className='app'>
       <div ref={mainInfoRef}>
-        <MainInfo />
-      </div>
-
-      <div ref={monthNavRef}>
-        <MonthNavigator
-          selectedMonth={selectedMonth}
-          onSelectMonth={(ym) => dispatch(setSelectedMonth(ym))}
-          onClickProfile={(tab) => setCurrentTab(tab)}
-          onStartTour={() => setTourOpen(true)}
-          onManualSync={() => syncData(dispatch, supabase, user, { silent: true })}
-          currentTab={currentTab}
-          syncing={syncing || backgroundSyncing}
+        <MainInfo
+          onOpenAnalysis={() => setAnalysisOpen(true)}
+          onGoToPanel={() => setCurrentTab('panel')}
         />
       </div>
 
-      <div ref={tabsNavRef}>
-        <NavigationBar
-          onClick={(value) => setCurrentTab(value)}
-          currentTab={currentTab}
-        />
-      </div>
+      <StickyNavHeader>
+        <div ref={monthNavRef}>
+          <MonthNavigator
+            selectedMonth={selectedMonth}
+            onSelectMonth={(ym) => dispatch(setSelectedMonth(ym))}
+            onClickProfile={(tab) => setCurrentTab(tab)}
+            onStartTour={() => setTourOpen(true)}
+            onManualSync={() => syncData(dispatch, supabase, user, { silent: true })}
+            currentTab={currentTab}
+            syncing={syncing || backgroundSyncing}
+          />
+        </div>
+
+        <div ref={tabsNavRef}>
+          <NavigationBar
+            onClick={(value) => setCurrentTab(value)}
+            currentTab={currentTab}
+          />
+        </div>
+      </StickyNavHeader>
 
       {currentTab === 'panel' && <ControlPanel />}
       {currentTab === 'income' && <Income />}
       {currentTab === 'outcome' && <Outcome />}
       {currentTab === 'profile' && <Profile dispatch={dispatch} />}
+
+      <FinancialAnalysisModal
+        open={analysisOpen}
+        onClose={() => setAnalysisOpen(false)}
+      />
 
       <Tour
         open={tourOpen}

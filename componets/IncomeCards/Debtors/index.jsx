@@ -52,7 +52,10 @@ import {
   SectionSubtitle,
   SectionTitle,
   SectionTitleGroup,
+  StatusChip,
   TotalBanner,
+  getItemStatus,
+  sortByStatus,
 } from '../../SharedCardStyles';
 
 const DebtorBox = styled.div`
@@ -479,9 +482,12 @@ export default function Debtors() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {reversedDebtors.map((debtor) => {
-                const debtorMonthDebts = resolvedDebtorDebts
+                const rawDebts = resolvedDebtorDebts
                   .filter((d) => d.debtor_id === debtor.id)
                   .reverse();
+                const debtorMonthDebts = sortByStatus(rawDebts, (d) =>
+                  getItemStatus(d.effectivePaid, d.effectiveDisabled)
+                );
 
                 const debtorPendingSum = debtorMonthDebts.reduce(
                   (sum, d) =>
@@ -612,7 +618,8 @@ export default function Debtors() {
                             ) : (
                               <ListItemCard
                                 key={debt.id}
-                                $muted={debt.effectivePaid || debt.effectiveDisabled}
+                                $status={getItemStatus(debt.effectivePaid, debt.effectiveDisabled)}
+                                $tone='income'
                               >
                                 <ItemInfo>
                                   <ItemTitleRow>
@@ -627,12 +634,19 @@ export default function Debtors() {
                                       {debt.currentInstallment}/{debt.totalInstallments}
                                     </Tag>
                                     {debt.effectivePaid && (
-                                      <Tag color='success' style={{ margin: 0 }}>
-                                        Pago
-                                      </Tag>
+                                      <StatusChip $status='done' $tone='income'>
+                                        PAGO
+                                      </StatusChip>
                                     )}
                                     {debt.effectiveDisabled && (
-                                      <Tag style={{ margin: 0 }}>Pausado</Tag>
+                                      <StatusChip $status='ignored' $tone='income'>
+                                        PAUSADO
+                                      </StatusChip>
+                                    )}
+                                    {!debt.effectivePaid && !debt.effectiveDisabled && (
+                                      <StatusChip $status='pending' $tone='income'>
+                                        A RECEBER
+                                      </StatusChip>
                                     )}
                                   </ItemTitleRow>
                                   <ItemAmount
@@ -641,6 +655,7 @@ export default function Debtors() {
                                         ? '#64748B'
                                         : '#16A34A'
                                     }
+                                    $strike={debt.effectivePaid || debt.effectiveDisabled}
                                   >
                                     {formatBRL(debt.effectiveValue)}
                                   </ItemAmount>

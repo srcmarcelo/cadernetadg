@@ -109,6 +109,19 @@ export default function AlertsCard() {
     });
   }
 
+  const { openingBalance, accumulatedDeficit } = useMonthlyFinancialView();
+  if (accumulatedDeficit) {
+    alerts.push({
+      key: 'accumulatedDeficit',
+      title: 'Déficit acumulado de meses anteriores',
+      description:
+        'Você iniciou este mês no negativo devido a déficits acumulados em meses passados.',
+      stats: [
+        { label: 'Déficit inicial:', value: formatBRL(Math.abs(openingBalance)) },
+      ],
+    });
+  }
+
   return (
     <Card>
       <Header>

@@ -306,8 +306,8 @@ export function computeFinancialViewForMonth({
 
   if (offset > 0) {
     // Cascade month-by-month from baseMonth up to selectedMonth - 1
-    // Guard max cascade to 60 months (5 years) for instant performance
-    const steps = Math.min(offset, 60);
+    // Deficits accumulate directly into openingBalance so the user sees the real snowball effect
+    const steps = Math.min(offset, 120);
     for (let i = 0; i < steps; i += 1) {
       const m = addMonths(baseMonth, i);
       const stepSummary = computeSingleMonthSummary({
@@ -321,13 +321,7 @@ export function computeFinancialViewForMonth({
         creditCards,
         cardPurchases,
       });
-      const closing = roundMoney(openingBalance + stepSummary.monthlyNet);
-      if (closing >= 0) {
-        openingBalance = closing;
-      } else {
-        openingBalance = 0;
-        projectedKept = Math.max(0, roundMoney(projectedKept + closing));
-      }
+      openingBalance = roundMoney(openingBalance + stepSummary.monthlyNet);
     }
   } else if (offset < 0) {
     // Past months show monthly performance without applying today's live bank balance
@@ -348,6 +342,8 @@ export function computeFinancialViewForMonth({
 
   const closingBalance = roundMoney(openingBalance + summary.monthlyNet);
   const monthlyLoss = summary.monthlyNet < 0;
+  const accumulatedDeficit = openingBalance < 0;
+  const closingNegative = closingBalance < 0;
   const debtorDependency =
     summary.totalDebtorsPending > 0 &&
     (monthlyLoss ||
@@ -363,6 +359,8 @@ export function computeFinancialViewForMonth({
     projectedKept,
     closingBalance,
     monthlyLoss,
+    accumulatedDeficit,
+    closingNegative,
     debtorDependency,
   };
 }

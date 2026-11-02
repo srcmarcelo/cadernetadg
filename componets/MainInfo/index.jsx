@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
-import { Skeleton } from 'antd';
-import { WarningOutlined } from '@ant-design/icons';
+import { Button, Skeleton } from 'antd';
+import { ExperimentOutlined, WarningOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   getSyncing,
@@ -65,12 +65,8 @@ const MetricAmount = styled.span`
 
 const BottomPills = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-
-  @media (max-width: 520px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
 `;
 
 const SummaryPill = styled.div`
@@ -78,20 +74,11 @@ const SummaryPill = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 10px;
+  padding: 10px;
   border-radius: 12px;
   background: ${({ $bg }) => $bg || '#F8FAFC'};
   border: 1px solid ${({ $border }) => $border || '#E2E8F0'};
   text-align: center;
-
-  ${({ $fullMobile }) =>
-    $fullMobile
-      ? `
-    @media (max-width: 520px) {
-      grid-column: 1 / -1;
-    }
-  `
-      : ''}
 `;
 
 const PillTitle = styled.span`
@@ -103,13 +90,44 @@ const PillTitle = styled.span`
 `;
 
 const PillValue = styled.span`
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 800;
   color: ${({ $color }) => $color || '#0F172A'};
   margin-top: 2px;
 `;
 
-export default function MainInfo() {
+const FooterActionsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+`;
+
+const AlertTagBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #B45309;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
+export default function MainInfo({ onOpenAnalysis, onGoToPanel }) {
   const dispatch = useDispatch();
   const syncing = useSelector(getSyncing);
   const view = useMonthlyFinancialView();
@@ -202,36 +220,57 @@ export default function MainInfo() {
           </PillValue>
         </SummaryPill>
 
-        {alertCount > 0 && (
-          <SummaryPill $bg='#FFFBEB' $border='#FDE68A' $fullMobile>
-            <PillTitle $color='#B45309'>
-              <WarningOutlined /> {alertCount} {alertCount > 1 ? 'Alertas' : 'Alerta'}
-            </PillTitle>
-            <PillValue $color='#D97706' style={{ fontSize: '0.84rem', fontWeight: 600 }}>
-              {alertCount > 1
-                ? 'Veja detalhes no Painel'
-                : debtorDependency
-                ? 'Dependência de devedores'
-                : 'Saldo mensal negativo'}
-            </PillValue>
-          </SummaryPill>
+        <SummaryPill
+          className='generalBalance'
+          $bg={isPositiveClose ? '#EFF6FF' : '#FEF2F2'}
+          $border={isPositiveClose ? '#BFDBFE' : '#FECACA'}
+        >
+          <PillTitle $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
+            {isPastMonth
+              ? 'Resultado Final'
+              : isPositiveClose
+              ? 'Restará no Fim'
+              : 'Faltará no Fim'}
+          </PillTitle>
+          <PillValue $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
+            {formatBRL(Math.abs(closingBalance))}
+          </PillValue>
+        </SummaryPill>
+      </BottomPills>
+
+      <FooterActionsRow>
+        {alertCount > 0 ? (
+          <AlertTagBtn
+            type='button'
+            onClick={onGoToPanel}
+            title='Clique para ver os alertas no Painel'
+          >
+            <WarningOutlined />
+            <span>
+              {alertCount} {alertCount > 1 ? 'alertas financeiros' : 'alerta financeiro'}
+            </span>
+          </AlertTagBtn>
+        ) : (
+          <span style={{ fontSize: '0.78rem', color: '#16A34A', fontWeight: 600 }}>
+            Contas sob controle neste mês
+          </span>
         )}
 
-        {!isPastMonth && (
-          <SummaryPill
-            className='generalBalance'
-            $bg={isPositiveClose ? '#EFF6FF' : '#FEF2F2'}
-            $border={isPositiveClose ? '#BFDBFE' : '#FECACA'}
-          >
-            <PillTitle $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
-              {isPositiveClose ? 'Restará no Fim' : 'Faltará no Fim'}
-            </PillTitle>
-            <PillValue $color={isPositiveClose ? '#1D4ED8' : '#B91C1C'}>
-              {formatBRL(Math.abs(closingBalance))}
-            </PillValue>
-          </SummaryPill>
-        )}
-      </BottomPills>
+        <Button
+          type='default'
+          icon={<ExperimentOutlined style={{ color: '#4F46E5' }} />}
+          onClick={onOpenAnalysis}
+          style={{
+            borderRadius: 10,
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            borderColor: '#C7D2FE',
+            color: '#1E295E',
+          }}
+        >
+          Análise e Simulações (IA)
+        </Button>
+      </FooterActionsRow>
     </HeaderCard>
   );
 }

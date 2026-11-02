@@ -163,4 +163,42 @@ describe('Detailed Credit Card Invoices, Installments & Multi-Month Projection',
     expect(decView.openingBalance).toBe(1607.7);
     expect(decView.closingBalance).toBe(2297.8);
   });
+
+  it('accumulates and carries deficits forward into future months without zeroing', () => {
+    const deficitState = {
+      baseMonth: '2026-11',
+      currentBalance: 500,
+      keptBalance: 1000,
+      fixedReceipts: [{ id: 'r1', name: 'Salário', value: 2000, received: false }],
+      fixedDebts: [{ id: 'd1', name: 'Aluguel + Contas', value: 3000, payed: false }],
+      extraReceipts: [],
+      extraDebts: [],
+      debts: [],
+      creditCards: [],
+      cardPurchases: [],
+    };
+
+    // Nov: opening 500 + (2000 - 3000) = closing -500. MonthlyNet = -1000.
+    const novView = computeFinancialViewForMonth({ ...deficitState, selectedMonth: '2026-11' });
+    expect(novView.openingBalance).toBe(500);
+    expect(novView.monthlyNet).toBe(-1000);
+    expect(novView.closingBalance).toBe(-500);
+    expect(novView.accumulatedDeficit).toBe(false); // base month opening was positive
+    expect(novView.closingNegative).toBe(true);
+
+    // Dec: opening -500 + (2000 - 3000) = closing -1500. Deficit accumulated!
+    const decView = computeFinancialViewForMonth({ ...deficitState, selectedMonth: '2026-12' });
+    expect(decView.openingBalance).toBe(-500);
+    expect(decView.monthlyNet).toBe(-1000);
+    expect(decView.closingBalance).toBe(-1500);
+    expect(decView.accumulatedDeficit).toBe(true);
+    expect(decView.closingNegative).toBe(true);
+
+    // Jan: opening -1500 + (2000 - 3000) = closing -2500
+    const janView = computeFinancialViewForMonth({ ...deficitState, selectedMonth: '2027-01' });
+    expect(janView.openingBalance).toBe(-1500);
+    expect(janView.closingBalance).toBe(-2500);
+    expect(janView.accumulatedDeficit).toBe(true);
+  });
 });
+

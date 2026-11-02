@@ -153,6 +153,14 @@ beforeAll(() => {
       dispatchEvent: vi.fn(),
     })),
   });
+
+  if (typeof globalThis.ResizeObserver === 'undefined') {
+    globalThis.ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+  }
 });
 
 afterEach(() => {
@@ -318,6 +326,64 @@ describe('Mobile UX & Single-Tap Responsiveness', () => {
       const allPurchases = store.getState().outcome.cardPurchases;
       expect(allPurchases.some((p) => p.name === 'Mp *Melimais')).toBe(true);
       expect(allPurchases.some((p) => p.name === 'Produtos Globo' && p.start_month === '2026-10')).toBe(true);
+    });
+
+    fetchSpy.mockRestore();
+  });
+
+  it('supports pasting invoice text directly into AI modal and parsing it', async () => {
+    const { store } = renderWithProviders(<CreditCards />);
+
+    const verFaturaBtn = screen.getByRole('button', { name: /Ver Fatura/i });
+    fireEvent.click(verFaturaBtn);
+
+    const modalEl = screen.getByRole('dialog');
+    const aiBtn = within(modalEl).getByRole('button', { name: /Ler Fatura \(IA\)/i });
+    fireEvent.click(aiBtn);
+
+    const togglePasteBtn = screen.getByRole('button', { name: /Ou colar texto copiado/i });
+    fireEvent.click(togglePasteBtn);
+
+    const textArea = screen.getByPlaceholderText(/Cole aqui o texto ou extrato/i);
+    expect(textArea).toBeTruthy();
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          model: 'gpt-6-luna',
+          invoice: {
+            card_name: 'Nubank',
+            reference_month: '2026-11',
+            due_day: 9,
+            closing_day: 2,
+            invoice_total: 150.0,
+            items: [
+              {
+                tempId: 'paste-1',
+                name: 'Supermercado Dia',
+                purchase_date: '10/11',
+                amount: 150.0,
+                current_installment: 1,
+                total_installments: 1,
+                category: 'Alimentação',
+                selected: true,
+              },
+            ],
+          },
+        }),
+    });
+
+    fireEvent.change(textArea, {
+      target: { value: '10/11 Supermercado Dia R$ 150,00' },
+    });
+
+    const submitBtn = screen.getByRole('button', { name: /Analisar Texto da Fatura com IA/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Supermercado Dia')).toBeTruthy();
     });
 
     fetchSpy.mockRestore();

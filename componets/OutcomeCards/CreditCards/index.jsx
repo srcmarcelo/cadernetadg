@@ -44,20 +44,39 @@ import {
   SectionSubtitle,
   SectionTitle,
   SectionTitleGroup,
+  StatusChip,
   TotalBanner,
+  getItemStatus,
+  sortByStatus,
 } from '../../SharedCardStyles';
 
 const CreditCardTile = styled.div`
   width: 100%;
   padding: 14px;
   border-radius: 14px;
-  background: ${({ $muted }) => ($muted ? '#F8FAFC' : '#FFFFFF')};
-  border: 1px solid ${({ $muted }) => ($muted ? '#E2E8F0' : '#CBD5E1')};
-  opacity: ${({ $muted }) => ($muted ? 0.78 : 1)};
+  background: ${({ $status }) => {
+    if ($status === 'done') return '#F0FDF4';
+    if ($status === 'ignored') return '#F8FAFC';
+    return '#FFFFFF';
+  }};
+  border: 1px ${({ $status }) => ($status === 'ignored' ? 'dashed' : 'solid')}
+    ${({ $status }) => {
+      if ($status === 'done') return '#BBF7D0';
+      if ($status === 'ignored') return '#CBD5E1';
+      return '#E2E8F0';
+    }};
+  box-shadow: inset 4px 0 0
+      ${({ $status }) => {
+        if ($status === 'done') return '#22C55E';
+        if ($status === 'ignored') return '#CBD5E1';
+        return '#EF4444';
+      }},
+    ${({ $status }) => ($status === 'pending' ? '0 1px 4px rgba(15, 23, 42, 0.05)' : 'none')};
+  opacity: ${({ $status }) => ($status === 'ignored' ? 0.72 : 1)};
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+  transition: background 0.15s ease, border-color 0.15s ease;
 `;
 
 const CardTopRow = styled.div`
@@ -267,7 +286,10 @@ export default function CreditCards() {
   const [returnToDetailId, setReturnToDetailId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const cards = [...resolvedCreditCards].reverse();
+  const rawCards = [...resolvedCreditCards].reverse();
+  const cards = sortByStatus(rawCards, (c) =>
+    getItemStatus(c.effectivePaid, c.effectiveDisabled)
+  );
   const pendingTotal = cards.reduce(
     (sum, c) =>
       !c.effectivePaid && !c.effectiveDisabled ? sum + c.effectiveValue : sum,
@@ -506,7 +528,7 @@ export default function CreditCards() {
                 return (
                   <CreditCardTile
                     key={card.id}
-                    $muted={card.effectivePaid || card.effectiveDisabled}
+                    $status={getItemStatus(card.effectivePaid, card.effectiveDisabled)}
                   >
                     <CardTopRow onClick={() => setDetailCardId(card.id)}>
                       <CardTitleBlock>
@@ -522,12 +544,19 @@ export default function CreditCards() {
                             </Tag>
                           )}
                           {card.effectivePaid && (
-                            <Tag color='success' style={{ margin: 0 }}>
-                              Paga
-                            </Tag>
+                            <StatusChip $status='done' $tone='debt'>
+                              PAGA
+                            </StatusChip>
                           )}
                           {card.effectiveDisabled && (
-                            <Tag style={{ margin: 0 }}>Ignorada</Tag>
+                            <StatusChip $status='ignored' $tone='debt'>
+                              IGNORADA
+                            </StatusChip>
+                          )}
+                          {!card.effectivePaid && !card.effectiveDisabled && (
+                            <StatusChip $status='pending' $tone='debt'>
+                              A PAGAR
+                            </StatusChip>
                           )}
                         </CardNameRow>
 

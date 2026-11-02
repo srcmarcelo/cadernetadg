@@ -163,12 +163,16 @@ export default function BalanceCard() {
             <>
               <RenderValue
                 value={openingBalance}
-                color='#15803D'
+                color={openingBalance < 0 ? '#DC2626' : '#15803D'}
                 fontSize='1.45rem'
                 textAlign='flex-start'
                 className='futureCurrentBalance'
               />
-              <Hint>Calculado automaticamente somando os meses anteriores.</Hint>
+              <Hint>
+                {openingBalance < 0
+                  ? 'Déficit acumulado herdado dos meses anteriores.'
+                  : 'Calculado automaticamente somando os meses anteriores.'}
+              </Hint>
             </>
           )}
         </FieldBox>

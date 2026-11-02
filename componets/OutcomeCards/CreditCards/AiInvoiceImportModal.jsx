@@ -5,6 +5,7 @@ import {
   CheckCircleOutlined,
   FilePdfOutlined,
   FileSearchOutlined,
+  FileTextOutlined,
   LeftOutlined,
   RightOutlined,
 } from '@ant-design/icons';
@@ -211,6 +212,8 @@ export default function AiInvoiceImportModal({
   const [newCardName, setNewCardName] = useState('');
   const [applyAdjustment, setApplyAdjustment] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [pastedText, setPastedText] = useState('');
+  const [showPasteBox, setShowPasteBox] = useState(false);
   const wasOpenRef = useRef(false);
 
   useEffect(() => {
@@ -220,6 +223,8 @@ export default function AiInvoiceImportModal({
       setExtracted(null);
       setItems([]);
       setErrorMsg('');
+      setPastedText('');
+      setShowPasteBox(false);
       setInvoiceMonth(selectedMonth);
       setTargetCardChoice(
         preselectedCardId || (creditCards.length > 0 ? creditCards[0].id : '__new__')
@@ -235,6 +240,8 @@ export default function AiInvoiceImportModal({
     setExtracted(null);
     setItems([]);
     setErrorMsg('');
+    setPastedText('');
+    setShowPasteBox(false);
   };
 
   const handleClose = () => {
@@ -242,19 +249,11 @@ export default function AiInvoiceImportModal({
     onClose?.();
   };
 
-  const handleFilePicked = async (file) => {
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) {
-      message.error('O arquivo deve ter no máximo 15 MB.');
-      return;
-    }
-
+  const parsePayload = async ({ filename, mimeType, base64Data }) => {
     setErrorMsg('');
     setParsing(true);
 
     try {
-      const base64Data = await readFileAsBase64(file);
-
       // Always fetch fresh session token so mobile backgrounded tabs never fail with 401
       let accessToken = session?.access_token || '';
       if (supabase?.auth) {
@@ -271,8 +270,8 @@ export default function AiInvoiceImportModal({
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          filename: file.name || 'fatura.pdf',
-          mimeType: file.type || '',
+          filename,
+          mimeType,
           base64Data,
           targetMonth: selectedMonth,
         }),
@@ -337,6 +336,50 @@ export default function AiInvoiceImportModal({
     } finally {
       setParsing(false);
     }
+  };
+
+  const handleFilePicked = async (file) => {
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      message.error('O arquivo deve ter no máximo 15 MB.');
+      return;
+    }
+
+    try {
+      const base64Data = await readFileAsBase64(file);
+      await parsePayload({
+        filename: file.name || 'fatura.pdf',
+        mimeType: file.type || '',
+        base64Data,
+      });
+    } catch (err) {
+      setErrorMsg(err?.message || 'Erro ao carregar arquivo do dispositivo.');
+    }
+  };
+
+  const handlePastedTextSubmit = async () => {
+    const trimmed = pastedText.trim();
+    if (!trimmed) {
+      message.warning('Cole o texto da fatura antes de analisar.');
+      return;
+    }
+    if (trimmed.length < 20) {
+      message.warning('O texto colado é muito curto. Cole as transações da fatura.');
+      return;
+    }
+
+    const utf8Bytes = new TextEncoder().encode(trimmed);
+    let binary = '';
+    for (let i = 0; i < utf8Bytes.length; i += 1) {
+      binary += String.fromCharCode(utf8Bytes[i]);
+    }
+    const base64Data = btoa(binary);
+
+    await parsePayload({
+      filename: 'fatura-colada.txt',
+      mimeType: 'text/plain',
+      base64Data,
+    });
   };
 
   const selectedItems = useMemo(() => items.filter((it) => it.selected), [items]);
@@ -476,6 +519,54 @@ export default function AiInvoiceImportModal({
               </NativeUploadLabel>
             </UploadButtonsRow>
 
+            <Button
+              type='dashed'
+              icon={<FileTextOutlined />}
+              onClick={() => setShowPasteBox((v) => !v)}
+              style={{
+                borderRadius: 10,
+                fontWeight: 600,
+                color: '#4F46E5',
+                borderColor: '#C7D2FE',
+              }}
+            >
+              {showPasteBox ? 'Ocultar caixa de texto' : 'Ou colar texto copiado do app do banco'}
+            </Button>
+
+            {showPasteBox && (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: 520,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  textAlign: 'left',
+                }}
+              >
+                <Input.TextArea
+                  rows={5}
+                  value={pastedText}
+                  onChange={(e) => setPastedText(e.target.value)}
+                  placeholder={`Cole aqui o texto ou extrato copiado do app do seu banco. Exemplo:\n15/10 Supermercado R$ 180,00\n18/10 Magazine Luiza (02/10) R$ 89,90\n20/10 Netflix R$ 59,90`}
+                  style={{ borderRadius: 10, fontSize: '0.86rem' }}
+                />
+                <Button
+                  type='primary'
+                  onClick={handlePastedTextSubmit}
+                  style={{
+                    background: '#4F46E5',
+                    borderColor: '#4F46E5',
+                    fontWeight: 700,
+                    minHeight: 38,
+                    borderRadius: 10,
+                  }}
+                >
+                  Analisar Texto da Fatura com IA
+                </Button>
+              </div>
+            )}
+
             <Tag
               color='purple'
               style={{
@@ -486,7 +577,7 @@ export default function AiInvoiceImportModal({
                 padding: '4px 8px',
               }}
             >
-              Privacidade total: o arquivo é lido em memória e descartado na hora
+              Privacidade total: dados processados com IA apenas para extrair as transações
             </Tag>
           </DropZone>
 

@@ -24,7 +24,7 @@ const Bar = styled.div`
   justify-content: space-between;
   gap: 6px;
   padding: 8px 10px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   background: #1E295E;
   border-radius: 14px;
   color: #FFFFFF;

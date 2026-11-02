@@ -98,13 +98,65 @@ export const ItemsList = styled.div`
   gap: 8px;
 `;
 
+/**
+ * Visual status system shared by every list (receipts, debts, debtors, cards):
+ * - pending: white card with a strong colored left accent (red = to pay, amber = to receive)
+ * - done:    green tinted card + green accent (paid / received)
+ * - ignored: dashed grey card, faded
+ */
+const TONE_PENDING_ACCENT = {
+  debt: '#EF4444',
+  income: '#F59E0B',
+  neutral: '#6366F1',
+};
+
+export function getItemStatus(done, disabled) {
+  if (disabled) return 'ignored';
+  if (done) return 'done';
+  return 'pending';
+}
+
+const STATUS_ORDER = { pending: 0, done: 1, ignored: 2 };
+
+/** Pending items first, then paid/received, then ignored (stable order inside each group). */
+export function sortByStatus(items, getStatus) {
+  return items
+    .map((item, idx) => ({ item, idx, rank: STATUS_ORDER[getStatus(item)] ?? 0 }))
+    .sort((a, b) => a.rank - b.rank || a.idx - b.idx)
+    .map(({ item }) => item);
+}
+
+function resolveStatus({ $status, $muted }) {
+  if ($status) return $status;
+  return $muted ? 'ignored' : 'pending';
+}
+
 export const ListItemCard = styled.div`
   width: 100%;
-  padding: 12px;
+  padding: 12px 12px 12px 15px;
   border-radius: 12px;
-  background: ${({ $muted }) => ($muted ? '#F8FAFC' : '#FFFFFF')};
-  border: 1px solid ${({ $muted }) => ($muted ? '#E2E8F0' : '#CBD5E1')};
-  opacity: ${({ $muted }) => ($muted ? 0.76 : 1)};
+  background: ${(p) => {
+    const st = resolveStatus(p);
+    if (st === 'done') return '#F0FDF4';
+    if (st === 'ignored') return '#F8FAFC';
+    return '#FFFFFF';
+  }};
+  border: 1px ${(p) => (resolveStatus(p) === 'ignored' ? 'dashed' : 'solid')}
+    ${(p) => {
+      const st = resolveStatus(p);
+      if (st === 'done') return '#BBF7D0';
+      if (st === 'ignored') return '#CBD5E1';
+      return '#E2E8F0';
+    }};
+  box-shadow: inset 4px 0 0
+      ${(p) => {
+        const st = resolveStatus(p);
+        if (st === 'done') return '#22C55E';
+        if (st === 'ignored') return '#CBD5E1';
+        return TONE_PENDING_ACCENT[p.$tone] || TONE_PENDING_ACCENT.debt;
+      }},
+    ${(p) => (resolveStatus(p) === 'pending' ? '0 1px 4px rgba(15, 23, 42, 0.06)' : 'none')};
+  opacity: ${(p) => (resolveStatus(p) === 'ignored' ? 0.72 : 1)};
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -116,6 +168,32 @@ export const ListItemCard = styled.div`
     align-items: stretch;
     gap: 10px;
   }
+`;
+
+export const StatusChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.6;
+  ${({ $status, $tone }) => {
+    if ($status === 'done') {
+      return 'background: #16A34A; color: #FFFFFF; border: 1px solid #16A34A;';
+    }
+    if ($status === 'ignored') {
+      return 'background: #F1F5F9; color: #64748B; border: 1px dashed #CBD5E1;';
+    }
+    if ($tone === 'income') {
+      return 'background: #FFFBEB; color: #B45309; border: 1px solid #FCD34D;';
+    }
+    return 'background: #FEF2F2; color: #B91C1C; border: 1px solid #FCA5A5;';
+  }}
 `;
 
 export const ItemInfo = styled.div`
@@ -155,6 +233,7 @@ export const ItemAmount = styled.span`
   font-size: 1.08rem;
   font-weight: 800;
   color: ${({ $color }) => $color || '#0F172A'};
+  text-decoration: ${({ $strike }) => ($strike ? 'line-through' : 'none')};
   white-space: nowrap;
   flex-shrink: 0;
 `;

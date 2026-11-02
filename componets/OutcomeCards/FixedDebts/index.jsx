@@ -43,7 +43,10 @@ import {
   SectionSubtitle,
   SectionTitle,
   SectionTitleGroup,
+  StatusChip,
   TotalBanner,
+  getItemStatus,
+  sortByStatus,
 } from '../../SharedCardStyles';
 
 function FixedDebtEditor({ initialName = '', initialValue = 0, onSave, onCancel, saving }) {
@@ -115,7 +118,10 @@ export default function FixedDebts() {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const items = [...resolvedFixedDebts].reverse();
+  const rawItems = [...resolvedFixedDebts].reverse();
+  const items = sortByStatus(rawItems, (it) =>
+    getItemStatus(it.effectivePaid, it.effectiveDisabled)
+  );
   const pendingTotal = items.reduce(
     (sum, it) =>
       !it.effectivePaid && !it.effectiveDisabled ? sum + it.effectiveValue : sum,
@@ -260,7 +266,8 @@ export default function FixedDebts() {
                 ) : (
                   <ListItemCard
                     key={item.id}
-                    $muted={item.effectivePaid || item.effectiveDisabled}
+                    $status={getItemStatus(item.effectivePaid, item.effectiveDisabled)}
+                    $tone='debt'
                   >
                     <ItemInfo>
                       <ItemTitleRow>
@@ -270,12 +277,19 @@ export default function FixedDebts() {
                           {item.name}
                         </ItemName>
                         {item.effectivePaid && (
-                          <Tag color='success' style={{ margin: 0 }}>
-                            Pago
-                          </Tag>
+                          <StatusChip $status='done' $tone='debt'>
+                            PAGO
+                          </StatusChip>
                         )}
                         {item.effectiveDisabled && (
-                          <Tag style={{ margin: 0 }}>Ignorado no mês</Tag>
+                          <StatusChip $status='ignored' $tone='debt'>
+                            IGNORADO
+                          </StatusChip>
+                        )}
+                        {!item.effectivePaid && !item.effectiveDisabled && (
+                          <StatusChip $status='pending' $tone='debt'>
+                            A PAGAR
+                          </StatusChip>
                         )}
                       </ItemTitleRow>
                       <ItemAmount
@@ -284,6 +298,7 @@ export default function FixedDebts() {
                             ? '#64748B'
                             : '#DC2626'
                         }
+                        $strike={item.effectivePaid || item.effectiveDisabled}
                       >
                         {formatBRL(item.effectiveValue)}
                       </ItemAmount>

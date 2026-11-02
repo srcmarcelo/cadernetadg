@@ -43,7 +43,10 @@ import {
   SectionSubtitle,
   SectionTitle,
   SectionTitleGroup,
+  StatusChip,
   TotalBanner,
+  getItemStatus,
+  sortByStatus,
 } from '../../SharedCardStyles';
 
 function ReceiptFormEditor({ initialName = '', initialValue = 0, onSave, onCancel, saving }) {
@@ -115,7 +118,10 @@ export default function FixedReceipts() {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const items = [...resolvedFixedReceipts].reverse();
+  const rawItems = [...resolvedFixedReceipts].reverse();
+  const items = sortByStatus(rawItems, (it) =>
+    getItemStatus(it.effectiveReceived, it.effectiveDisabled)
+  );
   const pendingTotal = items.reduce(
     (sum, it) =>
       !it.effectiveReceived && !it.effectiveDisabled ? sum + it.effectiveValue : sum,
@@ -260,7 +266,8 @@ export default function FixedReceipts() {
                 ) : (
                   <ListItemCard
                     key={item.id}
-                    $muted={item.effectiveReceived || item.effectiveDisabled}
+                    $status={getItemStatus(item.effectiveReceived, item.effectiveDisabled)}
+                    $tone='income'
                   >
                     <ItemInfo>
                       <ItemTitleRow>
@@ -270,12 +277,19 @@ export default function FixedReceipts() {
                           {item.name}
                         </ItemName>
                         {item.effectiveReceived && (
-                          <Tag color='success' style={{ margin: 0 }}>
-                            Recebido
-                          </Tag>
+                          <StatusChip $status='done' $tone='income'>
+                            RECEBIDO
+                          </StatusChip>
                         )}
                         {item.effectiveDisabled && (
-                          <Tag style={{ margin: 0 }}>Ignorado</Tag>
+                          <StatusChip $status='ignored' $tone='income'>
+                            IGNORADO
+                          </StatusChip>
+                        )}
+                        {!item.effectiveReceived && !item.effectiveDisabled && (
+                          <StatusChip $status='pending' $tone='income'>
+                            A RECEBER
+                          </StatusChip>
                         )}
                       </ItemTitleRow>
                       <ItemAmount
@@ -284,6 +298,7 @@ export default function FixedReceipts() {
                             ? '#64748B'
                             : '#16A34A'
                         }
+                        $strike={item.effectiveReceived || item.effectiveDisabled}
                       >
                         {formatBRL(item.effectiveValue)}
                       </ItemAmount>
